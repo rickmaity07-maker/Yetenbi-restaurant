@@ -3,6 +3,8 @@ import nodemailer, { type Transporter } from "nodemailer";
 import { restaurant } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
 import type { Reservation } from "./reservations";
+import { cancelUrl } from "./cancel-token";
+import { siteUrl } from "@/lib/site-url";
 
 /*
   Booking emails, sent through a Gmail account with 2-Step Verification and an App Password
@@ -39,7 +41,7 @@ const longDate = (date: string, locale: Locale) =>
 
 type Kind = "received" | "confirmed" | "declined";
 
-const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; intro: string }> & { labels: string[]; outro: string; staffNote: string }> = {
+const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; intro: string }> & { labels: string[]; outro: string; staffNote: string; cancel: string }> = {
   de: {
     received: { subject: (r) => `Eure Anfrage bei Yetenbi (${r.reference})`, intro: "danke für eure Anfrage. Sie ist bei uns angekommen, wir melden uns, sobald der Tisch fest ist." },
     confirmed: { subject: (r) => `Bestätigt: euer Tisch bei Yetenbi (${r.reference})`, intro: "euer Tisch ist reserviert. Wir freuen uns auf euch! Im Anhang findet ihr einen Kalendereintrag." },
@@ -47,6 +49,7 @@ const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; i
     labels: ["Datum", "Uhrzeit", "Personen", "Nummer"],
     outro: "Bis bald in der Theaterstraße 6, Würzburg.",
     staffNote: "Nachricht vom Restaurant",
+    cancel: "Doch verhindert? Hier könnt ihr die Reservierung stornieren.",
   },
   en: {
     received: { subject: (r) => `Your request at Yetenbi (${r.reference})`, intro: "thank you for your request. It has reached us, and we'll be in touch as soon as your table is set." },
@@ -55,6 +58,7 @@ const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; i
     labels: ["Date", "Time", "Guests", "Reference"],
     outro: "See you soon at Theaterstraße 6, Würzburg.",
     staffNote: "Message from the restaurant",
+    cancel: "Can't make it after all? Cancel your reservation here.",
   },
   am: {
     received: { subject: (r) => `ጥያቄዎ ደርሶናል – Yetenbi (${r.reference})`, intro: "ስለ ጥያቄዎ እናመሰግናለን። ደርሶናል፤ ቦታው ሲዘጋጅ እናሳውቅዎታለን።" },
@@ -63,6 +67,7 @@ const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; i
     labels: ["ቀን", "ሰዓት", "የሰው ብዛት", "ቁጥር"],
     outro: "በቅርቡ እንገናኝ፣ Theaterstraße 6, Würzburg።",
     staffNote: "ከምግብ ቤቱ መልእክት",
+    cancel: "መምጣት ካልቻሉ ቦታውን እዚህ ይሰርዙ።",
   },
 };
 
@@ -123,9 +128,13 @@ function ics(r: Reservation) {
 
 /* ---------- senders ---------- */
 
-export async function sendGuestEmail(kind: Kind, r: Reservation) {
-  if (!isMailerConfigured()) return;
+export async function sendGuestEmail(kind: Kind, r: Reservation, origin = siteUrl()) {
+  if (!isMailerConfigured() || !r.email) return; // phone bookings may have no email
   const c = copy[r.locale];
+  const cancel =
+    kind === "declined"
+      ? ""
+      : `<p style="margin:18px 0 0;font-size:14px"><a href="${esc(cancelUrl(origin, r.reference))}" style="color:#e7cd8a">${esc(c.cancel)}</a></p>`;
   const note = r.staffNote ? `<p style="margin:16px 0 0;padding:12px 16px;border-left:2px solid #c9a24a;color:#e0d6c3"><em>${esc(c.staffNote)}:</em><br>${esc(r.staffNote)}</p>` : "";
   try {
     await mailer().sendMail({
@@ -133,7 +142,7 @@ export async function sendGuestEmail(kind: Kind, r: Reservation) {
       to: r.email,
       replyTo: process.env.RESERVATION_NOTIFY_EMAIL,
       subject: c[kind].subject(r),
-      html: layout(esc(r.name) + ",", `<p style="margin:0">${esc(c[kind].intro)}</p>${detailsTable(r)}${note}<p style="margin:22px 0 0;color:#b9ab92">${esc(c.outro)}</p>`),
+      html: layout(esc(r.name) + ",", `<p style="margin:0">${esc(c[kind].intro)}</p>${detailsTable(r)}${note}${cancel}<p style="margin:22px 0 0;color:#b9ab92">${esc(c.outro)}</p>`),
       attachments: kind === "confirmed" ? [{ filename: "yetenbi.ics", content: ics(r), contentType: "text/calendar; charset=utf-8; method=PUBLISH" }] : [],
     });
   } catch (error) {
@@ -168,5 +177,65 @@ export async function notifyRestaurant(r: Reservation, origin: string) {
     });
   } catch (error) {
     console.error("Restaurant email failed", r.reference, error);
+  }
+}
+
+/** Tells the restaurant that a guest cancelled through the link in their email. */
+export async function notifyRestaurantCancelled(r: Reservation, origin = siteUrl()) {
+  if (!isMailerConfigured()) return;
+  try {
+    await mailer().sendMail({
+      from: from(),
+      to: process.env.RESERVATION_NOTIFY_EMAIL,
+      subject: `Storniert: ${r.guests} Pers., ${longDate(r.date, "de")} ${r.time} (${r.reference})`,
+      html: layout(
+        "Ein Gast hat storniert",
+        `<p style="margin:0">${esc(r.name)} hat die Reservierung ${esc(r.reference)} für ${esc(longDate(r.date, "de"))}, ${esc(r.time)} Uhr (${r.guests} Personen) storniert.</p><p style="margin:24px 0 0"><a href="${esc(origin)}/admin" style="color:#e7cd8a">Zur Übersicht</a></p>`,
+      ),
+    });
+  } catch (error) {
+    console.error("Cancellation email failed", r.reference, error);
+  }
+}
+
+const resetCopy: Record<Locale, { subject: string; intro: string; button: string; outro: string }> = {
+  de: {
+    subject: "Passwort zurücksetzen – Yetenbi",
+    intro: "über den Knopf unten könnt ihr ein neues Passwort für euer Yetenbi-Konto festlegen. Der Link ist eine Stunde gültig.",
+    button: "Neues Passwort festlegen",
+    outro: "Habt ihr das nicht angefordert? Dann ignoriert diese E-Mail einfach.",
+  },
+  en: {
+    subject: "Reset your password – Yetenbi",
+    intro: "use the button below to choose a new password for your Yetenbi account. The link is valid for one hour.",
+    button: "Choose a new password",
+    outro: "Didn't ask for this? Just ignore this email.",
+  },
+  am: {
+    subject: "የይለፍ ቃል ዳግም ማስጀመሪያ – Yetenbi",
+    intro: "ከታች ያለውን ቁልፍ በመጫን አዲስ የይለፍ ቃል ያዘጋጁ። ሊንኩ ለአንድ ሰዓት ያገለግላል።",
+    button: "አዲስ የይለፍ ቃል",
+    outro: "ይህን ካልጠየቁ ኢሜይሉን ችላ ይበሉ።",
+  },
+};
+
+/** Password reset link; returns false when email is not configured (the page then says so). */
+export async function sendPasswordReset(to: string, name: string, locale: Locale, link: string) {
+  if (!isMailerConfigured()) return false;
+  const c = resetCopy[locale];
+  try {
+    await mailer().sendMail({
+      from: from(),
+      to,
+      subject: c.subject,
+      html: layout(
+        esc(name) + ",",
+        `<p style="margin:0">${esc(c.intro)}</p><p style="margin:24px 0"><a href="${esc(link)}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.button)}</a></p><p style="margin:0;color:#b9ab92">${esc(c.outro)}</p>`,
+      ),
+    });
+    return true;
+  } catch (error) {
+    console.error("Reset email failed", error);
+    return false;
   }
 }

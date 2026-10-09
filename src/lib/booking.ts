@@ -40,9 +40,9 @@ export function addDays(iso: string, days: number) {
   return t.toISOString().slice(0, 10);
 }
 
-/** Bookable start times on a date: every half hour from opening to the last seating. */
-export function slotsFor(date: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
+/** Bookable start times on a date: every half hour from opening to the last seating (none on closed days). */
+export function slotsFor(date: string, closures: string[] = []) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || closures.includes(date)) return [];
   const day = WEEK[weekdayOf(date)];
   if (!day) return [];
   const start = toMinutes(day.open);
@@ -52,21 +52,27 @@ export function slotsFor(date: string) {
   return out;
 }
 
-export function validateBooking(input: Partial<BookingRequest>, today = todayISO()): BookingErrors {
+export function validateBooking(
+  input: Partial<BookingRequest>,
+  today = todayISO(),
+  closures: string[] = [],
+  options: { emailOptional?: boolean } = {},
+): BookingErrors {
   const e: BookingErrors = {};
   if (!input.date || !/^\d{4}-\d{2}-\d{2}$/.test(input.date)) e.date = "date";
   else if (input.date < today) e.date = "past";
   else if (input.date > addDays(today, BOOKING.maxDaysAhead)) e.date = "far";
-  else if (!WEEK[weekdayOf(input.date)]) e.date = "closed";
+  else if (!WEEK[weekdayOf(input.date)] || closures.includes(input.date)) e.date = "closed";
 
   if (!input.time) e.time = "time";
-  else if (input.date && !e.date && !slotsFor(input.date).includes(input.time)) e.time = "slot";
+  else if (input.date && !e.date && !slotsFor(input.date, closures).includes(input.time)) e.time = "slot";
 
   if (!input.guests || input.guests < 1) e.guests = "guests";
   else if (input.guests > BOOKING.maxGuests) e.guests = "tooMany";
 
   if (!input.name || input.name.trim().length < 2 || input.name.length > 80) e.name = "name";
-  if (!input.email || input.email.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) e.email = "email";
+  const emailMissing = !input.email;
+  if ((emailMissing && !options.emailOptional) || (!emailMissing && (input.email!.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email!)))) e.email = "email";
   if (!input.phone || !/^[+\d][\d\s()/-]{5,24}$/.test(input.phone.trim())) e.phone = "phone";
   if (input.note && input.note.length > 280) e.note = "note";
   return e;

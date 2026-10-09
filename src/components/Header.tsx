@@ -1,7 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowUpRight, UserCircle } from "@phosphor-icons/react";
+import Link from "next/link";
+import { useAccount } from "@/lib/account-client";
 import { useState } from "react";
 import Jebena from "./Jebena";
 import Magnetic from "./motion/Magnetic";
@@ -17,6 +19,9 @@ export default function Header() {
   const { done } = useIntro();
   const { t } = useLanguage();
   useHtmlLang();
+  const me = useAccount();
+  const accountHref = me ? (me.role === "owner" ? "/admin" : "/profil") : "/login";
+  const accountLabel = me ? t.account.myAccount : t.account.signIn;
   const links = [
     { href: "#platte", label: t.nav.links.platte },
     { href: "#speisekarte", label: t.nav.links.karte },
@@ -62,6 +67,9 @@ export default function Header() {
           </ul>
 
           <div className="hidden items-center gap-3 lg:flex">
+            <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="flex h-9 w-9 items-center justify-center rounded-full text-cream/80 transition-colors hover:bg-cream/[0.06] hover:text-gold-soft">
+              <UserCircle size={24} weight={me ? "fill" : "light"} />
+            </Link>
             <LanguageToggle />
             <Magnetic strength={0.2}>
               <a
@@ -123,7 +131,11 @@ export default function Header() {
                 </li>
               ))}
             </ul>
-            <LanguageToggle className="mt-8 w-max" layoutId="lang-pill-mobile" />
+            <Link href={accountHref} onClick={() => setOpen(false)} className="mt-8 flex items-center gap-3 text-lg text-cream/85">
+              <UserCircle size={26} weight={me ? "fill" : "light"} className="text-gold-soft" />
+              {accountLabel}
+            </Link>
+            <LanguageToggle className="mt-6 w-max" layoutId="lang-pill-mobile" />
             <motion.a
               href="#reservieren"
               className="mt-6 flex items-center justify-between rounded-full bg-gold py-2 pl-6 pr-2 font-medium text-ink"

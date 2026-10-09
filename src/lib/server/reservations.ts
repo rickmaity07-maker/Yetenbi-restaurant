@@ -12,6 +12,7 @@ export type Reservation = BookingRequest & {
   locale: Locale;
   status: Status;
   staffNote: string;
+  source: "website" | "phone";
   createdAt: string;
 };
 
@@ -28,6 +29,7 @@ type Row = {
   locale: Locale;
   status: Status;
   staff_note: string;
+  source: "website" | "phone";
   created_at: string;
 };
 
@@ -44,6 +46,7 @@ const toReservation = (r: Row): Reservation => ({
   locale: r.locale,
   status: r.status,
   staffNote: r.staff_note,
+  source: r.source ?? "website",
   createdAt: String(r.created_at),
 });
 
@@ -61,12 +64,16 @@ export async function recentCount(email: string) {
   return row;
 }
 
-export async function createReservation(input: BookingRequest, locale: Locale) {
+export async function createReservation(
+  input: BookingRequest,
+  locale: Locale,
+  { source = "website", status = "pending", userId = null }: { source?: "website" | "phone"; status?: Status; userId?: number | null } = {},
+) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const [row] = (await db()`
-        insert into reservations (reference, date, time, guests, name, email, phone, note, locale)
-        values (${newReference()}, ${input.date}, ${input.time}, ${input.guests}, ${input.name}, ${input.email}, ${input.phone}, ${input.note}, ${locale})
+        insert into reservations (reference, date, time, guests, name, email, phone, note, locale, source, status, user_id)
+        values (${newReference()}, ${input.date}, ${input.time}, ${input.guests}, ${input.name}, ${input.email}, ${input.phone}, ${input.note}, ${locale}, ${source}, ${status}, ${userId})
         returning *
       `) as Row[];
       return toReservation(row);
@@ -86,6 +93,17 @@ export async function listReservations(fromDate?: string) {
   return rows.map(toReservation);
 }
 
+/** Reservations in a date range (inclusive), oldest first. */
+export async function listBetween(from: string, to: string) {
+  const rows = (await db()`select * from reservations where date between ${from} and ${to} order by date, time, id`) as Row[];
+  return rows.map(toReservation);
+}
+
+export async function findByReference(reference: string) {
+  const [row] = (await db()`select * from reservations where reference = ${reference}`) as Row[];
+  return row ? toReservation(row) : null;
+}
+
 export async function setStatus(id: number, status: Status, staffNote: string) {
   const [row] = (await db()`
     update reservations set status = ${status}, staff_note = ${staffNote}, updated_at = now()
@@ -98,4 +116,32 @@ export async function setStatus(id: number, status: Status, staffNote: string) {
 export async function purgeOld() {
   const rows = (await db()`delete from reservations where date < (now() at time zone 'Europe/Berlin')::date - 180 returning id`) as { id: string }[];
   return rows.length;
+}
+
+/** A guest's own bookings, newest first. */
+export async function listForUser(userId: number) {
+  const rows = (await db()`select * from reservations where user_id = ${userId} order by date desc, time desc`) as Row[];
+  return rows.map(toReservation);
+}
+
+/** Cancels a booking if it belongs to the user, lies in the future and is still open or confirmed. */
+export async function cancelForUser(id: number, userId: number) {
+  const [row] = (await db()`
+    update reservations set status = 'cancelled', updated_at = now()
+    where id = ${id} and user_id = ${userId} and status in ('pending', 'confirmed')
+      and date >= (now() at time zone 'Europe/Berlin')::date
+    returning *
+  `) as Row[];
+  return row ? toReservation(row) : null;
+}
+
+/** Cancels a booking by reference (signed link from the guest's email). */
+export async function cancelByReference(reference: string) {
+  const [row] = (await db()`
+    update reservations set status = 'cancelled', updated_at = now()
+    where reference = ${reference} and status in ('pending', 'confirmed')
+      and date >= (now() at time zone 'Europe/Berlin')::date
+    returning *
+  `) as Row[];
+  return row ? toReservation(row) : null;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { berlinNow, groupedHours, openState } from "@/lib/hours";
 import { useLanguage } from "@/lib/language";
+import { useClosures } from "@/lib/account-client";
 
 /** Weekly hours, grouped ("Mo, Di"), with today highlighted and a live open/closed line (client-only: depends on the clock). */
 export default function HoursTable() {
@@ -16,6 +17,7 @@ export default function HoursTable() {
     return () => clearInterval(id);
   }, []);
 
+  const closures = useClosures().slice(0, 3);
   const rows = groupedHours();
   const label = (days: number[]) => {
     const names = days.map((d) => t.daysShort[d]);
@@ -46,6 +48,11 @@ export default function HoursTable() {
           </>
         )}
       </p>
+      {closures.map((c) => (
+        <p key={c.date} className="mt-1 text-sm text-[#f0a080]">
+          {t.visit.closedOn(new Date(`${c.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" }), c.note)}
+        </p>
+      ))}
     </div>
   );
 }

@@ -1,12 +1,16 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { LalibelaCross } from "@/components/heritage/Ornaments";
-import { isAdmin, isAdminConfigured } from "@/lib/server/admin-auth";
+import { addDays, todayISO } from "@/lib/booking";
+import { logout } from "@/app/account-actions";
+import { requireOwner } from "@/lib/server/auth";
+import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
 import { isMailerConfigured } from "@/lib/server/mailer";
-import { listReservations, type Reservation, type Status } from "@/lib/server/reservations";
-import { decide, logout } from "./actions";
+import { listBetween, listReservations, type Reservation, type Status } from "@/lib/server/reservations";
+import { decide, removeClosedDay } from "./actions";
+import { ClosedDayForm, PhoneBookingForm, PromoteForm } from "./AdminForms";
 
 const STATUS: Record<Status, { label: string; tone: string }> = {
   pending: { label: "Offen", tone: "border-gold/60 text-gold-soft" },
@@ -18,7 +22,7 @@ const STATUS: Record<Status, { label: string; tone: string }> = {
 const dayLabel = (iso: string) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
-function Card({ r }: { r: Reservation }) {
+function Card({ r, past }: { r: Reservation; past: boolean }) {
   const s = STATUS[r.status];
   return (
     <li className="border border-gold/25 bg-ink/60 p-5 md:p-6">
@@ -28,18 +32,25 @@ function Card({ r }: { r: Reservation }) {
         </p>
         <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${s.tone}`}>{s.label}</span>
       </div>
-      <p className="mt-2 text-lg text-cream/90">{r.name}</p>
+      <p className="mt-2 text-lg text-cream/90">
+        {r.name}
+        {r.source === "phone" && <span className="ml-2 text-xs uppercase tracking-[0.2em] text-cream/50">Telefon</span>}
+      </p>
       <p className="mt-1 text-sm text-cream/70">
         <a className="underline decoration-gold/40 underline-offset-4" href={`tel:${r.phone}`}>{r.phone}</a>
-        {"  ·  "}
-        <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${r.email}`}>{r.email}</a>
+        {r.email && (
+          <>
+            {"  ·  "}
+            <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${r.email}`}>{r.email}</a>
+          </>
+        )}
         {"  ·  "}
         {r.reference} · {r.locale.toUpperCase()}
       </p>
       {r.note && <p className="mt-3 border-l-2 border-gold/50 pl-3 text-sm italic text-cream/80">{r.note}</p>}
       {r.staffNote && <p className="mt-2 text-xs text-cream/55">Eure Nachricht: {r.staffNote}</p>}
 
-      {r.status === "pending" && (
+      {!past && r.status === "pending" && (
         <form action={decide} className="mt-5 space-y-3">
           <input type="hidden" name="id" value={r.id} />
           <input
@@ -59,7 +70,7 @@ function Card({ r }: { r: Reservation }) {
           </div>
         </form>
       )}
-      {r.status === "confirmed" && (
+      {!past && r.status === "confirmed" && (
         <form action={decide} className="mt-4">
           <input type="hidden" name="id" value={r.id} />
           <input type="hidden" name="note" value={r.staffNote} />
@@ -72,62 +83,115 @@ function Card({ r }: { r: Reservation }) {
   );
 }
 
-async function Board() {
-  // Always decide at request time (env, cookie, database), never in the build's static shell.
-  await connection();
-  if (!isAdminConfigured()) {
-    return <Notice title="Noch nicht eingerichtet" text="Setzt ADMIN_PASSWORD in den Umgebungsvariablen, um die Verwaltung zu nutzen." />;
-  }
-  if (!(await isAdmin())) redirect("/admin/login");
-  if (!hasDatabase()) {
-    return <Notice title="Keine Datenbank verbunden" text="Ohne DATABASE_URL laufen Anfragen über WhatsApp. Verbindet eine Neon-Datenbank und führt npm run db:setup aus." />;
-  }
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="border border-gold/20 bg-ink/40 p-6 md:p-8">
+      <h2 className="font-display text-2xl font-semibold text-gold-soft">{title}</h2>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
 
-  const all = await listReservations();
-  const pending = all.filter((r) => r.status === "pending");
+async function Board({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await connection();
+  const me = await requireOwner();
+  if (!hasDatabase()) {
+    return <p className="mt-12 text-cream/70">Keine Datenbank verbunden (DATABASE_URL fehlt).</p>;
+  }
+  const past = (await searchParams).ansicht === "frueher";
+  const today = todayISO();
+  const [list, closures] = await Promise.all([
+    past ? listBetween(addDays(today, -60), addDays(today, -1)) : listReservations(),
+    upcomingClosures(),
+  ]);
+  const ordered = past ? [...list].reverse() : list;
+  const pending = list.filter((r) => r.status === "pending");
   const byDate = new Map<string, Reservation[]>();
-  for (const r of all) byDate.set(r.date, [...(byDate.get(r.date) ?? []), r]);
+  for (const r of ordered) byDate.set(r.date, [...(byDate.get(r.date) ?? []), r]);
 
   return (
     <>
-      <div className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm text-cream/75">
-        <p>
-          <span className="font-display text-3xl text-gold-soft">{pending.length}</span> offen
-        </p>
-        <p>
-          <span className="font-display text-3xl text-gold-soft">{all.filter((r) => r.status === "confirmed").length}</span> bestätigt (ab heute)
-        </p>
-        {!isMailerConfigured() && <p className="self-end text-[#f0a080]">E-Mail-Versand ist noch nicht eingerichtet.</p>}
-      </div>
+      <p className="mt-3 text-sm text-cream/60">Angemeldet als {me.name} ({me.email})</p>
 
-      {all.length === 0 && <p className="mt-16 font-display text-2xl italic text-cream/70">Noch keine Reservierungen ab heute.</p>}
+      {!past && (
+        <div className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm text-cream/75">
+          <p>
+            <span className="font-display text-3xl text-gold-soft">{pending.length}</span> offen
+          </p>
+          <p>
+            <span className="font-display text-3xl text-gold-soft">{list.filter((r) => r.status === "confirmed").length}</span> bestätigt (ab heute)
+          </p>
+          {!isMailerConfigured() && <p className="self-end text-[#f0a080]">E-Mail-Versand ist noch nicht eingerichtet.</p>}
+        </div>
+      )}
 
-      <div className="mt-12 space-y-12">
-        {[...byDate.entries()].map(([date, list]) => (
+      <nav className="mt-10 flex gap-6 border-b border-gold/20 text-sm" aria-label="Ansicht">
+        <Link href="/admin" className={`pb-3 ${!past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}>
+          Ab heute
+        </Link>
+        <Link href="/admin?ansicht=frueher" className={`pb-3 ${past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}>
+          Letzte 60 Tage
+        </Link>
+      </nav>
+
+      {ordered.length === 0 && (
+        <p className="mt-12 font-display text-2xl italic text-cream/70">{past ? "Keine Reservierungen in den letzten 60 Tagen." : "Noch keine Reservierungen ab heute."}</p>
+      )}
+
+      <div className="mt-10 space-y-12">
+        {[...byDate.entries()].map(([date, items]) => (
           <section key={date}>
-            <h2 className="font-display text-3xl font-semibold text-gold-soft">{dayLabel(date)}</h2>
+            <h2 className="font-display text-3xl font-semibold text-gold-soft">
+              {dayLabel(date)}
+              <span className="ml-3 text-base text-cream/55">
+                {items.filter((r) => r.status === "confirmed").reduce((n, r) => n + r.guests, 0)} Gäste bestätigt
+              </span>
+            </h2>
             <ul className="mt-5 grid gap-4 md:grid-cols-2">
-              {list.map((r) => (
-                <Card key={r.id} r={r} />
+              {items.map((r) => (
+                <Card key={r.id} r={r} past={past} />
               ))}
             </ul>
           </section>
         ))}
       </div>
+
+      {!past && (
+        <div className="mt-16 grid gap-6">
+          <Panel title="Telefonische Reservierung eintragen">
+            <PhoneBookingForm />
+          </Panel>
+          <Panel title="Schließtage">
+            <p className="mb-5 text-sm text-cream/65">An diesen Tagen nimmt die Website keine Reservierungen an; die Anfahrt zeigt den Hinweis.</p>
+            {closures.length > 0 && (
+              <ul className="mb-6 space-y-2">
+                {closures.map((c) => (
+                  <li key={c.date} className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 pb-2">
+                    <span className="text-cream">
+                      {dayLabel(c.date)}
+                      {c.note && <span className="text-cream/60"> · {c.note}</span>}
+                    </span>
+                    <form action={removeClosedDay}>
+                      <input type="hidden" name="date" value={c.date} />
+                      <button className="text-xs text-cream/60 underline underline-offset-4 hover:text-[#f0a080]">Entfernen</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <ClosedDayForm />
+          </Panel>
+          <Panel title="Team">
+            <p className="mb-5 text-sm text-cream/65">Wer sich unter /login registriert hat, kann hier Zugriff auf die Verwaltung bekommen.</p>
+            <PromoteForm />
+          </Panel>
+        </div>
+      )}
     </>
   );
 }
 
-function Notice({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="mt-12 border border-gold/30 p-6">
-      <p className="font-display text-2xl text-cream">{title}</p>
-      <p className="mt-2 text-cream/70">{text}</p>
-    </div>
-  );
-}
-
-export default function AdminPage() {
+export default function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <main id="main" className="mx-auto max-w-5xl px-5 py-16 md:py-24">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -135,13 +199,18 @@ export default function AdminPage() {
           <LalibelaCross className="h-8 w-8 text-gold" />
           <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">Reservierungen</h1>
         </div>
-        <form action={logout}>
-          <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-cream">Abmelden</button>
-        </form>
+        <div className="flex items-center gap-5 text-sm">
+          <Link href="/" className="text-cream/70 underline underline-offset-4 hover:text-cream">
+            Website
+          </Link>
+          <form action={logout}>
+            <button className="text-cream/70 underline underline-offset-4 hover:text-cream">Abmelden</button>
+          </form>
+        </div>
       </div>
-      {/* reads the session cookie and the database: streams in at request time */}
+      {/* reads the session, the URL and the database: streams in at request time */}
       <Suspense fallback={<p className="mt-12 text-cream/60">Lade Reservierungen …</p>}>
-        <Board />
+        <Board searchParams={searchParams} />
       </Suspense>
     </main>
   );

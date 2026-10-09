@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { restaurant } from "@/lib/data";
 import { addDays, BOOKING, slotsFor, todayISO, validateBooking, whatsappLink, type BookingErrorCode, type BookingErrors, type BookingRequest } from "@/lib/booking";
 import { useLanguage } from "@/lib/language";
+import { useAccount, useClosures } from "@/lib/account-client";
 import Embers from "../motion/Embers";
 import { ease, Heading, Rise } from "../ui/primitives";
 import { AksumFrame, LalibelaCross, Tibeb } from "../heritage/Ornaments";
@@ -106,12 +107,22 @@ export default function Reservation() {
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [today, setToday] = useState<string>();
   const [honeypot, setHoneypot] = useState("");
+  const me = useAccount();
+  const closures = useClosures();
+  const closedDates = useMemo(() => closures.map((c) => c.date), [closures]);
+
+  // Signed-in guests get their details filled in (only into empty fields).
+  useEffect(() => {
+    if (!me) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setForm((f) => ({ ...f, name: f.name || me.name, email: f.email || me.email, phone: f.phone || me.phone }));
+  }, [me]);
 
   // "Today" is only known in the browser; the static prerender must not depend on it.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setToday(todayISO()), []);
 
-  const slots = useMemo(() => slotsFor(form.date), [form.date]);
+  const slots = useMemo(() => slotsFor(form.date, closedDates), [form.date, closedDates]);
   const err = (code?: BookingErrorCode) => (code ? t.reserve.errors[code] : undefined);
 
   const set = <K extends keyof BookingRequest>(key: K, value: BookingRequest[K]) => {
@@ -119,7 +130,7 @@ export default function Reservation() {
       const next = { ...f, [key]: value };
       // keep the time valid for the newly chosen day
       if (key === "date") {
-        const s = slotsFor(String(value));
+        const s = slotsFor(String(value), closedDates);
         if (!s.includes(next.time)) next.time = s.includes("19:00") ? "19:00" : (s[0] ?? "");
       }
       return next;
@@ -133,7 +144,7 @@ export default function Reservation() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const found = validateBooking(form);
+    const found = validateBooking(form, undefined, closedDates);
     setErrors(found);
     if (Object.keys(found).length) return;
     setSending(true);

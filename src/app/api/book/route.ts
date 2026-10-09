@@ -4,6 +4,8 @@ import { LOCALES, type Locale } from "@/lib/i18n";
 import { hasDatabase } from "@/lib/server/db";
 import { notifyRestaurant, sendGuestEmail } from "@/lib/server/mailer";
 import { createReservation, recentCount } from "@/lib/server/reservations";
+import { upcomingClosures } from "@/lib/server/closures";
+import { getCurrentUser } from "@/lib/server/auth";
 
 /*
   Reservation requests from the website. A valid request is stored as "pending", the guest gets a
@@ -34,18 +36,20 @@ export async function POST(request: Request) {
   };
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
-  const errors = validateBooking(clean);
+  const closures = (await upcomingClosures()).map((c) => c.date);
+  const errors = validateBooking(clean, undefined, closures);
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 
   // Each request emails the restaurant, so one address can't flood it: 3 open requests, 10 a day.
   const recent = await recentCount(clean.email);
   if (recent.open >= 3 || recent.day >= 10) return Response.json({ code: "busy" }, { status: 429 });
 
-  const reservation = await createReservation(clean, locale);
+  const me = await getCurrentUser();
+  const reservation = await createReservation(clean, locale, { userId: me?.id ?? null });
   const origin = new URL(request.url).origin;
   after(async () => {
     await notifyRestaurant(reservation, origin);
-    await sendGuestEmail("received", reservation);
+    await sendGuestEmail("received", reservation, origin);
   });
 
   return Response.json({ reference: reservation.reference }, { status: 201 });
