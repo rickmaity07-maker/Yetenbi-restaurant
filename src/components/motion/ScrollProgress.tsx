@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
 import { useLenis } from "lenis/react";
 import { useState } from "react";
+import { useLanguage } from "@/lib/language";
 
 /** Thin gold reading bar along the top plus a circular back-to-top button. */
 export default function ScrollProgress() {
@@ -10,6 +11,7 @@ export default function ScrollProgress() {
   const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 30, restDelta: 0.001 });
   const [visible, setVisible] = useState(false);
   const lenis = useLenis();
+  const { t } = useLanguage();
 
   useMotionValueEvent(scrollYProgress, "change", (v) => setVisible(v > 0.08));
 
@@ -23,7 +25,7 @@ export default function ScrollProgress() {
         {visible && (
           <motion.button
             type="button"
-            aria-label="Nach oben"
+            aria-label={t.toTop}
             onClick={() => (lenis ? lenis.scrollTo(0, { duration: 2 }) : window.scrollTo({ top: 0 }))}
             className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink/80 backdrop-blur-md"
             initial={{ opacity: 0, scale: 0.5, y: 20 }}

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 import Embers from "../motion/Embers";
 import { ease, Heading, Rise } from "../ui/primitives";
+import { useLanguage } from "@/lib/language";
 
 /* The 33 base consonants of the fidel, each with its seven vowel orders (Unicode Ethiopic block). */
 const ROW_STARTS = [
@@ -13,18 +14,20 @@ const ROW_STARTS = [
 ];
 const FIDEL = ROW_STARTS.map((start) => Array.from({ length: 7 }, (_, i) => String.fromCodePoint(start + i)));
 
+/* The words themselves; their meaning and when-to-say-it come from the dictionary (amharisch.phrases). */
 const phrases = [
-  { am: "ሰላም", latin: "Selam", de: "Hallo", when: "Zur Begrüßung, und es heißt zugleich Frieden." },
-  { am: "ጤና ይስጥልኝ", latin: "Tena yistilign", de: "Guten Tag", when: "Die höfliche Begrüßung: Gott gebe Ihnen Gesundheit." },
-  { am: "አመሰግናለሁ", latin: "Ameseginalehu", de: "Danke", when: "Wenn das Injera nachgelegt wird." },
-  { am: "በጣም ጣፋጭ ነው", latin: "Betam tafach new", de: "Sehr lecker", when: "Das hört die Küche am liebsten." },
-  { am: "ቡና", latin: "Buna", de: "Kaffee", when: "Das Herz jeder Zeremonie, dreimal eingeschenkt." },
-  { am: "ጉርሻ", latin: "Gursha", de: "Ein Bissen aus der Hand", when: "Wenn man dem Gegenüber einen Happen reicht." },
+  { am: "ሰላም", latin: "Selam" },
+  { am: "ጤና ይስጥልኝ", latin: "Tena yistilign" },
+  { am: "አመሰግናለሁ", latin: "Ameseginalehu" },
+  { am: "በጣም ጣፋጭ ነው", latin: "Betam tafach new" },
+  { am: "ቡና", latin: "Buna" },
+  { am: "ጉርሻ", latin: "Gursha" },
 ];
 
 /** A few words of Amharic for the evening. Choosing a phrase lights up its letters in the fidel chart. */
 export default function Amharisch() {
   const [active, setActive] = useState(0);
+  const { t, locale } = useLanguage();
   const letters = useMemo(() => new Set([...phrases[active].am].filter((c) => c.trim())), [active]);
   const p = phrases[active];
 
@@ -32,11 +35,10 @@ export default function Amharisch() {
     <section id="amharisch" className="relative overflow-hidden py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
       <Embers count={10} />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
-        <Heading label="Fidel · ፊደል" title="Ein bisschen Amharisch" em="für den Abend." size="md" />
+        <Heading key={locale} label={t.amharisch.label} title={t.amharisch.title} em={t.amharisch.em} size="md" />
         <Rise delay={0.15}>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-cream/72">
-            Amharisch schreibt man mit dem Fidel, einer der ältesten Schriften Afrikas. Jedes Zeichen ist eine Silbe: ein Konsonant in
-            sieben Vokalformen.
+            {t.amharisch.intro}
           </p>
         </Rise>
 
@@ -63,7 +65,7 @@ export default function Amharisch() {
                       </span>
                       <span className="mt-1 block font-display text-lg italic text-cream/68">{ph.latin}</span>
                     </span>
-                    <span className={`font-display text-xl transition-colors duration-500 md:text-2xl ${on ? "text-cream" : "text-cream/55"}`}>{ph.de}</span>
+                    <span className={`font-display text-xl transition-colors duration-500 md:text-2xl ${on ? "text-cream" : "text-cream/55"}`}>{t.amharisch.phrases[i].meaning}</span>
                   </button>
                 </li>
               );
@@ -89,14 +91,14 @@ export default function Amharisch() {
               <div className="mt-6 border-t border-gold/20 pt-5">
                 <AnimatePresence mode="wait">
                   <motion.p
-                    key={p.latin}
+                    key={`${locale}-${p.latin}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.4, ease }}
                     className="font-display text-lg italic leading-snug text-cream/80"
                   >
-                    {p.when}
+                    {t.amharisch.phrases[active].when}
                   </motion.p>
                 </AnimatePresence>
               </div>

@@ -5,6 +5,7 @@ import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, use
 import { useLenis } from "lenis/react";
 import { useCallback, useEffect, useState } from "react";
 import { useIntro } from "./IntroState";
+import { useLanguage } from "@/lib/language";
 
 const ParticleJourney = dynamic(() => import("../three/ParticleJourney"), { ssr: false });
 
@@ -35,6 +36,7 @@ function Caption({ progress, range, text, am }: { progress: MotionValue<number>;
 /** Full-screen particle story that plays by itself on load, then lifts away to reveal the site. */
 export default function Intro() {
   const { done, finish } = useIntro();
+  const { t } = useLanguage();
   const reduce = useReducedMotion();
   const lenis = useLenis();
   const progress = useMotionValue(0);
@@ -89,8 +91,8 @@ export default function Intro() {
           </div>
           <motion.div style={{ opacity: flash }} className="pointer-events-none absolute inset-0 bg-gold-soft mix-blend-overlay" />
 
-          {captions.map((c) => (
-            <Caption key={c.text} progress={progress} {...c} />
+          {captions.map((c, i) => (
+            <Caption key={c.text} progress={progress} {...c} text={t.intro.captions[i]} />
           ))}
 
           <div className="absolute inset-x-0 top-0 h-[2px] bg-cream/5">
@@ -102,7 +104,7 @@ export default function Intro() {
             onClick={leave}
             className="absolute bottom-6 right-6 rounded-full border border-cream/15 bg-ink/40 px-5 py-2.5 text-xs font-medium tracking-wide text-cream/80 backdrop-blur-md transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-gold/60 hover:text-gold-soft active:scale-[0.97] md:bottom-8 md:right-8"
           >
-            Intro überspringen
+            {t.intro.skip}
           </button>
         </motion.div>
       )}

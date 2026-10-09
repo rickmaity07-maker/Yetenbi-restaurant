@@ -8,6 +8,7 @@ import { restaurant } from "@/lib/data";
 import Magnetic from "./motion/Magnetic";
 import Embers from "./motion/Embers";
 import { useIntro } from "./intro/IntroState";
+import { useLanguage } from "@/lib/language";
 import { ArrowRight } from "@phosphor-icons/react";
 import Stela, { STELA_FLOORS } from "./heritage/Stela";
 import { LalibelaCross, Tibeb } from "./heritage/Ornaments";
@@ -24,6 +25,7 @@ export default function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "-40%"]);
   const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const { done } = useIntro();
+  const { t } = useLanguage();
   const [lit, setLit] = useState(0);
 
   // Once the lines are drawn, the windows light up one storey at a time.
@@ -78,7 +80,7 @@ export default function Hero() {
           animate={done ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 1, ease, delay: intro }}
         >
-          እንኳን ደህና መጡ · Willkommen
+          እንኳን ደህና መጡ · {t.hero.welcome}
         </motion.p>
 
         <h1
@@ -113,7 +115,7 @@ export default function Hero() {
           />
           <LalibelaCross className="h-5 w-5 shrink-0 text-gold" />
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/85 md:text-xs">
-            {restaurant.tagline} · {restaurant.subtitle}
+            {t.hero.tagline}
           </p>
         </motion.div>
 
@@ -123,7 +125,7 @@ export default function Hero() {
           animate={done ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 1.2, ease, delay: intro + 0.85 }}
         >
-          Würzige Wots, frisches Injera und duftender Jebena-Kaffee, mitten in Würzburg.
+          {t.hero.subtitle}
         </motion.p>
 
         <motion.div
@@ -138,7 +140,7 @@ export default function Hero() {
               className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink"
             >
               <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
-              <span className="relative">Speisekarte entdecken</span>
+              <span className="relative">{t.hero.cta}</span>
               <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px"><ArrowRight size={14} weight="bold" /></span>
             </a>
           </Magnetic>
@@ -185,11 +187,11 @@ export default function Hero() {
         animate={done ? { opacity: 1 } : undefined}
         transition={{ duration: 1, delay: intro + 1.4 }}
       >
-        <li>Vor Ort, Abholung & Lieferung</li>
+        <li>{t.hero.services}</li>
         <li aria-hidden className="h-3 w-px bg-gold/50" />
         <li>{restaurant.street}</li>
         <li aria-hidden className="h-3 w-px bg-gold/50" />
-        <li>{restaurant.priceRange}</li>
+        <li>{t.hero.price}</li>
       </motion.ul>
       <motion.div
         className="absolute inset-x-0 bottom-0"

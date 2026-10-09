@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import Stela, { STELA_FLOORS } from "./heritage/Stela";
+import { useLanguage } from "@/lib/language";
 
 const chapters = [
   { id: "willkommen", label: "Willkommen" },
@@ -16,6 +17,7 @@ const chapters = [
 /** A small Aksum stela on the right edge: its storeys light up as you travel down the page, fully lit at the end. */
 export default function SideRail() {
   const [current, setCurrent] = useState(-1);
+  const { t } = useLanguage();
   const [lit, setLit] = useState(0);
   const { scrollY, scrollYProgress } = useScroll();
   // Stay out of the hero, which has its own stelae; fade in once it has scrolled away.
@@ -39,7 +41,7 @@ export default function SideRail() {
     return () => io.disconnect();
   }, []);
 
-  const label = chapters[current]?.label;
+  const label = current >= 0 ? t.rail[current] : undefined;
 
   return (
     <motion.aside style={{ opacity: show }} aria-hidden className="pointer-events-none fixed right-5 top-1/2 z-30 hidden will-change-[opacity] -translate-y-1/2 flex-col items-center gap-4 xl:flex">

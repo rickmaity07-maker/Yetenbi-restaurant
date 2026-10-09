@@ -5,14 +5,17 @@ import { useRef, useState } from "react";
 import hero from "../../../public/img/hero.jpg";
 import { Ambient, ease, Heading } from "../ui/primitives";
 import { LalibelaCross } from "../heritage/Ornaments";
+import { useLanguage } from "@/lib/language";
+import type { Dict } from "@/lib/i18n";
+import type { Tag } from "@/lib/data";
 import { geez } from "@/lib/ethiopic";
 
 type Dish = {
   name: string;
   amharic: string;
-  text: string;
   price: string;
-  tags: string[];
+  slug: keyof Dict["platte"]["dishes"];
+  tags: Tag[];
   photo: string; // pre-cropped 320px dish photo
 };
 
@@ -20,49 +23,49 @@ const dishes: Dish[] = [
   {
     name: "Kitfo",
     amharic: "የተንቢ ክትፎ",
-    text: "Gehacktes Rindfleisch nach Gurage-Art, mit gewürzter Spezialbutter. Die Hausspezialität.",
     price: "18,00",
-    tags: ["Hausspezialität"],
+    tags: ["special"],
+    slug: "kitfo",
     photo: "/img/dish/kitfo.jpg",
   },
   {
     name: "Shekila Tibs",
     amharic: "ሸክላ ጥብስ",
-    text: "Lammwürfel, trocken gebraten mit Zwiebeln, im heißen Tontopf mit Awaze und Senf.",
     price: "17,00",
-    tags: ["Scharf"],
+    tags: ["spicy"],
+    slug: "tibs",
     photo: "/img/dish/tibs.jpg",
   },
   {
     name: "Key Wot",
     amharic: "ቀይ ወጥ",
-    text: "Rindergulasch mit Berbere und Kibe, dazu Ayib, Shiro, Gomen und Rote Bete.",
     price: "16,00",
-    tags: ["Scharf"],
+    tags: ["spicy"],
+    slug: "keywot",
     photo: "/img/dish/keywot.jpg",
   },
   {
     name: "Misir Wot",
     amharic: "ምስር ወጥ",
-    text: "Geschälte Linsen in pikanter Sauce mit Kräutern, dazu gemischter Salat.",
     price: "15,00",
-    tags: ["Vegan", "Glutenfrei"],
+    tags: ["vegan", "glutenfree"],
+    slug: "misir",
     photo: "/img/dish/misir.jpg",
   },
   {
     name: "Shiro Wot",
     amharic: "ሽሮ ወጥ",
-    text: "Das Nationalgericht: gemahlene Erbsen in gewürzter Sauce, mit Tomaten und Gurke.",
     price: "15,00",
-    tags: ["Vegan", "Glutenfrei"],
+    tags: ["vegan", "glutenfree"],
+    slug: "shiro",
     photo: "/img/dish/shiro.jpg",
   },
   {
     name: "Atkilt Wot",
     amharic: "አትክልት ወጥ",
-    text: "Weißkohl, Karotten und grüne Bohnen, mild geschmort mit frischen Kräutern.",
     price: "15,00",
-    tags: ["Vegan", "Mild"],
+    tags: ["vegan", "mild"],
+    slug: "atkilt",
     photo: "/img/dish/atkilt.jpg",
   },
 ];
@@ -81,6 +84,7 @@ export default function Platte() {
   const root = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
+  const { t, locale } = useLanguage();
   const { scrollYProgress } = useScroll({ target: root, offset: ["start start", "end end"] });
   const turn = useSpring(useTransform(scrollYProgress, [0.06, 0.94], [0, -(N - 1) * STEP]), { stiffness: 90, damping: 24 });
   const bar = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
@@ -98,7 +102,7 @@ export default function Platte() {
         <div className="pointer-events-none absolute left-[25%] top-1/2 h-[90vmin] w-[90vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.18),transparent_62%)]" />
 
         <div className="relative mx-auto w-full max-w-7xl">
-          <Heading label="Die Platte" labelAm="መሶብ" title="Alles auf einer" em="Platte." size="md" />
+          <Heading key={locale} label={t.platte.label} labelAm={locale === "am" ? undefined : "መሶብ"} title={t.platte.title} em={t.platte.em} size="md" />
         </div>
 
         <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-6 md:grid-cols-12 md:gap-10">
@@ -179,10 +183,10 @@ export default function Platte() {
                     </motion.span>
                   ))}
                 </h3>
-                <p className="mt-3 max-w-md font-display text-lg italic leading-snug text-cream/85 md:mt-4 md:text-2xl">{dish.text}</p>
+                <p className="mt-3 max-w-md font-display text-lg italic leading-snug text-cream/85 md:mt-4 md:text-2xl">{t.platte.dishes[dish.slug]}</p>
                 <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
                   <span className="font-display text-3xl text-gold-soft md:text-4xl">{dish.price} €</span>
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-cream/68">{dish.tags.join(" / ")}</span>
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-cream/68">{dish.tags.map((g) => t.tags[g]).join(" / ")}</span>
                 </div>
               </motion.div>
             </AnimatePresence>

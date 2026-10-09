@@ -1,0 +1,48 @@
+import { menu, restaurant } from "@/lib/data";
+import { SCHEMA_DAYS, WEEK } from "@/lib/hours";
+import { siteUrl } from "@/lib/site-url";
+
+/** schema.org Restaurant data for search engines: address, hours, menu with prices, reservations. */
+export default function StructuredData() {
+  const url = siteUrl();
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "Yetenbi Äthiopisches Restaurant & Café",
+    alternateName: "የተንቢ",
+    url,
+    image: `${url}/opengraph-image`,
+    telephone: restaurant.phoneIntl,
+    servesCuisine: ["Ethiopian", "Äthiopisch", "Vegan"],
+    priceRange: "€€",
+    acceptsReservations: true,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: restaurant.street,
+      postalCode: restaurant.postalCode,
+      addressLocality: restaurant.locality,
+      addressCountry: "DE",
+    },
+    geo: { "@type": "GeoCoordinates", latitude: restaurant.geo.lat, longitude: restaurant.geo.lng },
+    openingHoursSpecification: WEEK.flatMap((h, i) =>
+      h ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: SCHEMA_DAYS[i], opens: h.open, closes: h.close }] : [],
+    ),
+    hasMenu: {
+      "@type": "Menu",
+      inLanguage: "de",
+      hasMenuSection: menu.map((c) => ({
+        "@type": "MenuSection",
+        name: c.title.de,
+        hasMenuItem: c.items.map((item) => ({
+          "@type": "MenuItem",
+          name: item.name.de,
+          ...(item.description ? { description: item.description.de } : {}),
+          offers: { "@type": "Offer", price: item.price.replace(",", "."), priceCurrency: "EUR" },
+          ...(item.tags?.includes("vegan") ? { suitableForDiet: "https://schema.org/VeganDiet" } : {}),
+        })),
+      })),
+    },
+  };
+  // JSON.stringify output with "<" escaped cannot break out of the script tag.
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\u003c") }} />;
+}

@@ -1,10 +1,13 @@
 "use client";
 
+import { useLanguage } from "@/lib/language";
+
 import { LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { Rise, Title } from "../ui/primitives";
 
 /** An Amharic proverb between two woven bands: together, small things hold something great. */
 export default function ProverbBand() {
+  const { t, locale } = useLanguage();
   return (
     <section aria-label="Äthiopisches Sprichwort" className="relative py-24 md:py-32 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
       <Tibeb className="opacity-70" />
@@ -17,12 +20,13 @@ export default function ProverbBand() {
         </Rise>
         <Title
           as="p"
-          text="Wenn sich Spinnweben verbinden, halten sie einen Löwen."
+          key={locale}
+          text={t.proverb.translation}
           className="mt-6 max-w-3xl text-[clamp(1.75rem,3.6vw,3.25rem)] font-medium italic leading-[1.15] text-cream"
           delay={0.2}
         />
         <Rise delay={0.4}>
-          <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/55">Äthiopisches Sprichwort</p>
+          <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/55">{t.proverb.caption}</p>
         </Rise>
       </div>
       <Tibeb className="opacity-70" />

@@ -8,30 +8,28 @@ import cups from "../../../public/img/cups.jpg";
 import incense from "../../../public/img/incense.jpg";
 import Embers from "../motion/Embers";
 import { ease, Heading } from "../ui/primitives";
+import { useLanguage } from "@/lib/language";
 import { AksumFrame } from "../heritage/Ornaments";
 import { geez } from "@/lib/ethiopic";
 
-type Round = { name: string; am: string; text: string; photo: StaticImageData; alt: string };
+type Round = { name: string; am: string; photo: StaticImageData; alt: string };
 
 const rounds: Round[] = [
   {
     name: "Abol",
     am: "አቦል",
-    text: "Die erste Runde ist die stärkste: frisch geröstet, frisch gemahlen, aus der ersten Brühung der Jebena.",
     photo: pour,
     alt: "Kaffee wird aus der Jebena gegossen",
   },
   {
     name: "Tona",
     am: "ቶና",
-    text: "Dasselbe Kaffeemehl wird neu aufgegossen. Milder, runder und gemacht für das Gespräch am Tisch.",
     photo: cups,
     alt: "Kleine Sini-Tassen auf einem Tablett",
   },
   {
     name: "Baraka",
     am: "በረካ",
-    text: "Die dritte Runde heißt Segen. Wer sie trinkt, geht beschenkt nach Hause, begleitet vom Duft des Weihrauchs.",
     photo: incense,
     alt: "Weihrauch steigt während der Zeremonie auf",
   },
@@ -58,6 +56,7 @@ const CUP = "M58 92 C58 128 78 146 100 146 C122 146 142 128 142 92 Z";
 export default function Buna() {
   const root = useRef<HTMLElement>(null);
   const [round, setRound] = useState(0);
+  const { t, locale } = useLanguage();
   const { scrollYProgress } = useScroll({ target: root, offset: ["start start", "end end"] });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => setRound(Math.min(2, Math.floor(v * 3))));
@@ -82,7 +81,7 @@ export default function Buna() {
         <div className="pointer-events-none absolute left-[28%] top-[55%] h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.2),rgba(218,90,26,0.06)_45%,transparent_70%)]" />
 
         <div className="relative mx-auto w-full max-w-7xl">
-          <Heading label="Jebena Buna" labelAm="ጀበና ቡና" title="Drei Runden" em="Kaffee." size="md" />
+          <Heading key={locale} label={t.buna.label} labelAm={locale === "am" ? undefined : "ጀበና ቡና"} title={t.buna.title} em={t.buna.em} size="md" />
         </div>
 
         <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-6 md:grid-cols-12 md:gap-10">
@@ -176,14 +175,14 @@ export default function Buna() {
                   exit={{ opacity: 0, y: -16, filter: "blur(6px)" }}
                   transition={{ duration: 0.55, ease }}
                 >
-                  <p className="flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/60">Runde {round + 1} von 3<span lang="am" className="font-ethiopic text-sm normal-case tracking-normal text-gold/80">{geez(round + 1)}</span></p>
+                  <p className="flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/60">{t.buna.roundOf(round + 1)}<span lang="am" className="font-ethiopic text-sm normal-case tracking-normal text-gold/80">{geez(round + 1)}</span></p>
                   <p className="mt-3 font-ethiopic text-lg text-gold/90" lang="am">
                     {r.am}
                   </p>
                   <h3 className="bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text pb-1 font-display text-[clamp(2.75rem,6vw,5.5rem)] font-bold uppercase leading-[0.95] tracking-[0.04em] text-transparent">
                     {r.name}
                   </h3>
-                  <p className="mt-4 max-w-sm font-display text-lg italic leading-snug text-cream/85 md:text-2xl">{r.text}</p>
+                  <p className="mt-4 max-w-sm font-display text-lg italic leading-snug text-cream/85 md:text-2xl">{t.buna.rounds[round]}</p>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -192,13 +191,13 @@ export default function Buna() {
 
         <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-end justify-between gap-6 border-t border-gold/20 pt-5">
           <p className="font-display text-cream/80">
-            <span className="text-2xl text-gold-soft md:text-3xl">6,90 €</span> Zeremonie für 2-3 Personen
+            <span className="text-2xl text-gold-soft md:text-3xl">6,90 €</span> {t.buna.small}
           </p>
           <p className="font-display text-cream/80">
-            <span className="text-2xl text-gold-soft md:text-3xl">9,90 €</span> für 4-5 Personen
+            <span className="text-2xl text-gold-soft md:text-3xl">9,90 €</span> {t.buna.large}
           </p>
           <p className="hidden font-display text-cream/80 md:block">
-            <span className="text-2xl text-gold-soft md:text-3xl">2,50 €</span> eine Tasse
+            <span className="text-2xl text-gold-soft md:text-3xl">2,50 €</span> {t.buna.cup}
           </p>
         </div>
       </div>

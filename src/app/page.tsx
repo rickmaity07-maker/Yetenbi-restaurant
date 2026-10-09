@@ -13,10 +13,12 @@ import Amharisch from "@/components/sections/Amharisch";
 import Visit from "@/components/sections/Visit";
 import Reservation from "@/components/sections/Reservation";
 import Footer from "@/components/sections/Footer";
+import StructuredData from "@/components/StructuredData";
 
 export default function Home() {
   return (
     <>
+      <StructuredData />
       <Intro />
       <ScrollProgress />
       <SideRail />

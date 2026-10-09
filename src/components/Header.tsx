@@ -6,19 +6,23 @@ import { useState } from "react";
 import Jebena from "./Jebena";
 import Magnetic from "./motion/Magnetic";
 import { useIntro } from "./intro/IntroState";
+import LanguageToggle from "./LanguageToggle";
+import { useHtmlLang, useLanguage } from "@/lib/language";
 
-const links = [
-  { href: "#platte", label: "Die Platte" },
-  { href: "#speisekarte", label: "Speisekarte" },
-  { href: "#kaffee", label: "Kaffee" },
-  { href: "#besuch", label: "Anfahrt" },
-];
 
 const spring = [0.32, 0.72, 0, 1] as const;
 
 export default function Header() {
   const { scrollY } = useScroll();
   const { done } = useIntro();
+  const { t } = useLanguage();
+  useHtmlLang();
+  const links = [
+    { href: "#platte", label: t.nav.links.platte },
+    { href: "#speisekarte", label: t.nav.links.karte },
+    { href: "#kaffee", label: t.nav.links.kaffee },
+    { href: "#besuch", label: t.nav.links.anfahrt },
+  ];
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -57,13 +61,14 @@ export default function Header() {
             ))}
           </ul>
 
-          <div className="hidden lg:block">
+          <div className="hidden items-center gap-3 lg:flex">
+            <LanguageToggle />
             <Magnetic strength={0.2}>
               <a
                 href="#reservieren"
                 className="group flex items-center gap-3 rounded-full bg-gold py-1.5 pl-5 pr-1.5 text-sm font-medium text-ink transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
               >
-                Tisch reservieren
+                {t.nav.reserve}
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-px group-hover:translate-x-0.5 group-hover:scale-105">
                   <ArrowUpRight size={15} weight="bold" />
                 </span>
@@ -74,7 +79,7 @@ export default function Header() {
           <button
             type="button"
             className="relative h-10 w-10 shrink-0 rounded-full bg-cream/[0.06] lg:hidden"
-            aria-label={open ? "Menü schließen" : "Menü öffnen"}
+            aria-label={open ? t.nav.close : t.nav.open}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
@@ -118,15 +123,16 @@ export default function Header() {
                 </li>
               ))}
             </ul>
+            <LanguageToggle className="mt-8 w-max" layoutId="lang-pill-mobile" />
             <motion.a
               href="#reservieren"
-              className="mt-10 flex items-center justify-between rounded-full bg-gold py-2 pl-6 pr-2 font-medium text-ink"
+              className="mt-6 flex items-center justify-between rounded-full bg-gold py-2 pl-6 pr-2 font-medium text-ink"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, ease: spring, delay: 0.4 }}
             >
-              Tisch reservieren
+              {t.nav.reserve}
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/10">
                 <ArrowUpRight size={18} weight="bold" />
               </span>

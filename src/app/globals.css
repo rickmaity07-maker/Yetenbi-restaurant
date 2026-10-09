@@ -12,8 +12,8 @@
   --color-eth-yellow: #fcdd09;
   --color-eth-red: #da121a;
 
-  --font-display: var(--font-cormorant);
-  --font-sans: var(--font-outfit);
+  --font-display: var(--font-cormorant), var(--font-noto-ethiopic), serif;
+  --font-sans: var(--font-outfit), var(--font-noto-ethiopic), sans-serif;
   --font-ethiopic: var(--font-noto-ethiopic);
 }
 

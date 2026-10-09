@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/lib/language";
 import { restaurant } from "@/lib/data";
 import FooterWordmark from "../FooterWordmark";
 import { Jebena3D } from "../three/Scenes";
@@ -6,21 +9,24 @@ import Stela from "../heritage/Stela";
 import { Tibeb } from "../heritage/Ornaments";
 
 export default function Footer() {
+  const { t, locale } = useLanguage();
   return (
     <footer className="relative overflow-hidden">
       <div className="pointer-events-none absolute left-1/2 top-0 h-[70vmin] w-[70vmin] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.16),transparent_65%)]" />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <div className="flex flex-col items-center pb-10 text-center">
           <Jebena3D className="h-[260px] w-full max-w-xs md:h-[320px]" />
-          <p className="-mt-4 font-display text-4xl italic text-cream md:text-5xl">Bis bald.</p>
-          <p className="mt-2 font-ethiopic text-lg text-gold/80" lang="am">
-            በሰላም ይመለሱ
-          </p>
+          <p className="-mt-4 font-display text-4xl italic text-cream md:text-5xl">{t.footer.bye}</p>
+          {locale !== "am" && (
+            <p className="mt-2 font-ethiopic text-lg text-gold/80" lang="am">
+              በሰላም ይመለሱ
+            </p>
+          )}
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
         <div className="flex flex-col gap-8 py-14 md:flex-row md:items-end md:justify-between">
           <p className="max-w-sm font-display text-2xl italic leading-snug text-cream/85">
-            Danke für Ihren Besuch. Genießen Sie äthiopische Gastfreundschaft.
+            {t.footer.thanks}
           </p>
           <div className="flex flex-col gap-1 text-sm text-cream/68 md:items-end">
             <span>
@@ -31,10 +37,10 @@ export default function Footer() {
             </a>
             <span className="mt-3 flex gap-6">
               <Link href="/impressum" className="transition-colors hover:text-gold-soft">
-                Impressum
+                {t.footer.imprint}
               </Link>
               <Link href="/datenschutz" className="transition-colors hover:text-gold-soft">
-                Datenschutz
+                {t.footer.privacy}
               </Link>
             </span>
           </div>

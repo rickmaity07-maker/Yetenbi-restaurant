@@ -3,45 +3,19 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Plus } from "@phosphor-icons/react";
 import { useState } from "react";
-import { openingHours, restaurant } from "@/lib/data";
+import { useLanguage } from "@/lib/language";
 import { ease, Heading, Rise } from "../ui/primitives";
-
-const facts = [
-  {
-    term: "Preise",
-    value: "10 bis 20 € pro Person",
-    detail: "So schätzen es 142 Gäste auf Google. Hauptgerichte kosten 15 bis 18 €, Sambusa gibt es ab 2,50 €.",
-  },
-  {
-    term: "Vegan",
-    value: "Vier Gerichte, alle glutenfrei",
-    detail: "Misir Wot, Shiro, Atkilt Wot und die vegane Beyaynetu-Platte. Injera aus Teff ist von Natur aus glutenfrei.",
-  },
-  {
-    term: "Mitnehmen",
-    value: "Abholung und Lieferung",
-    detail: "Ihr könnt auch abholen oder euch liefern lassen. Fragt uns einfach telefonisch.",
-  },
-  {
-    term: "Tradition",
-    value: "Gegessen wird mit der Hand",
-    detail: "Ein Stück Injera abreißen, damit zugreifen, teilen. Wer mag, reicht dem Gegenüber einen Bissen: das ist Gursha.",
-  },
-  {
-    term: "Geöffnet",
-    value: openingHours[0].time,
-    detail: `${openingHours[0].day}. Für Gruppen und die Kaffeezeremonie ruft am besten vorher an: ${restaurant.phone}.`,
-  },
-];
 
 /** Practical facts as large rows; each opens to a short explanation on hover or tap. */
 export default function Info() {
   const [open, setOpen] = useState<number | null>(null);
+  const { t, locale } = useLanguage();
+  const facts = [...t.info.facts, { term: t.info.hoursTerm, value: t.info.hoursValue, detail: t.info.hoursDetail }];
 
   return (
     <section className="relative py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <Heading title="Gut zu wissen," em="bevor ihr kommt." size="md" />
+        <Heading key={locale} title={t.info.title} em={t.info.em} size="md" />
 
         <dl className="mt-14 border-t border-gold/20">
           {facts.map((f, i) => {

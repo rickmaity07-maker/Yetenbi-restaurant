@@ -8,23 +8,24 @@ import platter from "../../../public/img/platter.jpg";
 import pour from "../../../public/img/jebena-pour.jpg";
 import Embers from "../motion/Embers";
 import { Ambient, Label } from "../ui/primitives";
+import { useLanguage } from "@/lib/language";
 
 type Token = { word: string; gold?: boolean } | { img: StaticImageData; alt: string };
 
-const words = (s: string, gold = false): Token[] => s.split(" ").map((word) => ({ word, gold }));
-
-const tokens: Token[] = [
-  ...words("Bei uns isst man mit den Händen"),
-  { img: baskets, alt: "Injera im geflochtenen Korb" },
-  ...words("von"),
-  ...words("einer Platte,", true),
-  { img: platter, alt: "Äthiopische Gerichte auf Injera" },
-  ...words("und trinkt Kaffee, der"),
-  ...words("dreimal", true),
-  ...words("eingeschenkt wird"),
-  { img: pour, alt: "Kaffee aus der Jebena" },
-  ...words("Äthiopisch, mitten in Würzburg."),
+const photos: { img: StaticImageData; alt: string }[] = [
+  { img: baskets, alt: "Injera" },
+  { img: platter, alt: "Beyaynetu" },
+  { img: pour, alt: "Jebena Buna" },
 ];
+
+/** "[0]" marks an inline photo, "*word" a gold italic word (see manifesto.text in lib/i18n). */
+function parse(text: string): Token[] {
+  return text.split(" ").filter(Boolean).map((w) => {
+    const m = w.match(/^\[(\d)\]$/);
+    if (m) return photos[Number(m[1])];
+    return w.startsWith("*") ? { word: w.slice(1), gold: true } : { word: w };
+  });
+}
 
 function Word({ token, range, progress }: { token: Extract<Token, { word: string }>; range: [number, number]; progress: MotionValue<number> }) {
   const opacity = useTransform(progress, range, [0.14, 1]);
@@ -54,6 +55,9 @@ export default function Manifesto() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 80%", "end 45%"] });
   const lit = useMotionValue(1);
+  const { t, locale } = useLanguage();
+  const tokens = parse(t.manifesto.text);
+  const plain = t.manifesto.text.replace(/\[\d\]\s?/g, "").replace(/\*/g, "");
   const progress = reduce ? lit : scrollYProgress;
 
   return (
@@ -61,10 +65,11 @@ export default function Manifesto() {
       <Ambient src={baskets} className="-right-[15%] top-0 h-full w-[70%]" opacity={0.4} />
       <Embers count={12} />
       <div className="relative z-10 mx-auto max-w-6xl px-5 md:px-8">
-        <Label am="እንኳን ደህና መጡ">Willkommen bei Yetenbi</Label>
+        <Label am={locale === "am" ? undefined : "እንኳን ደህና መጡ"}>{t.manifesto.label}</Label>
         <p
+          key={locale}
           ref={ref}
-          aria-label="Bei uns isst man mit den Händen von einer Platte, und trinkt Kaffee, der dreimal eingeschenkt wird. Äthiopisch, mitten in Würzburg."
+          aria-label={plain}
           className="mt-10 font-display text-[clamp(2.2rem,5vw,4.6rem)] font-medium leading-[1.14] tracking-tight text-cream"
         >
           {tokens.map((t, i) => {

@@ -1,20 +1,24 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowUpRight, MapPin } from "@phosphor-icons/react";
+import { useState } from "react";
 import jebenaSet from "../../../public/img/jebena-set.jpg";
 import cups from "../../../public/img/cups.jpg";
-import { openingHours, restaurant } from "@/lib/data";
+import { restaurant } from "@/lib/data";
+import HoursTable from "../heritage/HoursTable";
+import { useLanguage } from "@/lib/language";
 import Embers from "../motion/Embers";
 import { Ambient, CinematicImage, GoldButton, Heading, Rise } from "../ui/primitives";
 import { AksumFrame } from "../heritage/Ornaments";
 import EthiopianNow from "../heritage/EthiopianNow";
 
 export default function Visit() {
+  const { t, locale } = useLanguage();
+  const [mapOn, setMapOn] = useState(false);
   const rows = [
-    { term: "Geöffnet", value: `${openingHours[0].day}, ${openingHours[0].time}` },
-    { term: "Telefon", value: restaurant.phone, href: restaurant.phoneHref },
-    { term: "Service", value: "Vor Ort, Abholung, Lieferung" },
+    { term: t.visit.phone, value: restaurant.phone, href: restaurant.phoneHref },
+    { term: t.visit.service, value: t.visit.serviceValue },
   ];
 
   return (
@@ -24,7 +28,7 @@ export default function Visit() {
       <Embers count={12} />
 
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
-        <Heading label="Anfahrt" title="Theaterstraße 6," em="Würzburg." size="md" />
+        <Heading key={locale} label={t.visit.label} title={t.visit.title} em={t.visit.em} size="md" />
 
         <div className="mt-16 grid gap-10 lg:grid-cols-12 lg:gap-12">
           {/* Arch photo with the facts */}
@@ -32,12 +36,18 @@ export default function Visit() {
             <AksumFrame>
               <CinematicImage
                 src={jebenaSet}
-                alt="Jebena und Tassen für die Kaffeezeremonie"
+                alt={t.visit.photoAlt}
                 className="aspect-[4/5] lg:aspect-[5/4]"
                 sizes="(min-width: 1024px) 35vw, 45vw"
               />
             </AksumFrame>
             <dl className="space-y-5">
+              <Rise>
+                <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{t.visit.hours}</dt>
+                <dd className="mt-2">
+                  <HoursTable />
+                </dd>
+              </Rise>
               {rows.map((r, i) => (
                 <Rise key={r.term} delay={i * 0.08}>
                   <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{r.term}</dt>
@@ -57,7 +67,7 @@ export default function Visit() {
               </Rise>
               <Rise delay={0.3} className="pt-2">
                 <GoldButton href={restaurant.mapsUrl} external>
-                  Route planen
+                  {t.visit.route}
                 </GoldButton>
               </Rise>
             </dl>
@@ -67,13 +77,28 @@ export default function Visit() {
           <Rise className="lg:col-span-7" delay={0.15}>
             <AksumFrame className="h-full shadow-[0_60px_140px_-40px_rgba(201,162,74,0.28)]" inner="h-full">
               <div className="relative h-full">
-                <iframe
-                  title="Karte: Yetenbi, Theaterstraße 6, Würzburg"
-                  src={restaurant.mapsEmbed}
-                  className="block h-[420px] w-full [filter:invert(0.92)_hue-rotate(180deg)_saturate(0.3)_sepia(0.35)] lg:h-full lg:min-h-[600px]"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+                {mapOn ? (
+                  <iframe
+                    title="Karte: Yetenbi, Theaterstraße 6, Würzburg"
+                    src={restaurant.mapsEmbed}
+                    className="block h-[420px] w-full [filter:invert(0.92)_hue-rotate(180deg)_saturate(0.3)_sepia(0.35)] lg:h-full lg:min-h-[600px]"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                ) : (
+                  // Two-click map: nothing is requested from Google until the visitor asks for it (DSGVO).
+                  <div className="site-bg flex h-[420px] w-full flex-col items-center justify-center gap-4 px-6 text-center lg:h-full lg:min-h-[600px]">
+                    <MapPin size={40} weight="light" className="text-gold-soft" />
+                    <button
+                      type="button"
+                      onClick={() => setMapOn(true)}
+                      className="rounded-full border border-gold/60 px-6 py-3 text-sm font-semibold text-gold-soft transition-colors hover:bg-gold hover:text-ink"
+                    >
+                      {t.visit.mapLoad}
+                    </button>
+                    <p className="max-w-xs text-xs text-cream/60">{t.visit.mapNote}</p>
+                  </div>
+                )}
                 <a
                   href={restaurant.mapsUrl}
                   target="_blank"
@@ -85,7 +110,7 @@ export default function Visit() {
                   </span>
                   <span>
                     <span className="block font-display text-lg leading-tight text-cream">Yetenbi</span>
-                    <span className="text-xs text-cream/68">Nahe Mainfranken Theater</span>
+                    <span className="text-xs text-cream/68">{t.visit.near}</span>
                   </span>
                   <ArrowUpRight size={16} className="text-gold-soft transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>

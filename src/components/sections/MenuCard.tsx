@@ -13,6 +13,7 @@ import Jebena from "../Jebena";
 import Embers from "../motion/Embers";
 import { Ambient, ease, Lead, Rise, Title } from "../ui/primitives";
 import { AksumFrame, Harag, LalibelaCross, Tibeb } from "../heritage/Ornaments";
+import { useLanguage } from "@/lib/language";
 
 /** Dim photograph bleeding in from one side, like the pictures around the text on the printed menu. */
 function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right" }) {
@@ -48,6 +49,7 @@ function Ornament() {
 }
 
 function Item({ item, compact }: { item: MenuItem; compact: boolean }) {
+  const { t, locale } = useLanguage();
   return (
     <motion.li
       variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } } }}
@@ -59,7 +61,7 @@ function Item({ item, compact }: { item: MenuItem; compact: boolean }) {
             compact ? "text-xl" : "text-[1.6rem] leading-tight"
           }`}
         >
-          {item.name}
+          {item.name[locale]}
         </h4>
         <span aria-hidden className="mb-1.5 flex-1 border-b border-dotted border-gold/35" />
         <span className={`font-display tabular-nums text-gold-soft ${compact ? "text-xl" : "text-[1.6rem]"}`}>{item.price} €</span>
@@ -71,11 +73,11 @@ function Item({ item, compact }: { item: MenuItem; compact: boolean }) {
       )}
       {item.description && (
         <p className={`max-w-[60ch] leading-relaxed text-cream/68 ${compact ? "mt-0.5 text-sm" : "mt-2 text-[0.95rem]"}`}>
-          {item.description}
+          {item.description[locale]}
         </p>
       )}
       {item.tags && !compact && (
-        <p className="mt-2 font-display text-[0.95rem] italic text-gold/80">{item.tags.join(", ")}</p>
+        <p className="mt-2 font-display text-[0.95rem] italic text-gold/80">{item.tags.map((g) => t.tags[g]).join(", ")}</p>
       )}
     </motion.li>
   );
@@ -86,7 +88,8 @@ export default function MenuCard() {
   const [active, setActive] = useState(menu[0].id);
   const reduce = useReducedMotion();
   const category = menu.find((c) => c.id === active) ?? menu[0];
-  const compact = category.items.every((i) => !i.description || i.description.length < 40);
+  const compact = category.items.every((i) => !i.description || i.description.de.length < 40);
+  const { t, locale } = useLanguage();
 
   return (
     <section id="speisekarte" className="relative overflow-hidden py-32 md:py-48">
@@ -101,8 +104,8 @@ export default function MenuCard() {
           <Rise>
             <Jebena className="h-14 w-10 text-gold" draw />
           </Rise>
-          <Title text="Speisekarte" className="mt-6 text-[clamp(3rem,7vw,6rem)] leading-none text-cream" />
-          <Lead className="mt-5 max-w-xl text-center">Traditionelle Rezepte, frische Gewürze und Injera, jeden Tag neu gebacken.</Lead>
+          <Title key={locale} text={t.menu.title} className="mt-6 text-[clamp(3rem,7vw,6rem)] leading-none text-cream" />
+          <Lead className="mt-5 max-w-xl text-center">{t.menu.lead}</Lead>
         </div>
 
         <Rise className="mt-16" delay={0.15}>
@@ -117,7 +120,7 @@ export default function MenuCard() {
               </div>
               <Tibeb className="absolute inset-x-0 bottom-0 opacity-60" />
               <div aria-hidden className="grain pointer-events-none absolute inset-0 opacity-[0.06]" />
-              <div role="tablist" aria-label="Kategorien" className="-mx-5 flex gap-6 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:justify-center md:gap-x-7 md:gap-y-3 md:overflow-visible md:px-0">
+              <div role="tablist" aria-label={t.menu.categories} className="-mx-5 flex gap-6 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:justify-center md:gap-x-7 md:gap-y-3 md:overflow-visible md:px-0">
                 {menu.map((c) => (
                   <button
                     key={c.id}
@@ -128,7 +131,7 @@ export default function MenuCard() {
                       active === c.id ? "text-gold-soft" : "text-cream/50 hover:text-cream/85"
                     }`}
                   >
-                    {c.title}
+                    {c.title[locale]}
                     {active === c.id && (
                       <motion.span layoutId="menu-underline" className="absolute inset-x-0 bottom-0 h-px bg-gold" transition={{ duration: 0.6, ease }} />
                     )}
@@ -148,13 +151,13 @@ export default function MenuCard() {
                 >
                   <div className="text-center">
                     <h3 className="font-display text-2xl font-semibold uppercase tracking-[0.1em] text-gold-soft sm:text-3xl sm:tracking-[0.18em] md:text-4xl">
-                      {category.title}
+                      {category.title[locale]}
                     </h3>
                     <div className="mt-4">
                       <Ornament />
                     </div>
                     {category.note && (
-                      <p className="mx-auto mt-5 max-w-2xl font-display text-lg italic leading-snug text-cream/80">{category.note}</p>
+                      <p className="mx-auto mt-5 max-w-2xl font-display text-lg italic leading-snug text-cream/80">{category.note[locale]}</p>
                     )}
                   </div>
 
@@ -165,7 +168,7 @@ export default function MenuCard() {
                     className={`mt-12 ${compact ? "grid gap-x-14 gap-y-5 md:grid-cols-2" : "mx-auto max-w-3xl space-y-9"}`}
                   >
                     {category.items.map((item, i) => (
-                      <Item key={`${item.name}-${i}`} item={item} compact={compact} />
+                      <Item key={`${item.name.de}-${i}`} item={item} compact={compact} />
                     ))}
                   </motion.ul>
                 </motion.div>
@@ -173,8 +176,8 @@ export default function MenuCard() {
 
               <div className="mt-16 text-center">
                 <Ornament />
-                <p className="mt-5 font-display text-2xl italic text-cream/85">Wir wünschen einen guten Appetit</p>
-                <p className="mt-2 text-xs text-cream/50">Alle Preise in Euro inkl. MwSt. Fragen zu Allergenen beantworten wir gerne.</p>
+                <p className="mt-5 font-display text-2xl italic text-cream/85">{t.menu.appetit}</p>
+                <p className="mt-2 text-xs text-cream/50">{t.menu.priceNote}</p>
               </div>
             </div>
           </AksumFrame>

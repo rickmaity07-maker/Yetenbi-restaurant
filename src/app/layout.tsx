@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { siteUrl } from "@/lib/site-url";
 import { Cormorant_Garamond, Outfit, Noto_Sans_Ethiopic } from "next/font/google";
 import SmoothScroll from "@/components/motion/SmoothScroll";
 import { IntroProvider } from "@/components/intro/IntroState";
@@ -25,9 +26,29 @@ const ethiopic = Noto_Sans_Ethiopic({
 });
 
 export const metadata: Metadata = {
-  title: "Yetenbi | Äthiopisches Restaurant & Café in Würzburg",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "Yetenbi | Äthiopisches Restaurant & Café in Würzburg",
+    template: "%s | Yetenbi",
+  },
   description:
-    "Authentisch äthiopische Küche und traditionelle Kaffeezeremonie in der Theaterstraße 6, Würzburg. Kitfo, Tibs, Wot, vegane Beyaynetu und frische Jebena Buna.",
+    "Authentisch äthiopische Küche in der Theaterstraße 6, Würzburg: Kitfo, Tibs, Wot, vegane Beyaynetu-Platte auf Injera und die traditionelle Kaffeezeremonie. Jetzt Tisch reservieren.",
+  keywords: ["Äthiopisches Restaurant Würzburg", "Ethiopian restaurant Würzburg", "Injera", "Kaffeezeremonie", "vegan Würzburg", "Yetenbi"],
+  openGraph: {
+    type: "website",
+    locale: "de_DE",
+    alternateLocale: ["en_GB", "am_ET"],
+    siteName: "Yetenbi",
+    title: "Yetenbi | Äthiopisches Restaurant & Café in Würzburg",
+    description: "Würzige Wots, frisches Injera und duftender Jebena-Kaffee, mitten in Würzburg.",
+  },
+  twitter: { card: "summary_large_image" },
+  alternates: { canonical: "/" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1c1712",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
