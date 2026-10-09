@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { cancelMyBooking, changePassword, deleteAccount, logout, updateProfile } from "@/app/account-actions";
 import { content, LOCALES, type Locale } from "@/lib/i18n";
+import { formatEuro, type OrderStatus } from "@/lib/ordering";
 import { useLanguage } from "@/lib/language";
 import { AuthField, fieldClass, FormMessage, SubmitButton } from "@/components/account/AccountShell";
 
@@ -22,6 +23,7 @@ type Props = {
   today: string;
   /** false for accounts that only sign in with Google */
   hasPassword: boolean;
+  orders: { reference: string; status: OrderStatus; total: number; createdAt: string; method: "delivery" | "pickup"; url: string }[];
 };
 
 const tone: Record<ProfileBooking["status"], string> = {
@@ -40,7 +42,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function ProfileView({ user, bookings, today, hasPassword }: Props) {
+export default function ProfileView({ user, bookings, today, hasPassword, orders }: Props) {
   const { t } = useLanguage();
   const a = t.account;
   const [profileState, profileAction, profilePending] = useActionState(updateProfile, null);
@@ -106,6 +108,28 @@ export default function ProfileView({ user, bookings, today, hasPassword }: Prop
           {a.bookNow}
         </Link>
       </Section>
+
+      {orders.length > 0 && (
+        <Section title={t.order.orders}>
+          <ul className="space-y-3">
+            {orders.map((o) => (
+              <li key={o.reference} className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4">
+                <div>
+                  <p className="font-display text-xl text-cream">
+                    {new Date(o.createdAt).toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })} · {formatEuro(o.total, t.dateLocale)}
+                  </p>
+                  <p className="text-sm text-cream/65">
+                    {o.method === "delivery" ? t.order.delivery : t.order.pickup} · {o.reference} · {t.order.status[o.status]}
+                  </p>
+                </div>
+                <a href={o.url} className="text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4">
+                  {t.order.viewStatus}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {past.length > 0 && (
         <Section title={a.past}>

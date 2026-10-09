@@ -11,7 +11,7 @@ import cups from "../../../public/img/cups.jpg";
 import bowls from "../../../public/img/bowls.jpg";
 import Jebena from "../Jebena";
 import Embers from "../motion/Embers";
-import { Ambient, ease, Lead, Rise, Title } from "../ui/primitives";
+import { Ambient, ease, GoldButton, Lead, Rise, Title } from "../ui/primitives";
 import { AksumFrame, Harag, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useLanguage } from "@/lib/language";
 
@@ -106,6 +106,9 @@ export default function MenuCard() {
           </Rise>
           <Title key={locale} text={t.menu.title} className="mt-6 text-[clamp(3rem,7vw,6rem)] leading-none text-cream" />
           <Lead className="mt-5 max-w-xl text-center">{t.menu.lead}</Lead>
+          <Rise className="mt-8" delay={0.3}>
+            <GoldButton href="/bestellen">{t.order.menuCta}</GoldButton>
+          </Rise>
         </div>
 
         <Rise className="mt-16" delay={0.15}>

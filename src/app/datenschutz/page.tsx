@@ -42,6 +42,27 @@ export default function Datenschutz() {
         dann erst, wenn Sie die Nachricht selbst absenden, und unterliegt den Bedingungen von WhatsApp (Meta).
       </p>
 
+      <H>3a. Online-Bestellungen</H>
+      <p>
+        Für Bestellungen zur Lieferung oder Abholung verarbeiten wir Name, Telefonnummer, optional Ihre E-Mail-Adresse,
+        bei Lieferung Ihre Adresse sowie die bestellten Speisen, um die Bestellung zuzubereiten, zu liefern und Sie über
+        den Status zu informieren (Art. 6 Abs. 1 lit. b DSGVO). Bezahlt wird bei Übergabe; Zahlungsdaten verarbeiten wir
+        auf der Website nicht. Bestellungen werden bei Neon Inc. (EU) gespeichert und nach 180 Tagen gelöscht, soweit keine
+        gesetzlichen Aufbewahrungspflichten bestehen. Der Warenkorb wird bis zur Bestellung nur in Ihrem Browser gespeichert.
+      </p>
+
+      <H>3b. Kundenkonto und Anmeldung mit Google</H>
+      <p>
+        Wenn Sie ein Konto anlegen, speichern wir Name, E-Mail-Adresse, optional Telefonnummer und Ihre bevorzugte Sprache;
+        Ihr Passwort wird ausschließlich als sicherer Hash gespeichert. Für die Anmeldung setzen wir ein technisch
+        notwendiges Cookie (30 Tage). Im Profil können Sie Ihre Daten jederzeit herunterladen oder Ihr Konto löschen.
+      </p>
+      <p>
+        Bei der „Anmeldung mit Google“ erhalten wir von Google Ihren Namen, Ihre E-Mail-Adresse und eine Kennung Ihres
+        Google-Kontos (Art. 6 Abs. 1 lit. b DSGVO). Dabei gelten zusätzlich die Datenschutzbestimmungen von Google Ireland
+        Ltd.
+      </p>
+
       <H>4. Karte (Google Maps)</H>
       <p>
         Die Karte im Bereich „Anfahrt“ wird erst geladen, wenn Sie auf „Karte laden“ klicken. Erst dann werden Daten

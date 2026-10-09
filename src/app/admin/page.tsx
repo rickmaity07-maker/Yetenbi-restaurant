@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { LalibelaCross } from "@/components/heritage/Ornaments";
 import { addDays, todayISO } from "@/lib/booking";
-import { logout } from "@/app/account-actions";
 import { requireOwner } from "@/lib/server/auth";
 import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
@@ -11,6 +9,7 @@ import { isMailerConfigured } from "@/lib/server/mailer";
 import { listBetween, listReservations, type Reservation, type Status } from "@/lib/server/reservations";
 import { decide, removeClosedDay } from "./actions";
 import { ClosedDayForm, PhoneBookingForm, PromoteForm } from "./AdminForms";
+import AdminHeader from "./AdminHeader";
 
 const STATUS: Record<Status, { label: string; tone: string }> = {
   pending: { label: "Offen", tone: "border-gold/60 text-gold-soft" },
@@ -194,20 +193,7 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
 export default function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <main id="main" className="mx-auto max-w-5xl px-5 py-16 md:py-24">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <LalibelaCross className="h-8 w-8 text-gold" />
-          <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">Reservierungen</h1>
-        </div>
-        <div className="flex items-center gap-5 text-sm">
-          <Link href="/" className="text-cream/70 underline underline-offset-4 hover:text-cream">
-            Website
-          </Link>
-          <form action={logout}>
-            <button className="text-cream/70 underline underline-offset-4 hover:text-cream">Abmelden</button>
-          </form>
-        </div>
-      </div>
+      <AdminHeader active="reservations" />
       {/* reads the session, the URL and the database: streams in at request time */}
       <Suspense fallback={<p className="mt-12 text-cream/60">Lade Reservierungen …</p>}>
         <Board searchParams={searchParams} />

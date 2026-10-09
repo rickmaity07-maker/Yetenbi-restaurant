@@ -27,6 +27,7 @@ export default function Header() {
     { href: "#speisekarte", label: t.nav.links.karte },
     { href: "#kaffee", label: t.nav.links.kaffee },
     { href: "#besuch", label: t.nav.links.anfahrt },
+    { href: "/bestellen", label: t.order.navLink },
   ];
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);

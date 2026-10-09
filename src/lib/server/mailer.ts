@@ -3,6 +3,7 @@ import nodemailer, { type Transporter } from "nodemailer";
 import { restaurant } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
 import type { Reservation } from "./reservations";
+import type { Order } from "./orders";
 import { cancelUrl } from "./cancel-token";
 import { siteUrl } from "@/lib/site-url";
 
@@ -237,5 +238,104 @@ export async function sendPasswordReset(to: string, name: string, locale: Locale
   } catch (error) {
     console.error("Reset email failed", error);
     return false;
+  }
+}
+
+/* ---------- online orders ---------- */
+
+type OrderKind = "received" | "accepted" | "on_the_way" | "rejected";
+
+const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string }> = {
+  de: {
+    received: (o) => ({ subject: `Eure Bestellung ${o.reference} ist eingegangen`, intro: "danke für eure Bestellung! Wir bestätigen sie gleich und sagen euch, wann sie fertig ist." }),
+    accepted: (o) => ({
+      subject: `Bestellung ${o.reference} angenommen`,
+      intro: `eure Bestellung ist angenommen. ${o.method === "delivery" ? "Lieferung" : "Abholbereit"} in etwa ${o.etaMinutes ?? 30} Minuten.`,
+    }),
+    on_the_way: (o) => ({ subject: `Bestellung ${o.reference} ist unterwegs`, intro: "eure Bestellung ist unterwegs zu euch. Guten Appetit!" }),
+    rejected: (o) => ({ subject: `Bestellung ${o.reference}`, intro: "leider können wir eure Bestellung gerade nicht annehmen. Bitte ruft uns an, wir helfen gerne weiter." }),
+    status: "Status ansehen",
+    total: "Summe",
+    delivery: "Lieferung",
+    pickup: "Abholung",
+  },
+  en: {
+    received: (o) => ({ subject: `Your order ${o.reference} has arrived`, intro: "thank you for your order! We'll confirm it shortly and tell you when it will be ready." }),
+    accepted: (o) => ({
+      subject: `Order ${o.reference} accepted`,
+      intro: `your order is accepted. ${o.method === "delivery" ? "Delivery" : "Ready for pick-up"} in about ${o.etaMinutes ?? 30} minutes.`,
+    }),
+    on_the_way: (o) => ({ subject: `Order ${o.reference} is on its way`, intro: "your order is on its way to you. Enjoy your meal!" }),
+    rejected: (o) => ({ subject: `Order ${o.reference}`, intro: "unfortunately we can't take your order right now. Please give us a call and we'll help." }),
+    status: "View status",
+    total: "Total",
+    delivery: "Delivery",
+    pickup: "Pick-up",
+  },
+  am: {
+    received: (o) => ({ subject: `ትዕዛዝዎ ${o.reference} ደርሶናል`, intro: "ስለ ትዕዛዝዎ እናመሰግናለን! በቅርቡ አረጋግጠን መቼ እንደሚደርስ እናሳውቅዎታለን።" }),
+    accepted: (o) => ({
+      subject: `ትዕዛዝ ${o.reference} ተቀባይነት አግኝቷል`,
+      intro: `ትዕዛዝዎ ተቀባይነት አግኝቷል። በግምት በ${o.etaMinutes ?? 30} ደቂቃ ${o.method === "delivery" ? "ይደርሳል" : "ዝግጁ ይሆናል"}።`,
+    }),
+    on_the_way: (o) => ({ subject: `ትዕዛዝ ${o.reference} በመንገድ ላይ ነው`, intro: "ትዕዛዝዎ ወደ እርስዎ በመንገድ ላይ ነው። መልካም ምግብ!" }),
+    rejected: (o) => ({ subject: `ትዕዛዝ ${o.reference}`, intro: "ይቅርታ፣ አሁን ትዕዛዝዎን መቀበል አንችልም። እባክዎ ይደውሉልን።" }),
+    status: "ሁኔታውን ይመልከቱ",
+    total: "ድምር",
+    delivery: "ማድረስ",
+    pickup: "መውሰድ",
+  },
+};
+
+const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+export const orderStatusUrl = (origin: string, o: Order) => `${origin}/bestellung?r=${encodeURIComponent(o.reference)}&t=${o.statusToken}`;
+
+function orderTable(o: Order, totalLabel: string) {
+  const rows = o.items
+    .map((l) => `<tr><td style="padding:4px 0">${l.qty} × ${esc(l.name)}</td><td style="padding:4px 0;text-align:right">${euro(l.qty * l.unit)}</td></tr>`)
+    .join("");
+  const fee = o.deliveryFee ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Lieferung</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deliveryFee)}</td></tr>` : "";
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;font-size:15px">${rows}${fee}<tr><td style="padding:10px 0 0;border-top:1px solid #6b5426;color:#e7cd8a">${esc(totalLabel)}</td><td style="padding:10px 0 0;border-top:1px solid #6b5426;text-align:right;color:#e7cd8a;font-size:18px">${euro(o.total)}</td></tr></table>`;
+}
+
+export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl()) {
+  if (!isMailerConfigured() || !o.email) return;
+  const c = orderCopy[o.locale];
+  const { subject, intro } = c[kind](o);
+  const note = o.staffNote ? `<p style="margin:12px 0 0;padding:12px 16px;border-left:2px solid #c9a24a">${esc(o.staffNote)}</p>` : "";
+  try {
+    await mailer().sendMail({
+      from: from(),
+      to: o.email,
+      replyTo: process.env.RESERVATION_NOTIFY_EMAIL,
+      subject,
+      html: layout(
+        esc(o.name) + ",",
+        `<p style="margin:0">${esc(intro)}</p>${note}${kind === "rejected" ? "" : orderTable(o, c.total)}<p style="margin:20px 0 0"><a href="${esc(orderStatusUrl(origin, o))}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.status)}</a></p>`,
+      ),
+    });
+  } catch (error) {
+    console.error("Order email failed", o.reference, error);
+  }
+}
+
+export async function notifyRestaurantOrder(o: Order, origin = siteUrl()) {
+  if (!isMailerConfigured()) return;
+  const where = o.method === "delivery" ? `${o.street}, ${o.postcode} ${o.city}${o.addressNote ? ` (${o.addressNote})` : ""}` : "Abholung";
+  try {
+    await mailer().sendMail({
+      from: from(),
+      to: process.env.RESERVATION_NOTIFY_EMAIL,
+      replyTo: o.email || undefined,
+      subject: `Neue Bestellung ${o.reference}: ${o.method === "delivery" ? "Lieferung" : "Abholung"}, ${euro(o.total)}`,
+      html: layout(
+        "Neue Bestellung",
+        `<p style="margin:0"><strong>${esc(o.name)}</strong> · ${esc(o.phone)}<br>${esc(where)}<br>Zeit: ${o.wanted === "asap" ? "so schnell wie möglich" : esc(o.wanted) + " Uhr"} · Zahlung: ${o.payment === "cash" ? "bar" : "Karte bei Übergabe"}</p>${
+          o.note ? `<p style="margin:12px 0 0;border-left:2px solid #c9a24a;padding-left:12px">${esc(o.note)}</p>` : ""
+        }${orderTable(o, "Summe")}<p style="margin:20px 0 0"><a href="${esc(origin)}/admin/bestellungen" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">Bestellung annehmen</a></p>`,
+      ),
+    });
+  } catch (error) {
+    console.error("Restaurant order email failed", o.reference, error);
   }
 }

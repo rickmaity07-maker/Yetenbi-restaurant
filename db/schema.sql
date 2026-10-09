@@ -64,3 +64,41 @@ create index if not exists reservations_user_idx on reservations (user_id);
 
 -- Accounts that sign in with Google (verified email); password_hash is "none" until they set one.
 alter table users add column if not exists google_sub text unique;
+
+-- Online orders (delivery and pickup). Prices are computed on the server from the menu.
+create table if not exists orders (
+  id             bigserial primary key,
+  reference      text not null unique,              -- e.g. YO-7KQ2
+  status_token   text not null,                     -- secret part of the status-page link
+  status         text not null default 'new' check (status in ('new', 'accepted', 'ready', 'on_the_way', 'completed', 'rejected', 'cancelled')),
+  method         text not null check (method in ('delivery', 'pickup')),
+  name           text not null,
+  phone          text not null,
+  email          text not null default '',
+  street         text not null default '',
+  postcode       text not null default '',
+  city           text not null default '',
+  address_note   text not null default '',
+  note           text not null default '',
+  items          jsonb not null,                    -- [{ id, name, qty, unit }]
+  subtotal       numeric(8,2) not null,
+  delivery_fee   numeric(8,2) not null default 0,
+  total          numeric(8,2) not null,
+  payment        text not null check (payment in ('cash', 'card')),
+  wanted         text not null default 'asap',      -- 'asap' or HH:MM (today)
+  eta_minutes    int,
+  staff_note     text not null default '',
+  locale         text not null default 'de' check (locale in ('de', 'en', 'am')),
+  user_id        bigint references users (id) on delete set null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
+);
+create index if not exists orders_created_idx on orders (created_at desc);
+create index if not exists orders_user_idx on orders (user_id);
+
+-- Small key/value settings edited in /admin (e.g. ordering: minimum order, fees, delivery area, pause).
+create table if not exists settings (
+  key         text primary key,
+  value       jsonb not null,
+  updated_at  timestamptz not null default now()
+);
