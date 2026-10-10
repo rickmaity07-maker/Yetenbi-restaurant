@@ -15,6 +15,8 @@ import { Ambient, ease, GoldButton, Lead, Rise, Title } from "../ui/primitives";
 import { AksumFrame, Harag, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useLanguage } from "@/lib/language";
 import { Photo } from "@/components/Photos";
+import { AllergenFacts, DrinkFacts, FactsLegend, useMenuInfo, useTags } from "@/components/MenuFacts";
+import { DRINK_CATEGORIES, hasAllergenData } from "@/lib/menu-info";
 
 /** Dim photograph bleeding in from one side, like the pictures around the text on the printed menu. */
 function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right" }) {
@@ -49,8 +51,9 @@ function Ornament() {
   );
 }
 
-function Item({ item, compact }: { item: MenuItem; compact: boolean }) {
-  const { t, locale } = useLanguage();
+function Item({ id, item, compact, drink }: { id: string; item: MenuItem; compact: boolean; drink: boolean }) {
+  const { locale } = useLanguage();
+  const tags = useTags(item, id);
   return (
     <motion.li
       variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } } }}
@@ -77,9 +80,13 @@ function Item({ item, compact }: { item: MenuItem; compact: boolean }) {
           {item.description[locale]}
         </p>
       )}
-      {item.tags && !compact && (
-        <p className="mt-2 font-display text-[0.95rem] italic text-gold/80">{item.tags.map((g) => t.tags[g]).join(", ")}</p>
+      {drink && (
+        <p className="mt-0.5">
+          <DrinkFacts id={id} price={Number(item.price.replace(",", "."))} />
+        </p>
       )}
+      {tags.length > 0 && !compact && <p className="mt-2 font-display text-[0.95rem] italic text-gold/80">{tags.join(", ")}</p>}
+      <AllergenFacts id={id} className="mt-1" />
     </motion.li>
   );
 }
@@ -91,6 +98,7 @@ export default function MenuCard() {
   const category = menu.find((c) => c.id === active) ?? menu[0];
   const compact = category.items.every((i) => !i.description || i.description.de.length < 40);
   const { t, locale } = useLanguage();
+  const menuInfo = useMenuInfo();
 
   return (
     <section id="speisekarte" className="relative overflow-hidden py-32 md:py-48">
@@ -172,7 +180,7 @@ export default function MenuCard() {
                     className={`mt-12 ${compact ? "grid gap-x-14 gap-y-5 md:grid-cols-2" : "mx-auto max-w-3xl space-y-9"}`}
                   >
                     {category.items.map((item, i) => (
-                      <Item key={`${item.name.de}-${i}`} item={item} compact={compact} />
+                      <Item key={`${item.name.de}-${i}`} id={`${category.id}-${i}`} item={item} compact={compact} drink={DRINK_CATEGORIES.has(category.id)} />
                     ))}
                   </motion.ul>
                 </motion.div>
@@ -181,7 +189,8 @@ export default function MenuCard() {
               <div className="mt-16 text-center">
                 <Ornament />
                 <p className="mt-5 font-display text-2xl italic text-cream/85">{t.menu.appetit}</p>
-                <p className="mt-2 text-xs text-cream/50">{t.menu.priceNote}</p>
+                <p className="mt-2 text-xs text-cream/50">{hasAllergenData(menuInfo) ? t.menu.priceNoteCodes : t.menu.priceNote}</p>
+                {hasAllergenData(menuInfo) && <FactsLegend className="mx-auto mt-4 max-w-2xl text-left" />}
               </div>
             </div>
           </AksumFrame>

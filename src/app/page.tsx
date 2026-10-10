@@ -16,12 +16,15 @@ import Footer from "@/components/sections/Footer";
 import StructuredData from "@/components/StructuredData";
 import { PhotosProvider } from "@/components/Photos";
 import { getPhotos } from "@/lib/server/photos";
+import { MenuInfoProvider } from "@/components/MenuFacts";
+import { getMenuInfo } from "@/lib/server/menu-info";
 
 export default async function Home() {
   // photos the owner uploaded in /admin → Fotos (cached; refreshed when one is saved)
-  const photos = await getPhotos();
+  const [photos, menuInfo] = await Promise.all([getPhotos(), getMenuInfo()]);
   return (
     <PhotosProvider photos={photos}>
+      <MenuInfoProvider info={menuInfo}>
       <StructuredData />
       <Intro />
       <ScrollProgress />
@@ -41,6 +44,7 @@ export default async function Home() {
         <Reservation />
       </main>
       <Footer />
+      </MenuInfoProvider>
     </PhotosProvider>
   );
 }

@@ -3,7 +3,7 @@ import { LalibelaCross } from "@/components/heritage/Ornaments";
 import { logout } from "@/app/account-actions";
 
 /** Title, switch between reservations, orders and team, the staff screens, and the way out. */
-export default function AdminHeader({ active }: { active: "reservations" | "orders" | "team" | "photos" }) {
+export default function AdminHeader({ active }: { active: "reservations" | "orders" | "menu" | "team" | "photos" }) {
   const tab = (on: boolean) => `pb-3 ${on ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`;
   return (
     <div>
@@ -33,6 +33,9 @@ export default function AdminHeader({ active }: { active: "reservations" | "orde
         </Link>
         <Link href="/admin/bestellungen" className={tab(active === "orders")}>
           Bestellungen
+        </Link>
+        <Link href="/admin/speisekarte" className={tab(active === "menu")}>
+          Speisekarte
         </Link>
         <Link href="/admin/team" className={tab(active === "team")}>
           Team

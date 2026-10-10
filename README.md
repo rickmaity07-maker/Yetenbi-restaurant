@@ -59,6 +59,9 @@ npm run build && npm run start   # production build (use this to judge performan
 - Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
   export their data and delete the account. Password reset works by email.
+- **Speisekarte** (/admin/speisekarte): allergens (A–N) and additives (numbers) per item, drink volume and deposit,
+  and the gluten wording. Shown on the menu card and the order page with a legend; the deposit is charged and stored
+  separately on the order (`src/lib/menu-info.ts`).
 - **Fotos** (/admin/fotos): owners replace any picture on the website with their own photo. The browser uploads it
   straight to Cloudinary with a one-time signature from the server (so big phone photos work), the server checks it
   arrived in the `yetenbi/` folder and the home page refreshes. Needs `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
@@ -115,9 +118,12 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - Google sign-in: if the OAuth consent screen in Google Cloud is still in "Testing", publish it so every guest can use it.
 - Impressum and Datenschutz: fill in the owner's name, a contact email (required in the Impressum) and the VAT ID,
   if any – marked `[Name wird ergänzt]` / `[wird ergänzt]`.
-- **Allergens (LMIV/LMIDV):** for online orders the 14 allergens (and additives) must be shown per dish before
-  ordering. Needs the kitchen's list; then add them to `src/lib/data.ts` and section 7 of /bestellbedingungen.
-- Drinks in bottles or cans for delivery: if a deposit (Pfand) is charged, it must be shown separately (PAngV § 7).
+- **Allergens (LMIV/LMIDV):** enter the 14 allergens and the additives for every dish in /admin → Speisekarte (needs the
+  kitchen's recipes, including sauces, spice mixes and injera); then update section 7 of /bestellbedingungen.
+- In the same place: drink volumes and deposit (Pfand) for bottles and cans, and the gluten wording per dish
+  ("glutenfrei" only below 20 mg/kg including traces).
+- Pick the reusable-packaging notice in /admin → Bestellungen → Einstellungen (VerpackG §§ 33, 34) and register
+  in the LUCID packaging register before handing out takeaway packaging.
 - Online orders are deleted after 180 days. Make sure every order is booked in the till (KassenSichV), which keeps
   the records for the tax office; otherwise keep them longer (§ 147 AO).
 - Have the legal pages (Impressum, Datenschutz, Bestellbedingungen) checked by a lawyer or a service such as the

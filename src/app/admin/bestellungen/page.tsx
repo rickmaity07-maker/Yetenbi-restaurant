@@ -189,6 +189,12 @@ function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
             <span className="tabular-nums text-cream/70">{euro(l.qty * l.unit)}</span>
           </li>
         ))}
+        {o.deposit > 0 && (
+          <li className="flex justify-between text-cream/60">
+            <span>Pfand</span>
+            <span className="tabular-nums">{euro(o.deposit)}</span>
+          </li>
+        )}
         {o.deliveryFee > 0 && (
           <li className="flex justify-between text-cream/60">
             <span>Liefergebühr</span>

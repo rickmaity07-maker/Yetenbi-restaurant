@@ -335,8 +335,9 @@ function orderTable(o: Order, totalLabel: string) {
   const rows = o.items
     .map((l) => `<tr><td style="padding:4px 0">${l.qty} × ${esc(l.name)}</td><td style="padding:4px 0;text-align:right">${euro(l.qty * l.unit)}</td></tr>`)
     .join("");
+  const deposit = o.deposit ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Pfand</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deposit)}</td></tr>` : "";
   const fee = o.deliveryFee ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Lieferung</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deliveryFee)}</td></tr>` : "";
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;font-size:15px">${rows}${fee}<tr><td style="padding:10px 0 0;border-top:1px solid #6b5426;color:#e7cd8a">${esc(totalLabel)}</td><td style="padding:10px 0 0;border-top:1px solid #6b5426;text-align:right;color:#e7cd8a;font-size:18px">${euro(o.total)}</td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;font-size:15px">${rows}${deposit}${fee}<tr><td style="padding:10px 0 0;border-top:1px solid #6b5426;color:#e7cd8a">${esc(totalLabel)}</td><td style="padding:10px 0 0;border-top:1px solid #6b5426;text-align:right;color:#e7cd8a;font-size:18px">${euro(o.total)}</td></tr></table>`;
 }
 
 export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl()) {

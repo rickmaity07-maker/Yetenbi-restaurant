@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       staffNote: order.staffNote,
       items: order.items,
       subtotal: order.subtotal,
+      deposit: order.deposit,
       deliveryFee: order.deliveryFee,
       total: order.total,
       wanted: order.wanted,

@@ -10,9 +10,11 @@ import { formatEuro, ORDERABLE, totals, validateOrder, type CartLine, type Metho
 import { useLanguage } from "@/lib/language";
 import { useAccount } from "@/lib/account-client";
 import { fieldClass } from "@/components/account/AccountShell";
+import { AllergenFacts, DrinkFacts, FactsLegend, MenuInfoProvider } from "@/components/MenuFacts";
+import { DRINK_CATEGORIES, hasAllergenData, type MenuInfo } from "@/lib/menu-info";
 
 type Window = { open: boolean; asap: boolean; slots: string[] };
-type Availability = { available: boolean; settings: OrderSettings; closedToday?: boolean; delivery?: Window; pickup?: Window };
+type Availability = { available: boolean; settings: OrderSettings; menuInfo?: MenuInfo; closedToday?: boolean; delivery?: Window; pickup?: Window };
 
 const CART_KEY = "yt-cart";
 const readCart = (): CartLine[] => {
@@ -103,7 +105,8 @@ export default function OrderView() {
   const s = info?.settings;
   const win = info ? info[method] : undefined;
   const euro = (n: number) => formatEuro(n, t.dateLocale);
-  const sum = useMemo(() => (s ? totals(cart, method, s) : { subtotal: 0, fee: 0, total: 0 }), [cart, method, s]);
+  const menuInfo = info?.menuInfo;
+  const sum = useMemo(() => (s ? totals(cart, method, s, menuInfo) : { subtotal: 0, deposit: 0, fee: 0, total: 0 }), [cart, method, s, menuInfo]);
   const count = cart.reduce((n, l) => n + l.qty, 0);
   const qtyOf = (id: string) => cart.find((l) => l.id === id)?.qty ?? 0;
   const setQty = (id: string, qty: number) =>
@@ -158,6 +161,7 @@ export default function OrderView() {
   const categories = menu.filter((c) => ORDERABLE.some((i) => i.categoryId === c.id));
 
   return (
+    <MenuInfoProvider info={menuInfo ?? {}}>
     <div>
       <h1 className="font-display text-4xl font-semibold leading-[1.05] text-cream md:text-6xl">{o.title}</h1>
       <p className="mt-3 font-display text-xl italic text-cream/75 md:text-2xl">{o.lead}</p>
@@ -198,7 +202,11 @@ export default function OrderView() {
                       </p>
                     )}
                     {item.description && <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-cream/60">{item.description[locale]}</p>}
-                    <p className="mt-2 font-display text-lg text-gold-soft">{euro(item.price)}</p>
+                    <AllergenFacts id={item.id} className="mt-1" />
+                    <p className="mt-2 font-display text-lg text-gold-soft">
+                      {euro(item.price)}{" "}
+                      {DRINK_CATEGORIES.has(item.categoryId) && <DrinkFacts id={item.id} price={item.price} />}
+                    </p>
                   </div>
                   <div className="shrink-0 pt-1">
                     {q === 0 ? (
@@ -217,6 +225,7 @@ export default function OrderView() {
               );
             })}
           </ul>
+          {menuInfo && hasAllergenData(menuInfo) && <FactsLegend className="mt-6" />}
         </div>
 
         {/* Cart + checkout */}
@@ -285,6 +294,12 @@ export default function OrderView() {
                   <dt>{o.subtotal}</dt>
                   <dd className="tabular-nums">{euro(sum.subtotal)}</dd>
                 </div>
+                {sum.deposit > 0 && (
+                  <div className="flex justify-between text-cream/75">
+                    <dt>{o.deposit}</dt>
+                    <dd className="tabular-nums">{euro(sum.deposit)}</dd>
+                  </div>
+                )}
                 {method === "delivery" && (
                   <div className="flex justify-between text-cream/75">
                     <dt>{o.deliveryFee}</dt>
@@ -368,6 +383,8 @@ export default function OrderView() {
                 </Field>
               </fieldset>
 
+              {s?.reusable === "offer" && <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOffer}</p>}
+              {s?.reusable === "own" && method === "pickup" && <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOwn}</p>}
               <fieldset>
                 <legend className="mb-3 font-display text-2xl text-cream">{o.payment}</legend>
                 <div className="grid grid-cols-2 gap-3">
@@ -424,5 +441,6 @@ export default function OrderView() {
         </a>
       )}
     </div>
+    </MenuInfoProvider>
   );
 }

@@ -78,6 +78,7 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   const next: OrderSettings = {
     paused: form.get("paused") === "on",
     ignoreHours: form.get("ignoreHours") === "on",
+    reusable: (["offer", "own"] as const).find((v) => v === form.get("reusable")) ?? "none",
     delivery: form.get("delivery") === "on",
     pickup: form.get("pickup") === "on",
     minOrder: num("minOrder", current.minOrder),

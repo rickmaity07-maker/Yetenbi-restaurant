@@ -17,6 +17,7 @@ type Status = {
   staffNote: string;
   items: { id: string; name: string; qty: number; unit: number }[];
   subtotal: number;
+  deposit?: number;
   deliveryFee: number;
   total: number;
   wanted: string;
@@ -125,6 +126,12 @@ export default function StatusView() {
           ))}
         </ul>
         <dl className="mt-4 space-y-1 border-t border-gold/20 pt-4 text-sm">
+          {(data.deposit ?? 0) > 0 && (
+            <div className="flex justify-between text-cream/75">
+              <dt>{o.deposit}</dt>
+              <dd className="tabular-nums">{euro(data.deposit ?? 0)}</dd>
+            </div>
+          )}
           {data.deliveryFee > 0 && (
             <div className="flex justify-between text-cream/75">
               <dt>{o.deliveryFee}</dt>

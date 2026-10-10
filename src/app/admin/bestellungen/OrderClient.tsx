@@ -44,6 +44,24 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
         ))}
       </div>
       <label className="flex flex-col gap-1.5">
+        <span className={label}>Mehrweg-Hinweis auf der Bestellseite (VerpackG)</span>
+        <select name="reusable" defaultValue={settings.reusable} className={`${field} [color-scheme:dark]`}>
+          <option value="none" className="bg-coal">
+            Kein Hinweis (keine Einweg-Kunststoffverpackungen)
+          </option>
+          <option value="offer" className="bg-coal">
+            Wir bieten Mehrwegverpackungen an
+          </option>
+          <option value="own" className="bg-coal">
+            Kleiner Betrieb: eigene Behälter der Gäste werden befüllt
+          </option>
+        </select>
+        <span className="text-xs text-cream/50">
+          Wer Essen in Einweg-Kunststoff oder Einwegbechern ausgibt, muss Mehrweg anbieten; Betriebe mit höchstens 5 Beschäftigten und
+          80 m² dürfen stattdessen eigene Behälter befüllen. Beides muss gut sichtbar angegeben werden.
+        </span>
+      </label>
+      <label className="flex flex-col gap-1.5">
         <span className={label}>Liefergebiet (Postleitzahlen, mit Komma getrennt)</span>
         <input name="postcodes" defaultValue={settings.postcodes.join(", ")} className={field} />
       </label>

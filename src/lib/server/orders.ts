@@ -2,9 +2,10 @@ import "server-only";
 import { randomBytes, randomInt } from "node:crypto";
 import type { Locale } from "@/lib/i18n";
 import { DEFAULT_SETTINGS, ITEM_BY_ID, OPEN_STATUSES, totals, type OrderInput, type OrderSettings, type OrderStatus } from "@/lib/ordering";
+import { infoOf, type MenuInfo } from "@/lib/menu-info";
 import { db } from "./db";
 
-export type OrderLine = { id: string; name: string; qty: number; unit: number };
+export type OrderLine = { id: string; name: string; qty: number; unit: number; deposit?: number };
 export type Order = {
   id: number;
   reference: string;
@@ -21,6 +22,7 @@ export type Order = {
   note: string;
   items: OrderLine[];
   subtotal: number;
+  deposit: number;
   deliveryFee: number;
   total: number;
   payment: "cash" | "card";
@@ -61,6 +63,7 @@ const toOrder = (r: Row): Order => ({
   note: String(r.note),
   items: r.items as OrderLine[],
   subtotal: Number(r.subtotal),
+  deposit: Number(r.deposit ?? 0),
   deliveryFee: Number(r.delivery_fee),
   total: Number(r.total),
   payment: r.payment as Order["payment"],
@@ -110,22 +113,24 @@ export async function createOrder(
   locale: Locale,
   userId: number | null,
   guard: { phoneKey: string; clientHash: string | null },
+  info: MenuInfo = {},
 ) {
   const lines: OrderLine[] = input.items.map((l) => {
     const item = ITEM_BY_ID.get(l.id)!;
-    return { id: l.id, name: item.name.de, qty: l.qty, unit: item.price };
+    const deposit = infoOf(info, l.id).deposit;
+    return { id: l.id, name: item.name.de, qty: l.qty, unit: item.price, ...(deposit ? { deposit } : {}) };
   });
-  const t = totals(input.items, input.method, settings);
+  const t = totals(input.items, input.method, settings, info);
   const delivery = input.method === "delivery";
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const [row] = (await db()`
         insert into orders (reference, status_token, method, name, phone, email, street, postcode, city, address_note, note,
-                            items, subtotal, delivery_fee, total, payment, wanted, locale, user_id, phone_key, client_hash)
+                            items, subtotal, deposit, delivery_fee, total, payment, wanted, locale, user_id, phone_key, client_hash)
         values (${newReference()}, ${randomBytes(18).toString("base64url")}, ${input.method}, ${input.name.trim()}, ${input.phone.trim()},
                 ${input.email.trim().toLowerCase()}, ${delivery ? input.street.trim() : ""}, ${delivery ? input.postcode.trim() : ""},
                 ${delivery ? input.city.trim() || "Würzburg" : ""}, ${delivery ? input.addressNote.trim() : ""}, ${input.note.trim()},
-                ${JSON.stringify(lines)}::jsonb, ${t.subtotal}, ${t.fee}, ${t.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId},
+                ${JSON.stringify(lines)}::jsonb, ${t.subtotal}, ${t.deposit}, ${t.fee}, ${t.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId},
                 ${guard.phoneKey}, ${guard.clientHash})
         returning *
       `) as Row[];

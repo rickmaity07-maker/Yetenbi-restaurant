@@ -1,6 +1,7 @@
 import { menu, type L, type MenuItem } from "./data";
 import { berlinNow, toMinutes, WEEK } from "./hours";
 import { isEmail } from "./validate";
+import { infoOf, type MenuInfo } from "./menu-info";
 
 /*
   Online ordering rules, shared by the order page and the API (the server recomputes everything).
@@ -19,6 +20,8 @@ export type OrderSettings = {
   pickupMinutes: number; // typical pickup time
   /** Temporary: take orders at any time, also outside opening hours and on closed days (switch off for normal service). */
   ignoreHours: boolean;
+  /** Reusable packaging notice (VerpackG §§ 33, 34): "offer" reusable boxes, accept guests' "own" containers, or "none". */
+  reusable: "none" | "offer" | "own";
 };
 
 // TODO: Placeholder values; the owner should confirm them in /admin → Bestellungen → Einstellungen.
@@ -33,6 +36,7 @@ export const DEFAULT_SETTINGS: OrderSettings = {
   deliveryMinutes: 45,
   pickupMinutes: 20,
   ignoreHours: false,
+  reusable: "none",
 };
 
 export const LAST_ORDER_BEFORE_CLOSE = 30; // minutes
@@ -80,10 +84,12 @@ export type OrderInput = {
 
 export const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export function totals(items: CartLine[], method: Method, s: OrderSettings) {
+/** Food and drink, deposit (Pfand, from the owner's menu details), delivery fee. Minimum order and free delivery count the food only. */
+export function totals(items: CartLine[], method: Method, s: OrderSettings, info?: MenuInfo) {
   const subtotal = round2(items.reduce((sum, l) => sum + (ITEM_BY_ID.get(l.id)?.price ?? 0) * l.qty, 0));
+  const deposit = round2(items.reduce((sum, l) => sum + infoOf(info, l.id).deposit * l.qty, 0));
   const fee = method === "delivery" && !(s.freeDeliveryFrom > 0 && subtotal >= s.freeDeliveryFrom) ? s.deliveryFee : 0;
-  return { subtotal, fee: round2(fee), total: round2(subtotal + fee) };
+  return { subtotal, deposit, fee: round2(fee), total: round2(subtotal + deposit + fee) };
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
