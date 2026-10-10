@@ -16,6 +16,8 @@ export type OrderSettings = {
   postcodes: string[]; // delivery area
   deliveryMinutes: number; // typical delivery time
   pickupMinutes: number; // typical pickup time
+  /** Temporary: take orders at any time, also outside opening hours and on closed days (switch off for normal service). */
+  ignoreHours: boolean;
 };
 
 // TODO: Placeholder values; the owner should confirm them in /admin → Bestellungen → Einstellungen.
@@ -29,6 +31,7 @@ export const DEFAULT_SETTINGS: OrderSettings = {
   postcodes: ["97070", "97072", "97074", "97076", "97078", "97080", "97082", "97084"],
   deliveryMinutes: 45,
   pickupMinutes: 20,
+  ignoreHours: false,
 };
 
 export const LAST_ORDER_BEFORE_CLOSE = 30; // minutes
@@ -88,11 +91,18 @@ const hhmm = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 /** Whether orders are accepted right now, and the times that can be chosen for later today. */
 export function orderWindow(method: Method, s: OrderSettings, closedToday = false, now = new Date()) {
   const { day, minutes } = berlinNow(now);
+  if (s.paused) return { open: false, asap: false, slots: [] as string[] };
+  const lead = method === "delivery" ? s.deliveryMinutes : s.pickupMinutes;
+  if (s.ignoreHours) {
+    // any time today: as soon as possible, or later in 15-minute steps until 23:45
+    const slots: string[] = [];
+    for (let m = Math.ceil((minutes + lead) / 15) * 15; m <= 23 * 60 + 45; m += 15) slots.push(hhmm(m));
+    return { open: true, asap: true, slots };
+  }
   const hours = WEEK[day];
-  if (!hours || closedToday || s.paused) return { open: false, asap: false, slots: [] as string[] };
+  if (!hours || closedToday) return { open: false, asap: false, slots: [] as string[] };
   const open = toMinutes(hours.open);
   const last = toMinutes(hours.close) - LAST_ORDER_BEFORE_CLOSE;
-  const lead = method === "delivery" ? s.deliveryMinutes : s.pickupMinutes;
   const asap = minutes >= open && minutes <= last;
   // scheduled: from the later of now+lead and opening+lead, in 15-minute steps, until closing - 15
   const from = Math.ceil(Math.max(minutes + lead, open + lead) / 15) * 15;

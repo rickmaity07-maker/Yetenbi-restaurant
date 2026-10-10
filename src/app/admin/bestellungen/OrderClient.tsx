@@ -22,6 +22,10 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
         <label className={box}>
           <input type="checkbox" name="pickup" defaultChecked={settings.pickup} className="h-4 w-4 accent-[#c9a24a]" /> Abholung
         </label>
+        <label className={box}>
+          <input type="checkbox" name="ignoreHours" defaultChecked={settings.ignoreHours} className="h-4 w-4 accent-[#c9a24a]" /> Bestellungen auch
+          außerhalb der Öffnungszeiten (vorübergehend)
+        </label>
       </div>
       <div className="grid gap-5 sm:grid-cols-3">
         {(

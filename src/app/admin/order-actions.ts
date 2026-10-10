@@ -75,6 +75,7 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
     .filter((p) => /^\d{5}$/.test(p));
   const next: OrderSettings = {
     paused: form.get("paused") === "on",
+    ignoreHours: form.get("ignoreHours") === "on",
     delivery: form.get("delivery") === "on",
     pickup: form.get("pickup") === "on",
     minOrder: num("minOrder", current.minOrder),

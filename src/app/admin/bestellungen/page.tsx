@@ -306,6 +306,7 @@ async function Board() {
           <span className="font-display text-3xl text-gold-soft">{euro(revenue)}</span> heute abgeschlossen
         </p>
         {settings.paused && <p className="self-end font-semibold text-[#f0a080]">Online-Bestellungen sind pausiert.</p>}
+        {settings.ignoreHours && <p className="self-end font-semibold text-[#f0a080]">Bestellungen auch außerhalb der Öffnungszeiten an (vorübergehend).</p>}
       </div>
 
       <p className="mt-4 text-sm text-cream/60">

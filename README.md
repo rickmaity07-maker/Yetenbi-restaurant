@@ -31,7 +31,8 @@ npm run build && npm run start   # production build (use this to judge performan
 - **/bestellen**: signed-in guests order for delivery or pickup (ordering needs an account; the basket is kept while
   they sign in or register, and all order emails go to the account's address), as soon as possible or for a later time today; payment in cash
   or by card on handover. The server re-prices every order from the menu.
-- Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days.
+- Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days – unless the
+  temporary setting *Bestellungen auch außerhalb der Öffnungszeiten* is on (then at any time, until 23:45).
 - Order flow (each step is emailed to the guest, in their language):
 
   | Step | Who | Where |
@@ -99,10 +100,13 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 
 ## Still to do
 
-- Set the Gmail variables in Vercel so booking and order emails are sent (also needed for password reset).
-- Optional: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in Vercel to show "Sign in with Google".
+- **Switch off "Bestellungen auch außerhalb der Öffnungszeiten"** in /admin → Bestellungen → Einstellungen once testing is
+  done (turned on 2026-10-10 so orders work while the restaurant is closed).
+- Create the team's logins in /admin → Team (kitchen staff and drivers), then run one test order through every step
+  (accept → Küche: Essen fertig, Verpackt → hand to a driver → Lieferung: Zugestellt) and check the emails arrive.
+- Google sign-in: if the OAuth consent screen in Google Cloud is still in "Testing", publish it so every guest can use it.
 - Impressum and Datenschutz: fill in the owner's name, a contact email (required in the Impressum) and the VAT ID,
   if any – marked `[Name wird ergänzt]` / `[wird ergänzt]`.
 - Confirm the ordering settings (minimum order, delivery fee, postcodes, times) in /admin → Bestellungen → Einstellungen.
 - Photos are Unsplash stock; replace with Yetenbi's own (keep the file names in `public/img/`).
-- Amharic text should be checked by a native speaker.
+- Amharic text should be checked by a native speaker (including the new order-step emails and status labels).
