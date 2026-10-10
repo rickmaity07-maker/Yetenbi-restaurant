@@ -11,7 +11,8 @@ import type { Role } from "@/lib/roles";
 export type Me = { name: string; email: string; phone: string; role: Role } | null;
 export type ClosedDay = { date: string; note: string };
 
-function createStore<T>(url: string, pick: (json: unknown) => T, initial: T) {
+/** `failed` is what the store holds when the request does not work (default: stays `initial`). */
+function createStore<T>(url: string, pick: (json: unknown) => T, initial: T, failed: T = initial) {
   let value = initial;
   let started = false;
   const listeners = new Set<() => void>();
@@ -21,12 +22,13 @@ function createStore<T>(url: string, pick: (json: unknown) => T, initial: T) {
     fetch(url, { credentials: "same-origin" })
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
-        if (json) {
-          value = pick(json);
-          listeners.forEach((l) => l());
-        }
+        value = json ? pick(json) : failed;
+        listeners.forEach((l) => l());
       })
-      .catch(() => {});
+      .catch(() => {
+        value = failed;
+        listeners.forEach((l) => l());
+      });
   };
   return {
     load,
@@ -39,7 +41,8 @@ function createStore<T>(url: string, pick: (json: unknown) => T, initial: T) {
   };
 }
 
-const meStore = createStore<Me>("/api/me", (j) => (j as { user: Me }).user ?? null, null);
+// undefined until /api/me has answered, then the user or null (signed out)
+const meStore = createStore<Me | undefined>("/api/me", (j) => (j as { user: Me }).user ?? null, undefined, null);
 const EMPTY: ClosedDay[] = [];
 const closuresStore = createStore<ClosedDay[]>("/api/closures", (j) => (j as { closures: ClosedDay[] }).closures ?? EMPTY, EMPTY);
 

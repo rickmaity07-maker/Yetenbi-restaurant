@@ -28,7 +28,8 @@ npm run build && npm run start   # production build (use this to judge performan
 
 ## Online ordering
 
-- **/bestellen**: guests order for delivery or pickup, as soon as possible or for a later time today; payment in cash
+- **/bestellen**: signed-in guests order for delivery or pickup (ordering needs an account; the basket is kept while
+  they sign in or register, and all order emails go to the account's address), as soon as possible or for a later time today; payment in cash
   or by card on handover. The server re-prices every order from the menu.
 - Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days.
 - Order flow (each step is emailed to the guest, in their language):

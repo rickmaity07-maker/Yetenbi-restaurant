@@ -9,9 +9,14 @@ import { notifyRestaurantOrder, orderStatusUrl, sendOrderEmail } from "@/lib/ser
 import { checkOrder, clientHash, phoneKey } from "@/lib/server/order-guard";
 import { createOrder, getOrderSettings } from "@/lib/server/orders";
 
-/* Places an online order. Everything is re-validated and re-priced here; the browser's totals are ignored. */
+/*
+  Places an online order. Only signed-in guests can order; the order goes to the account's email address.
+  Everything is re-validated and re-priced here; the browser's totals are ignored.
+*/
 export async function POST(request: Request) {
   if (!hasDatabase()) return Response.json({ code: "unavailable" }, { status: 503 });
+  const me = await getCurrentUser();
+  if (!me) return Response.json({ code: "login" }, { status: 401 });
   let body: Partial<OrderInput> & { locale?: string; website?: string };
   try {
     body = await request.json();
@@ -25,7 +30,7 @@ export async function POST(request: Request) {
     items: Array.isArray(body.items) ? body.items.slice(0, 60).map((l) => ({ id: String(l?.id ?? ""), qty: Number(l?.qty) })) : [],
     name: String(body.name ?? ""),
     phone: String(body.phone ?? ""),
-    email: String(body.email ?? "").trim(),
+    email: me.email,
     street: String(body.street ?? ""),
     postcode: String(body.postcode ?? ""),
     city: String(body.city ?? ""),
@@ -49,8 +54,7 @@ export async function POST(request: Request) {
     return Response.json({ code: blockedBy }, { status });
   }
 
-  const me = await getCurrentUser();
-  const order = await createOrder(input, settings, locale, me?.id ?? null, guard);
+  const order = await createOrder(input, settings, locale, me.id, guard);
   const origin = new URL(request.url).origin;
   after(async () => {
     await notifyRestaurantOrder(order, origin);

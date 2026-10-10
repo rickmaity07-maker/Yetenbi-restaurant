@@ -143,7 +143,8 @@ export default function OrderView() {
         setCart([]);
         router.push(data.statusUrl);
       } else if (res.status === 422 && data.errors) setErrors(data.errors);
-      else if (data.code === "kitchen" || data.code === "large" || data.code === "blocked") setServerError(o.errors[data.code as "kitchen" | "large" | "blocked"]);
+      else if (data.code === "kitchen" || data.code === "large" || data.code === "blocked" || data.code === "login")
+        setServerError(o.errors[data.code as "kitchen" | "large" | "blocked" | "login"]);
       else if (res.status === 429) setServerError(o.errors.busy);
       else setServerError(o.errors.server);
     } catch {
@@ -336,49 +337,64 @@ export default function OrderView() {
               )}
             </AnimatePresence>
 
-            <fieldset className="space-y-6">
-              <legend className="mb-2 font-display text-2xl text-cream">{o.contact}</legend>
-              <Field id="name" label={o.name} error={err(errors.name)}>
-                <input id="name" autoComplete="name" value={form.name} onChange={(e) => set("name", e.target.value)} className={`${fieldClass} text-xl`} />
-              </Field>
-              <Field id="phone" label={o.phone} error={err(errors.phone)}>
-                <input id="phone" type="tel" autoComplete="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} className={`${fieldClass} text-xl`} />
-              </Field>
-              <Field id="email" label={o.email} error={err(errors.email)}>
-                <input id="email" type="email" autoComplete="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={`${fieldClass} text-xl`} />
-              </Field>
-              <Field id="note" label={o.note} error={err(errors.note)}>
-                <input id="note" maxLength={400} value={form.note} onChange={(e) => set("note", e.target.value)} className={`${fieldClass} text-lg`} />
-              </Field>
-            </fieldset>
-
-            <fieldset>
-              <legend className="mb-3 font-display text-2xl text-cream">{o.payment}</legend>
-              <div className="grid grid-cols-2 gap-3">
-                {(["cash", "card"] as const).map((p) => (
-                  <label key={p} className={`cursor-pointer rounded-full border px-4 py-2.5 text-center text-sm font-semibold transition-colors ${payment === p ? "border-gold bg-gold/15 text-gold-soft" : "border-cream/20 text-cream/70"}`}>
-                    <input type="radio" name="payment" value={p} checked={payment === p} onChange={() => setPayment(p)} className="sr-only" />
-                    {p === "cash" ? o.cash : o.card}
-                  </label>
-                ))}
+            {me === null ? (
+              <div className="border border-gold/40 bg-gold/[0.05] p-6">
+                <p className="font-display text-2xl text-cream">{o.loginTitle}</p>
+                <p className="mt-2 text-sm leading-relaxed text-cream/75">{o.loginText}</p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link href="/login?next=/bestellen" className="rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink">
+                    {o.loginButton}
+                  </Link>
+                  <Link href="/login?mode=register&next=/bestellen" className="rounded-full border border-gold/60 px-6 py-3 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink">
+                    {o.registerButton}
+                  </Link>
+                </div>
               </div>
-            </fieldset>
+            ) : (
+              <>
+              <fieldset className="space-y-6">
+                <legend className="mb-2 font-display text-2xl text-cream">{o.contact}</legend>
+                <Field id="name" label={o.name} error={err(errors.name)}>
+                  <input id="name" autoComplete="name" value={form.name} onChange={(e) => set("name", e.target.value)} className={`${fieldClass} text-xl`} />
+                </Field>
+                <Field id="phone" label={o.phone} error={err(errors.phone)}>
+                  <input id="phone" type="tel" autoComplete="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} className={`${fieldClass} text-xl`} />
+                </Field>
+                {me && <p className="text-sm text-cream/65">{o.accountEmail(me.email)}</p>}
+                <Field id="note" label={o.note} error={err(errors.note)}>
+                  <input id="note" maxLength={400} value={form.note} onChange={(e) => set("note", e.target.value)} className={`${fieldClass} text-lg`} />
+                </Field>
+              </fieldset>
 
-            <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden value={honeypot} onChange={(e) => setHoneypot(e.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" />
+              <fieldset>
+                <legend className="mb-3 font-display text-2xl text-cream">{o.payment}</legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["cash", "card"] as const).map((p) => (
+                    <label key={p} className={`cursor-pointer rounded-full border px-4 py-2.5 text-center text-sm font-semibold transition-colors ${payment === p ? "border-gold bg-gold/15 text-gold-soft" : "border-cream/20 text-cream/70"}`}>
+                      <input type="radio" name="payment" value={p} checked={payment === p} onChange={() => setPayment(p)} className="sr-only" />
+                      {p === "cash" ? o.cash : o.card}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
 
-            {serverError && (
-              <p role="alert" className="text-sm text-[#f0a080]">
-                {serverError}
-              </p>
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden value={honeypot} onChange={(e) => setHoneypot(e.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" />
+
+              {serverError && (
+                <p role="alert" className="text-sm text-[#f0a080]">
+                  {serverError}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={!me || !canOrder || sending || cart.length === 0}
+                className="group relative w-full overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink active:scale-[0.99] disabled:opacity-50"
+              >
+                <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
+                <span className="relative">{sending ? o.placing : o.place(euro(sum.total))}</span>
+              </button>
+              </>
             )}
-            <button
-              type="submit"
-              disabled={!canOrder || sending || cart.length === 0}
-              className="group relative w-full overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink active:scale-[0.99] disabled:opacity-50"
-            >
-              <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
-              <span className="relative">{sending ? o.placing : o.place(euro(sum.total))}</span>
-            </button>
             <p className="text-center text-xs text-cream/50">
               <Link href="/datenschutz" className="underline underline-offset-4">
                 {t.footer.privacy}
