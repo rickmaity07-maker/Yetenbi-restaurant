@@ -64,10 +64,23 @@ export async function exchangeCode(origin: string, code: string, verifier: strin
 export async function upsertGoogleUser(p: GoogleProfile) {
   const [bySub] = (await db()`select id, role from users where google_sub = ${p.sub}`) as { id: string; role: string }[];
   if (bySub) return { id: Number(bySub.id), role: bySub.role };
-  const [linked] = (await db()`update users set google_sub = ${p.sub} where lower(email) = ${p.email} and google_sub is null returning id, role`) as { id: string; role: string }[];
-  if (linked) return { id: Number(linked.id), role: linked.role };
+  /*
+    Linking to an account with the same email. If that account never proved it owns the address, someone else may
+    have registered it first ("pre-hijacking"): their password is removed and their sessions end, so only the
+    real owner of the Google account gets in. They can set a new password in the profile.
+  */
+  const [linked] = (await db()`
+    with old as (select id, email_verified from users where lower(email) = ${p.email} and google_sub is null)
+    update users u set google_sub = ${p.sub}, password_hash = case when old.email_verified then u.password_hash else 'none' end, email_verified = true
+    from old where u.id = old.id
+    returning u.id, u.role, old.email_verified as was_verified
+  `) as { id: string; role: string; was_verified: boolean }[];
+  if (linked) {
+    if (!linked.was_verified) await db()`delete from sessions where user_id = ${linked.id}`;
+    return { id: Number(linked.id), role: linked.role };
+  }
   const [created] = (await db()`
-    insert into users (email, name, password_hash, google_sub) values (${p.email}, ${p.name.slice(0, 80)}, 'none', ${p.sub}) returning id, role
+    insert into users (email, name, password_hash, google_sub, email_verified) values (${p.email}, ${p.name.slice(0, 80)}, 'none', ${p.sub}, true) returning id, role
   `) as { id: string; role: string }[];
   return { id: Number(created.id), role: created.role };
 }

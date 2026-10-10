@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { startSession } from "@/lib/server/auth";
 import { homeFor, type Role } from "@/lib/roles";
+import { safeNext } from "@/lib/validate";
 import { hasDatabase } from "@/lib/server/db";
 import { exchangeCode, OAUTH_COOKIE, upsertGoogleUser } from "@/lib/server/google";
 
@@ -27,6 +28,6 @@ export async function GET(request: Request) {
 
   const user = await upsertGoogleUser(profile);
   await startSession(user.id);
-  const next = saved.next.startsWith("/") && !saved.next.startsWith("//") ? saved.next : "";
+  const next = safeNext(String(saved.next ?? ""));
   return Response.redirect(new URL(next || homeFor(user.role as Role), url), 302);
 }

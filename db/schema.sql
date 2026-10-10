@@ -138,3 +138,16 @@ alter table orders add column if not exists packed_at timestamptz;
 alter table orders add column if not exists out_at timestamptz;
 alter table orders add column if not exists completed_at timestamptz;
 create index if not exists orders_driver_idx on orders (driver_id, status);
+
+-- Attempt limits (sign-in, password reset, sign-up, bookings). key: email or a keyed hash of the IP. Kept one day.
+create table if not exists rate_hits (
+  bucket      text not null,
+  key         text not null,
+  created_at  timestamptz not null default now()
+);
+create index if not exists rate_hits_idx on rate_hits (bucket, key, created_at);
+
+-- Whether the account has shown it owns its email (Google sign-in, a password-reset link, or created by the owner).
+-- Linking Google to an unproven account removes its password, so whoever registered the address first loses access.
+alter table users add column if not exists email_verified boolean not null default false;
+update users set email_verified = true where role <> 'guest' and email_verified = false;

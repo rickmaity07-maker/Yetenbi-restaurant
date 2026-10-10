@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createUser, findUserByEmail, findUserById, requireOwner, setPassword, setRole } from "@/lib/server/auth";
 import type { Role } from "@/lib/roles";
+import { isEmail } from "@/lib/validate";
 
 export type TeamState = { ok?: string; error?: string } | null;
 
@@ -21,7 +22,7 @@ export async function addStaff(_: TeamState, form: FormData): Promise<TeamState>
   const password = String(form.get("password") ?? "");
   const role = asRole(form.get("role"));
   if (!role) return { error: "Bitte eine Rolle wählen." };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return { error: "Bitte eine gültige E-Mail-Adresse eingeben." };
+  if (!isEmail(email)) return { error: "Bitte eine gültige E-Mail-Adresse eingeben." };
   const existing = await findUserByEmail(email);
   if (existing) {
     if (existing.role !== "guest") return { error: "Diese Person ist schon im Team. Rolle unten ändern." };

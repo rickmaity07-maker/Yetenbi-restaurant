@@ -62,6 +62,10 @@ npm run build && npm run start   # production build (use this to judge performan
 - **Team** (/admin/team): owners create logins for kitchen staff, drivers and other owners (email + starting password),
   change roles, set a new password or remove someone (they keep a plain guest account). After signing in at /login,
   everyone lands on their own screen: owners /admin, kitchen /kueche, drivers /lieferung.
+- Limits against abuse (`src/lib/server/rate-limit.ts`): 10 wrong passwords per account or 30 per connection in
+  15 minutes, then a 15-minute pause; 3 reset emails per address and hour; 5 sign-ups and 6 reservations per
+  connection and hour. Signing in with Google takes over an account with the same email only if that account never
+  proved its address (otherwise someone could pre-register a guest's email); its old password is then removed.
 - Booking emails contain a signed cancel link (**/stornieren**), so guests can cancel without an account.
 
 Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`, menu text in `src/lib/data.ts`.

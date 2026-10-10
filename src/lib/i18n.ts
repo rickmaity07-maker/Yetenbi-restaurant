@@ -237,6 +237,7 @@ const de = {
       unavailable: "Konten sind gerade nicht verfügbar.",
       mail: "Der E-Mail-Versand ist noch nicht eingerichtet. Ruft uns bitte an.",
       google: "Die Anmeldung mit Google hat nicht geklappt. Bitte versucht es noch einmal.",
+      throttled: "Zu viele Versuche. Bitte wartet 15 Minuten oder setzt euer Passwort zurück.",
     },
   },
   order: {
@@ -571,6 +572,7 @@ const en: Dict = {
       unavailable: "Accounts are not available right now.",
       mail: "Email sending is not set up yet. Please call us.",
       google: "Signing in with Google did not work. Please try again.",
+      throttled: "Too many attempts. Please wait 15 minutes or reset your password.",
     },
   },
   order: {
@@ -903,6 +905,7 @@ const am: Dict = {
       unavailable: "መለያዎች አሁን አይገኙም።",
       mail: "የኢሜይል መላክ ገና አልተዘጋጀም። እባክዎ ይደውሉልን።",
       google: "በGoogle መግባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      throttled: "በጣም ብዙ ሙከራዎች። እባክዎ 15 ደቂቃ ይጠብቁ ወይም የይለፍ ቃልዎን ይቀይሩ።",
     },
   },
   order: {

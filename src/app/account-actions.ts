@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { siteUrl } from "@/lib/site-url";
+import { clearHits, isLimited, RATE, recordHit, visitorKey } from "@/lib/server/rate-limit";
 import { LOCALES, type Locale } from "@/lib/i18n";
 import {
   authenticate,
@@ -21,6 +22,7 @@ import {
 } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import { homeFor } from "@/lib/roles";
+import { isEmail, safeNext } from "@/lib/validate";
 import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/mailer";
 import { cancelForUser } from "@/lib/server/reservations";
 
@@ -42,24 +44,30 @@ export type AccountError =
   | "current"
   | "unavailable"
   | "mail"
-  | "google";
+  | "google"
+  | "throttled";
 
 const str = (form: FormData, key: string) => String(form.get(key) ?? "").trim();
 const asLocale = (v: string): Locale => ((LOCALES as readonly string[]).includes(v) ? (v as Locale) : "de");
-const emailOk = (v: string) => v.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const emailOk = isEmail;
 const phoneOk = (v: string) => !v || /^[+\d][\d\s()/-]{5,24}$/.test(v);
 const passwordOk = (v: string) => v.length >= 8 && v.length <= 200;
-/** Only internal paths, never another site. */
-const safeNext = (v: string) => (v.startsWith("/") && !v.startsWith("//") ? v : "");
 const slowDown = () => new Promise((r) => setTimeout(r, 700));
 
 export async function login(_: AccountState, form: FormData): Promise<AccountState> {
   if (!hasDatabase()) return { error: "unavailable" };
-  const user = await authenticate(str(form, "email"), String(form.get("password") ?? ""));
-  if (!user) {
+  const email = str(form, "email").toLowerCase().slice(0, 120);
+  const ip = await visitorKey();
+  if ((await isLimited("login-email", email, RATE.loginPerEmail)) || (await isLimited("login-ip", ip, RATE.loginPerIp))) {
     await slowDown();
+    return { error: "throttled" };
+  }
+  const user = await authenticate(email, String(form.get("password") ?? ""));
+  if (!user) {
+    await Promise.all([recordHit("login-email", email), recordHit("login-ip", ip), slowDown()]);
     return { error: "credentials" };
   }
+  await clearHits("login-email", email);
   await startSession(user.id);
   const next = safeNext(str(form, "next"));
   redirect(next || homeFor(user.role));
@@ -76,6 +84,9 @@ export async function register(_: AccountState, form: FormData): Promise<Account
   if (!phoneOk(phone)) return { error: "phone" };
   if (!passwordOk(password)) return { error: "password" };
   if (form.get("consent") !== "on") return { error: "consent" };
+  const ip = await visitorKey();
+  if (await isLimited("register-ip", ip, RATE.registerPerIp)) return { error: "throttled" };
+  await recordHit("register-ip", ip);
   if (await findUserByEmail(email)) {
     await slowDown();
     return { error: "exists" };
@@ -92,12 +103,19 @@ export async function logout() {
 
 export async function requestReset(_: AccountState, form: FormData): Promise<AccountState> {
   if (!hasDatabase()) return { error: "unavailable" };
-  const row = await findUserByEmail(str(form, "email"));
+  const email = str(form, "email").toLowerCase().slice(0, 120);
+  const ip = await visitorKey();
+  // Same answer when limited, so the form can't be used to bomb someone's inbox or probe for accounts.
+  if ((await isLimited("reset-email", email, RATE.resetPerEmail)) || (await isLimited("reset-ip", ip, RATE.resetPerIp))) {
+    await slowDown();
+    return { ok: true };
+  }
+  await Promise.all([recordHit("reset-email", email), recordHit("reset-ip", ip)]);
+  const row = await findUserByEmail(email);
   if (row) {
     const token = await createResetToken(Number(row.id));
-    const h = await headers();
-    const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-    const sent = await sendPasswordReset(row.email, row.name, row.locale, `${origin}/passwort?token=${token}`);
+    // The link always points at the real site, never at whatever host the request named.
+    const sent = await sendPasswordReset(row.email, row.name, row.locale, `${siteUrl()}/passwort?token=${token}`);
     if (!sent) return { error: "mail" };
   } else {
     await slowDown();

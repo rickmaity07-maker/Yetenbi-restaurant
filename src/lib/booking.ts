@@ -1,5 +1,6 @@
 import { restaurant } from "./data";
 import { toMinutes, weekdayOf, WEEK } from "./hours";
+import { isEmail } from "./validate";
 
 /*
   Booking rules shared by the form, the API route and the admin page, so all three agree.
@@ -72,7 +73,7 @@ export function validateBooking(
 
   if (!input.name || input.name.trim().length < 2 || input.name.length > 80) e.name = "name";
   const emailMissing = !input.email;
-  if ((emailMissing && !options.emailOptional) || (!emailMissing && (input.email!.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email!)))) e.email = "email";
+  if ((emailMissing && !options.emailOptional) || (!emailMissing && (input.email!.length > 120 || !isEmail(input.email!)))) e.email = "email";
   if (!input.phone || !/^[+\d][\d\s()/-]{5,24}$/.test(input.phone.trim())) e.phone = "phone";
   if (input.note && input.note.length > 280) e.note = "note";
   return e;

@@ -22,7 +22,9 @@ export default function Header() {
   useHtmlLang();
   const me = useAccount();
   const accountHref = me ? homeFor(me.role) : "/login";
-  const accountLabel = me ? t.account.myAccount : t.account.signIn;
+  // The team gets a labelled button to their screen; guests the account icon.
+  const staffLabel = me && me.role !== "guest" ? { owner: "Verwaltung", kitchen: "Küche", driver: "Lieferungen" }[me.role] : null;
+  const accountLabel = staffLabel ?? (me ? t.account.myAccount : t.account.signIn);
   const links = [
     { href: "#platte", label: t.nav.links.platte },
     { href: "#speisekarte", label: t.nav.links.karte },
@@ -69,9 +71,16 @@ export default function Header() {
           </ul>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="flex h-9 w-9 items-center justify-center rounded-full text-cream/80 transition-colors hover:bg-cream/[0.06] hover:text-gold-soft">
-              <UserCircle size={24} weight={me ? "fill" : "light"} />
-            </Link>
+            {staffLabel ? (
+              <Link href={accountHref} className="flex items-center gap-2 rounded-full border border-gold/60 py-1.5 pl-2.5 pr-4 text-sm font-semibold text-gold-soft transition-colors hover:bg-gold hover:text-ink">
+                <UserCircle size={20} weight="fill" />
+                {staffLabel}
+              </Link>
+            ) : (
+              <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="flex h-9 w-9 items-center justify-center rounded-full text-cream/80 transition-colors hover:bg-cream/[0.06] hover:text-gold-soft">
+                <UserCircle size={24} weight={me ? "fill" : "light"} />
+              </Link>
+            )}
             <LanguageToggle />
             <Magnetic strength={0.2}>
               <a

@@ -6,8 +6,12 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
   Only someone with the email (which contains the link) can cancel; the key never leaves the server.
 */
 /** Server-side signing key (also used for the order guard's device hashes). */
-export const signingKey = () =>
-  process.env.ADMIN_SESSION_SECRET || createHash("sha256").update(`yetenbi-cancel:${process.env.ADMIN_PASSWORD ?? ""}`).digest("hex");
+export function signingKey() {
+  if (process.env.ADMIN_SESSION_SECRET) return process.env.ADMIN_SESSION_SECRET;
+  // Without a secret anyone could forge cancel links, so production refuses to run without one.
+  if (process.env.NODE_ENV === "production") throw new Error("ADMIN_SESSION_SECRET is not set.");
+  return createHash("sha256").update(`yetenbi-dev:${process.env.ADMIN_PASSWORD ?? ""}`).digest("hex");
+}
 
 export const cancelSignature = (reference: string) => createHmac("sha256", signingKey()).update(`cancel:${reference}`).digest("base64url").slice(0, 32);
 

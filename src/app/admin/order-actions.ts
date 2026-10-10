@@ -6,7 +6,7 @@ import { requireOwner } from "@/lib/server/auth";
 import { sendOrderEmail } from "@/lib/server/mailer";
 import { blockOrderGuest, blockPhone, removeBlock } from "@/lib/server/order-guard";
 import { moveOrder } from "@/lib/server/order-flow";
-import { getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";
+import { findOrderById, getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";
 
 /** Moves an order one step (accept with ETA, reject, kitchen steps, hand to a driver, done, cancel); emails follow. */
 export async function updateOrder(form: FormData) {
@@ -30,8 +30,10 @@ export async function updateOrder(form: FormData) {
 export async function blockGuest(form: FormData) {
   await requireOwner();
   const id = Number(form.get("id"));
-  const current = String(form.get("current")) as OrderStatus | "new";
   if (!Number.isInteger(id)) return;
+  // decided from the stored status, not from what the form claims
+  const current = (await findOrderById(id))?.status;
+  if (!current) return;
   const reason = String(form.get("note") ?? "").slice(0, 300).trim();
   if (!(await blockOrderGuest(id, reason))) return;
   const next: OrderStatus | null = current === "new" ? "rejected" : OPEN_STATUSES.includes(current) ? "cancelled" : null;

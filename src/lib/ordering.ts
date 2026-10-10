@@ -1,5 +1,6 @@
 import { menu, type L, type MenuItem } from "./data";
 import { berlinNow, toMinutes, WEEK } from "./hours";
+import { isEmail } from "./validate";
 
 /*
   Online ordering rules, shared by the order page and the API (the server recomputes everything).
@@ -148,7 +149,7 @@ export function validateOrder(o: OrderInput, s: OrderSettings, closedToday = fal
 
   if (o.name.trim().length < 2 || o.name.length > 80) e.name = "name";
   if (!/^[+\d][\d\s()/-]{5,24}$/.test(o.phone.trim())) e.phone = "phone";
-  if (o.email && (o.email.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.email))) e.email = "email";
+  if (o.email && !isEmail(o.email)) e.email = "email";
   if (o.note.length > 400 || o.addressNote.length > 200) e.note = "note";
   return e;
 }

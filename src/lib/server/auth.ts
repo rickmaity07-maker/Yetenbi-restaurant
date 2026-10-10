@@ -55,8 +55,8 @@ export async function findUserByEmail(email: string) {
 export async function createUser(input: { email: string; name: string; phone: string; password: string; locale: Locale; role?: Role }) {
   const hash = await hashPassword(input.password);
   const [row] = (await db()`
-    insert into users (email, name, phone, password_hash, locale, role)
-    values (${input.email.toLowerCase()}, ${input.name}, ${input.phone}, ${hash}, ${input.locale}, ${input.role ?? "guest"})
+    insert into users (email, name, phone, password_hash, locale, role, email_verified)
+    values (${input.email.toLowerCase()}, ${input.name}, ${input.phone}, ${hash}, ${input.locale}, ${input.role ?? "guest"}, ${(input.role ?? "guest") !== "guest"})
     returning *
   `) as UserRow[];
   return toUser(row);
@@ -153,7 +153,7 @@ export async function listDrivers() {
 
 /** Changes a role and signs the person out everywhere, so the new rights apply at once. */
 export async function setRole(id: number, role: Role) {
-  await db()`update users set role = ${role} where id = ${id}`;
+  await db()`update users set role = ${role}, email_verified = email_verified or ${role !== "guest"} where id = ${id}`;
   await db()`delete from sessions where user_id = ${id}`;
 }
 
@@ -182,7 +182,10 @@ export async function consumeResetToken(token: string) {
   const [row] = (await db()`
     delete from password_resets where token_hash = ${sha256(token)} and expires_at > now() returning user_id
   `) as { user_id: string }[];
-  return row ? Number(row.user_id) : null;
+  if (!row) return null;
+  // the link came by email, so the account owns its address
+  await db()`update users set email_verified = true where id = ${row.user_id}`;
+  return Number(row.user_id);
 }
 
 /** Removes expired sessions and reset links (called by the daily clean-up). */
