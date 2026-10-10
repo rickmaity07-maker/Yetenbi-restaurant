@@ -87,7 +87,7 @@ async function Team() {
 
 export default function TeamPage() {
   return (
-    <main id="main" className="mx-auto max-w-5xl px-5 py-16 md:py-24">
+    <main id="main" className="mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12">
       <AdminHeader active="team" />
       <Suspense fallback={<p className="mt-12 text-cream/60">Lade Team …</p>}>
         <Team />

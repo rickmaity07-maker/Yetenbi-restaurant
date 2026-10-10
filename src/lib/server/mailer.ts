@@ -174,7 +174,7 @@ export async function notifyRestaurant(r: Reservation, origin: string) {
         "Neue Reservierungsanfrage",
         `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">${rows
           .map(([k, v]) => `<tr><td style="padding:5px 0;color:#c9a24a;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:35%">${esc(k)}</td><td style="padding:5px 0">${esc(v)}</td></tr>`)
-          .join("")}</table><p style="margin:24px 0 0"><a href="${esc(origin)}/admin" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">Annehmen oder ablehnen</a></p>`,
+          .join("")}</table><p style="margin:24px 0 0"><a href="${esc(origin)}/admin/reservierungen" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">Annehmen oder ablehnen</a></p>`,
       ),
     });
   } catch (error) {
@@ -192,7 +192,7 @@ export async function notifyRestaurantCancelled(r: Reservation, origin = siteUrl
       subject: `Storniert: ${r.guests} Pers., ${longDate(r.date, "de")} ${r.time} (${r.reference})`,
       html: layout(
         "Ein Gast hat storniert",
-        `<p style="margin:0">${esc(r.name)} hat die Reservierung ${esc(r.reference)} für ${esc(longDate(r.date, "de"))}, ${esc(r.time)} Uhr (${r.guests} Personen) storniert.</p><p style="margin:24px 0 0"><a href="${esc(origin)}/admin" style="color:#e7cd8a">Zur Übersicht</a></p>`,
+        `<p style="margin:0">${esc(r.name)} hat die Reservierung ${esc(r.reference)} für ${esc(longDate(r.date, "de"))}, ${esc(r.time)} Uhr (${r.guests} Personen) storniert.</p><p style="margin:24px 0 0"><a href="${esc(origin)}/admin/reservierungen" style="color:#e7cd8a">Zur Übersicht</a></p>`,
       ),
     });
   } catch (error) {

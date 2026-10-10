@@ -1,5 +1,6 @@
 /*
-  Opening hours (from the restaurant's Google listing), Monday first.
+  Opening hours, Monday first. WEEK is the starting value; the owner edits the hours in /admin (lib/business),
+  and the helpers below take the current week as a parameter.
   Used by the visit section, the facts list, the booking rules and the structured data for search engines.
 */
 
@@ -19,9 +20,9 @@ export const WEEK: DayHours[] = [
 export const SCHEMA_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 /** Rows for display: consecutive days with the same hours are grouped ("Mo, Di", "Do–Sa"). */
-export function groupedHours() {
+export function groupedHours(week: DayHours[] = WEEK) {
   const rows: { days: number[]; hours: DayHours }[] = [];
-  WEEK.forEach((h, i) => {
+  week.forEach((h, i) => {
     const last = rows[rows.length - 1];
     const same = last && JSON.stringify(last.hours) === JSON.stringify(h) && last.days[last.days.length - 1] === i - 1;
     if (same) last.days.push(i);
@@ -56,14 +57,14 @@ export const toMinutes = (time: string) => {
 };
 
 /** Whether the restaurant is open right now, and when it next opens or closes. */
-export function openState(now = new Date()) {
+export function openState(now = new Date(), week: DayHours[] = WEEK) {
   const { day, minutes } = berlinNow(now);
-  const today = WEEK[day];
+  const today = week[day];
   if (today && minutes >= toMinutes(today.open) && minutes < toMinutes(today.close)) return { open: true as const, until: today.close };
   if (today && minutes < toMinutes(today.open)) return { open: false as const, day, at: today.open };
   for (let k = 1; k <= 7; k++) {
     const d = (day + k) % 7;
-    if (WEEK[d]) return { open: false as const, day: d, at: WEEK[d]!.open };
+    if (week[d]) return { open: false as const, day: d, at: week[d]!.open };
   }
   return { open: false as const, day, at: "" };
 }

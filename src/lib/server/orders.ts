@@ -156,7 +156,7 @@ export async function listActiveOrders() {
            or (b.kind = 'client' and b.value = o.client_hash)) as blocked
     from orders o left join users d on d.id = o.driver_id
     where o.status = any(${OPEN_STATUSES}::text[])
-       or o.created_at > (now() at time zone 'Europe/Berlin')::date at time zone 'Europe/Berlin'
+       or o.created_at > date_trunc('day', now() at time zone 'Europe/Berlin') at time zone 'Europe/Berlin'
     order by o.created_at desc
   `) as Row[];
   return rows.map(toOrder);
@@ -180,7 +180,7 @@ export async function listDriverOrders(driverId: number | null) {
     where o.method = 'delivery'
       and (${driverId}::bigint is null or o.driver_id = ${driverId})
       and (o.status = 'on_the_way'
-           or (o.status = 'completed' and o.completed_at > (now() at time zone 'Europe/Berlin')::date at time zone 'Europe/Berlin'))
+           or (o.status = 'completed' and o.completed_at > date_trunc('day', now() at time zone 'Europe/Berlin') at time zone 'Europe/Berlin'))
     order by o.status = 'completed', o.out_at
   `) as Row[];
   return rows.map(toOrder);

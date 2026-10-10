@@ -1,4 +1,4 @@
-import { berlinNow, toMinutes, WEEK } from "./hours";
+import { berlinNow, toMinutes, WEEK, type DayHours } from "./hours";
 import { isEmail } from "./validate";
 import type { Catalog } from "./menu";
 
@@ -74,7 +74,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const hhmm = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
 /** Whether orders are accepted right now, and the times that can be chosen for later today. */
-export function orderWindow(method: Method, s: OrderSettings, closedToday = false, now = new Date()) {
+export function orderWindow(method: Method, s: OrderSettings, closedToday = false, now = new Date(), week: DayHours[] = WEEK) {
   const { day, minutes } = berlinNow(now);
   if (s.paused) return { open: false, asap: false, slots: [] as string[] };
   const lead = method === "delivery" ? s.deliveryMinutes : s.pickupMinutes;
@@ -84,7 +84,7 @@ export function orderWindow(method: Method, s: OrderSettings, closedToday = fals
     for (let m = Math.ceil((minutes + lead) / 15) * 15; m <= 23 * 60 + 45; m += 15) slots.push(hhmm(m));
     return { open: true, asap: true, slots };
   }
-  const hours = WEEK[day];
+  const hours = week[day];
   if (!hours || closedToday) return { open: false, asap: false, slots: [] as string[] };
   const open = toMinutes(hours.open);
   const last = toMinutes(hours.close) - LAST_ORDER_BEFORE_CLOSE;
@@ -111,7 +111,7 @@ export type OrderErrorCode =
   | "note";
 export type OrderErrors = Partial<Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>>;
 
-export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog, closedToday = false, now = new Date()): OrderErrors {
+export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog, closedToday = false, now = new Date(), week: DayHours[] = WEEK): OrderErrors {
   const e: OrderErrors = {};
   if (!o.items.length) e.items = "empty";
   else if (o.items.some((l) => !catalog.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY)) e.items = "item";
@@ -120,7 +120,7 @@ export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog,
   else if ((o.method === "delivery" && !s.delivery) || (o.method === "pickup" && !s.pickup)) e.method = "method";
 
   if (!e.method) {
-    const w = orderWindow(o.method, s, closedToday, now);
+    const w = orderWindow(o.method, s, closedToday, now, week);
     if (!w.open) e.wanted = "closed";
     else if (o.wanted === "asap" ? !w.asap : !w.slots.includes(o.wanted)) e.wanted = "time";
   }

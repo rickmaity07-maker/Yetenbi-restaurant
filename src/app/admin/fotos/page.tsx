@@ -64,7 +64,7 @@ async function Gallery() {
 
 export default function PhotosPage() {
   return (
-    <main id="main" className="mx-auto max-w-5xl px-5 py-16 md:py-24">
+    <main id="main" className="mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12">
       <AdminHeader active="photos" />
       <Suspense fallback={<p className="mt-12 text-cream/60">Lade Fotos …</p>}>
         <Gallery />

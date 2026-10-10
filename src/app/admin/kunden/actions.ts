@@ -1,0 +1,32 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { audit } from "@/lib/server/audit";
+import { requireOwner } from "@/lib/server/auth";
+import { decodeKey, encodeKey, getCustomer, saveNote } from "@/lib/server/customers";
+import { blockPhone } from "@/lib/server/order-guard";
+
+export type NoteState = { ok?: string; error?: string } | null;
+
+/** The team's note about a guest (e.g. "allergic to nuts", "always call before delivery"). */
+export async function saveCustomerNote(_: NoteState, form: FormData): Promise<NoteState> {
+  const me = await requireOwner();
+  const key = decodeKey(String(form.get("key") ?? ""));
+  const note = String(form.get("note") ?? "").slice(0, 1000).trim();
+  if (!key || !(await getCustomer(key))) return { error: "Gast nicht gefunden." };
+  await saveNote(key, note, me.name);
+  await audit(me, "customers", note ? "Notiz gespeichert" : "Notiz gelöscht", key);
+  revalidatePath(`/admin/kunden/${encodeKey(key)}`);
+  return { ok: "Gespeichert." };
+}
+
+/** Blocks the guest's phone number for online orders (lifted again in Bestellungen → Gesperrte Gäste). */
+export async function blockCustomer(form: FormData) {
+  const me = await requireOwner();
+  const key = decodeKey(String(form.get("key") ?? ""));
+  const c = key ? await getCustomer(key) : null;
+  if (!c?.phone) return;
+  await blockPhone(c.phone, `Gesperrt in Kunden (${me.name})`);
+  await audit(me, "customers", "Gast gesperrt", c.phone);
+  revalidatePath(`/admin/kunden/${encodeKey(key)}`);
+}

@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import type { L } from "@/lib/data";
 import { ADDITIVES, ALLERGENS, DISH_TAGS, type GlutenClaim } from "@/lib/menu";
 import { requireOwner } from "@/lib/server/auth";
+import { audit } from "@/lib/server/audit";
 import {
   createCategory,
   createDish,
@@ -47,20 +48,23 @@ function refresh() {
 /* ---------- categories ---------- */
 
 export async function saveCategory(_: MenuState, form: FormData): Promise<MenuState> {
-  await requireOwner();
+  const me = await requireOwner();
   const id = str(form, "id", 60);
   const title = text(form, "title", 60);
   if (!title || title.de.length < 2) return { error: "Bitte einen Namen (Deutsch) eingeben." };
   const data = { title, note: text(form, "note", 400), drinks: form.get("drinks") === "on" };
   if (id) await updateCategory(id, data);
   else await createCategory(data);
+  await audit(me, "menu", id ? "Kategorie geändert" : "Kategorie angelegt", title.de);
   refresh();
   return { ok: id ? "Kategorie gespeichert." : "Kategorie angelegt." };
 }
 
 export async function removeCategory(_: MenuState, form: FormData): Promise<MenuState> {
-  await requireOwner();
-  if (!(await deleteCategory(str(form, "id", 60)))) return { error: "Nur leere Kategorien können gelöscht werden. Erst die Gerichte löschen oder verschieben." };
+  const me = await requireOwner();
+  const catId = str(form, "id", 60);
+  if (!(await deleteCategory(catId))) return { error: "Nur leere Kategorien können gelöscht werden. Erst die Gerichte löschen oder verschieben." };
+  await audit(me, "menu", "Kategorie gelöscht", catId);
   refresh();
   return { ok: "Kategorie gelöscht." };
 }
@@ -68,7 +72,7 @@ export async function removeCategory(_: MenuState, form: FormData): Promise<Menu
 /* ---------- dishes ---------- */
 
 export async function saveDish(_: MenuState, form: FormData): Promise<MenuState> {
-  await requireOwner();
+  const me = await requireOwner();
   const id = str(form, "id", 60);
   const categoryId = str(form, "categoryId", 60);
   const category = (await readMenu()).find((c) => c.id === categoryId);
@@ -97,23 +101,37 @@ export async function saveDish(_: MenuState, form: FormData): Promise<MenuState>
     orderable: form.get("orderable") === "on",
     available: form.get("available") === "on",
   };
+  const before = id ? (await readMenu()).flatMap((c) => c.items).find((i) => i.id === id) : undefined;
   if (id) await updateDish(id, dish);
   else await createDish(dish);
+  await audit(
+    me,
+    "menu",
+    id ? (before && before.price !== dish.price ? `Preis geändert: ${before.price.toFixed(2)} → ${dish.price.toFixed(2)} €` : "Gericht geändert") : "Gericht angelegt",
+    dish.name.de,
+  );
   refresh();
   return { ok: id ? "Gespeichert, auf der Website sichtbar." : "Gericht angelegt, auf der Website sichtbar." };
 }
 
 export async function removeDish(_: MenuState, form: FormData): Promise<MenuState> {
-  await requireOwner();
-  await deleteDish(str(form, "id", 60));
+  const me = await requireOwner();
+  const dishId = str(form, "id", 60);
+  const gone = (await readMenu()).flatMap((c) => c.items).find((i) => i.id === dishId);
+  await deleteDish(dishId);
+  await audit(me, "menu", "Gericht gelöscht", gone?.name.de ?? dishId);
   refresh();
   return { ok: "Gelöscht." };
 }
 
 /** Quick switch: sold out today / available again. */
 export async function toggleAvailable(form: FormData) {
-  await requireOwner();
-  await setAvailable(str(form, "id", 60), form.get("available") === "true");
+  const me = await requireOwner();
+  const dishId = str(form, "id", 60);
+  const available = form.get("available") === "true";
+  await setAvailable(dishId, available);
+  const d = (await readMenu()).flatMap((c) => c.items).find((i) => i.id === dishId);
+  await audit(me, "menu", available ? "Wieder verfügbar" : "Ausverkauft gemeldet", d?.name.de ?? dishId);
   refresh();
 }
 

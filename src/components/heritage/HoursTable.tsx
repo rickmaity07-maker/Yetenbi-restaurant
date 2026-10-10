@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import { berlinNow, groupedHours, openState } from "@/lib/hours";
 import { useLanguage } from "@/lib/language";
 import { useClosures } from "@/lib/account-client";
+import { useHours } from "@/components/Business";
 
 /** Weekly hours, grouped ("Mo, Di"), with today highlighted and a live open/closed line (client-only: depends on the clock). */
 export default function HoursTable() {
   const { t } = useLanguage();
+  const week = useHours();
   const [now, setNow] = useState<{ day: number; state: ReturnType<typeof openState> } | null>(null);
 
   useEffect(() => {
-    const tick = () => setNow({ day: berlinNow().day, state: openState() });
+    const tick = () => setNow({ day: berlinNow().day, state: openState(new Date(), week) });
     tick();
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [week]);
 
   const closures = useClosures().slice(0, 3);
-  const rows = groupedHours();
+  const rows = groupedHours(week);
   const label = (days: number[]) => {
     const names = days.map((d) => t.daysShort[d]);
     // three or more consecutive days read as a range

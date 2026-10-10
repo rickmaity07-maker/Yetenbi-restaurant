@@ -7,6 +7,7 @@ import { createReservation, recentCount } from "@/lib/server/reservations";
 import { upcomingClosures } from "@/lib/server/closures";
 import { getCurrentUser } from "@/lib/server/auth";
 import { isLimited, RATE, recordHit, visitorKey } from "@/lib/server/rate-limit";
+import { getBusiness } from "@/lib/server/business";
 
 /*
   Reservation requests from the website. A valid request is stored as "pending", the guest gets a
@@ -37,8 +38,9 @@ export async function POST(request: Request) {
   };
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
-  const closures = (await upcomingClosures()).map((c) => c.date);
-  const errors = validateBooking(clean, undefined, closures);
+  const [closureList, business] = await Promise.all([upcomingClosures(), getBusiness()]);
+  const closures = closureList.map((c) => c.date);
+  const errors = validateBooking(clean, undefined, closures, { week: business.hours });
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 
   // Each request emails the restaurant, so one address can't flood it: 3 open requests, 10 a day.

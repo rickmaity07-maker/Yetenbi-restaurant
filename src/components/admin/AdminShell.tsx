@@ -1,0 +1,188 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { LalibelaCross } from "@/components/heritage/Ornaments";
+import { logout } from "@/app/account-actions";
+import { useAccount } from "@/lib/account-client";
+import LiveAlerts, { type Pulse } from "./LiveAlerts";
+
+/*
+  The admin's frame: a sidebar grouped by task (on phones a top bar with a menu), live counters on
+  "Bestellungen" and "Reservierungen", who is signed in and the way out. Pages bring only their own content.
+*/
+
+type Item = { href: string; label: string; badge?: (p: Pulse) => number; external?: boolean };
+type Group = { title: string; items: Item[] };
+
+const NAV: Group[] = [
+  { title: "Heute", items: [{ href: "/admin", label: "Übersicht" }] },
+  {
+    title: "Betrieb",
+    items: [
+      { href: "/admin/bestellungen", label: "Bestellungen", badge: (p) => p.newOrders },
+      { href: "/admin/reservierungen", label: "Reservierungen", badge: (p) => p.pendingReservations },
+      { href: "/kueche", label: "Küchenbildschirm", external: true },
+      { href: "/lieferung", label: "Lieferungen (Fahrer)", external: true },
+    ],
+  },
+  {
+    title: "Speisekarte & Website",
+    items: [
+      { href: "/admin/speisekarte", label: "Speisekarte" },
+      { href: "/admin/fotos", label: "Fotos" },
+    ],
+  },
+  {
+    title: "Auswertung",
+    items: [
+      { href: "/admin/berichte", label: "Berichte" },
+      { href: "/admin/kunden", label: "Kunden" },
+      { href: "/admin/protokoll", label: "Protokoll" },
+    ],
+  },
+  {
+    title: "Einstellungen",
+    items: [
+      { href: "/admin/einstellungen", label: "Betrieb & Rechtliches" },
+      { href: "/admin/team", label: "Team & Zugänge" },
+    ],
+  },
+];
+
+const isActive = (path: string, href: string) => (href === "/admin" ? path === "/admin" : path === href || path.startsWith(`${href}/`));
+
+function Nav({ path, pulse, onNavigate }: { path: string; pulse: Pulse | null; onNavigate?: () => void }) {
+  return (
+    <nav aria-label="Verwaltung" className="space-y-6">
+      {NAV.map((g) => (
+        <div key={g.title}>
+          <p className="px-3 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-cream/40">{g.title}</p>
+          <ul className="mt-2 space-y-0.5">
+            {g.items.map((it) => {
+              const on = isActive(path, it.href);
+              const n = pulse && it.badge ? it.badge(pulse) : 0;
+              return (
+                <li key={it.href}>
+                  <Link
+                    href={it.href}
+                    onClick={onNavigate}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex items-center justify-between rounded-md px-3 py-2 text-[0.92rem] transition-colors ${
+                      on ? "bg-gold/15 font-semibold text-gold-soft" : "text-cream/75 hover:bg-cream/[0.05] hover:text-cream"
+                    }`}
+                  >
+                    <span>
+                      {it.label}
+                      {it.external && <span className="ml-1.5 text-xs text-cream/35">↗</span>}
+                    </span>
+                    {n > 0 && <span className="min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-semibold tabular-nums text-ink">{n}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+/** The nav with the current page marked. Reading the address is runtime data, so it sits inside Suspense. */
+function CurrentNav({ pulse, onNavigate }: { pulse: Pulse | null; onNavigate?: () => void }) {
+  const path = usePathname();
+  return <Nav path={path} pulse={pulse} onNavigate={onNavigate} />;
+}
+
+/** Closes the phone menu whenever the page changes. */
+function CloseOnNavigate({ onChange }: { onChange: () => void }) {
+  const path = usePathname();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => onChange(), [path]);
+  return null;
+}
+
+function Account() {
+  const me = useAccount();
+  return (
+    <div className="space-y-3 border-t border-cream/10 pt-4 text-sm">
+      {me && (
+        <p className="px-3 text-cream/60">
+          Angemeldet als <span className="text-cream">{me.name}</span>
+        </p>
+      )}
+      <div className="flex items-center gap-4 px-3">
+        <Link href="/" className="text-cream/60 underline underline-offset-4 hover:text-cream">
+          Zur Website
+        </Link>
+        <form action={logout}>
+          <button className="text-cream/60 underline underline-offset-4 hover:text-cream">Abmelden</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminShell({ children }: { children: React.ReactNode }) {
+  const [pulse, setPulse] = useState<Pulse | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const brand = (
+    <Link href="/admin" className="flex items-center gap-3 px-3">
+      <LalibelaCross className="h-7 w-7 text-gold" />
+      <span>
+        <span className="block font-display text-xl font-semibold leading-none text-cream">Yetenbi</span>
+        <span className="text-[0.6rem] uppercase tracking-[0.3em] text-gold">Verwaltung</span>
+      </span>
+    </Link>
+  );
+
+  return (
+    <div data-admin-shell className="min-h-[100dvh] w-full bg-[#16110d] lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
+      {/* desktop sidebar */}
+      <aside className="sticky top-0 hidden h-[100dvh] flex-col justify-between overflow-y-auto border-r border-cream/10 bg-[#120e0b] px-3 py-6 lg:flex">
+        <div className="space-y-8">
+          {brand}
+          <Suspense fallback={<Nav path="" pulse={pulse} />}>
+            <CurrentNav pulse={pulse} />
+          </Suspense>
+        </div>
+        <Account />
+      </aside>
+
+      {/* phone / tablet top bar */}
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-cream/10 bg-[#120e0b]/95 px-2 py-3 backdrop-blur lg:hidden">
+        {brand}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="admin-menu"
+          className="mr-2 flex items-center gap-2 rounded-full border border-cream/20 px-4 py-2 text-sm font-semibold text-cream"
+        >
+          Menü
+          {pulse && pulse.newOrders + pulse.pendingReservations > 0 && (
+            <span className="rounded-full bg-gold px-1.5 text-xs text-ink">{pulse.newOrders + pulse.pendingReservations}</span>
+          )}
+        </button>
+      </header>
+      {open && (
+        <div id="admin-menu" className="fixed inset-x-0 bottom-0 top-[61px] z-40 overflow-y-auto bg-[#120e0b] px-3 pb-28 pt-6 lg:hidden">
+          <Suspense fallback={<Nav path="" pulse={pulse} onNavigate={() => setOpen(false)} />}>
+            <CurrentNav pulse={pulse} onNavigate={() => setOpen(false)} />
+          </Suspense>
+          <div className="mt-8">
+            <Account />
+          </div>
+        </div>
+      )}
+
+      <Suspense>
+        <CloseOnNavigate onChange={() => setOpen(false)} />
+      </Suspense>
+      <div className="min-w-0">{children}</div>
+      <LiveAlerts mode="owner" onPulse={setPulse} />
+    </div>
+  );
+}

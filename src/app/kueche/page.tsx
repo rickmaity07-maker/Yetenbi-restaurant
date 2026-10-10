@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import LiveRefresh from "@/components/LiveRefresh";
+import LiveAlerts from "@/components/admin/LiveAlerts";
 import StaffHeader from "@/components/StaffHeader";
 import { requireRole } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
@@ -88,6 +89,7 @@ async function Board() {
     <>
       <StaffHeader title="Küche" me={me} />
       <LiveRefresh seconds={15} />
+      <LiveAlerts mode="kitchen" />
       <div className="mt-10 grid gap-10 lg:grid-cols-3">
         <Column title="Zubereiten" hint="Angenommene Bestellungen, älteste zuerst." orders={orders.filter((o) => o.status === "accepted")} />
         <Column title="Verpacken" hint="Essen ist fertig, jetzt einpacken." orders={orders.filter((o) => o.status === "cooked")} />

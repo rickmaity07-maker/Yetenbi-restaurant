@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import { restaurant } from "@/lib/data";
+import { getBusiness } from "@/lib/server/business";
 
 export const metadata: Metadata = { title: "Impressum" };
 
-// TODO: Fill in the owner's full name, a contact email (required by § 5 DDG) and the VAT ID, if any, before going live.
-export default function Impressum() {
+// Owner, email and VAT ID come from /admin → Betrieb & Rechtliches (§ 5 DDG requires the name and an email address).
+export default async function Impressum() {
+  const b = await getBusiness();
   return (
     <LegalPage title="Impressum">
       <p className="font-display text-lg text-cream/80">Angaben gemäß § 5 DDG</p>
       <p>
         Yetenbi Äthiopisches Restaurant & Café
         <br />
-        Inhaber/in: <strong>[Name wird ergänzt]</strong>
+        Inhaber/in: <strong>{b.ownerName || "[Name wird ergänzt]"}</strong>
         <br />
         {restaurant.street}
         <br />
@@ -21,9 +23,16 @@ export default function Impressum() {
       <p>
         Telefon: <a href={restaurant.phoneHref} className="text-gold-soft underline underline-offset-4">{restaurant.phone}</a>
         <br />
-        E-Mail: [wird ergänzt]
+        E-Mail:{" "}
+        {b.contactEmail ? (
+          <a href={`mailto:${b.contactEmail}`} className="text-gold-soft underline underline-offset-4">
+            {b.contactEmail}
+          </a>
+        ) : (
+          "[wird ergänzt]"
+        )}
       </p>
-      <p>Umsatzsteuer-ID: [falls vorhanden, wird ergänzt]</p>
+      {b.vatId && <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG: {b.vatId}</p>}
       <p>
         Verbraucherstreitbeilegung: Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer
         Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).

@@ -7,6 +7,7 @@ import { sendOrderEmail } from "@/lib/server/mailer";
 import { blockOrderGuest, blockPhone, removeBlock } from "@/lib/server/order-guard";
 import { moveOrder } from "@/lib/server/order-flow";
 import { findOrderById, getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";
+import { audit } from "@/lib/server/audit";
 
 /** Moves an order one step (accept with ETA, reject, kitchen steps, hand to a driver, done, cancel); emails follow. */
 export async function updateOrder(form: FormData) {
@@ -28,7 +29,7 @@ export async function updateOrder(form: FormData) {
   An open order is rejected or cancelled at the same time.
 */
 export async function blockGuest(form: FormData) {
-  await requireOwner();
+  const me = await requireOwner();
   const id = Number(form.get("id"));
   if (!Number.isInteger(id)) return;
   // decided from the stored status, not from what the form claims
@@ -41,31 +42,36 @@ export async function blockGuest(form: FormData) {
     const order = await setOrderStatus(id, next, null, reason);
     if (order) await sendOrderEmail(next, order);
   }
+  await audit(me, "orders", next === "rejected" ? "Abgelehnt und Gast gesperrt" : next ? "Storniert und Gast gesperrt" : "Gast gesperrt", `Bestellung #${id}`, { reason });
   revalidatePath("/admin/bestellungen");
 }
 
 export type BlockState = { ok?: string; error?: string } | null;
 
 export async function addPhoneBlock(_: BlockState, form: FormData): Promise<BlockState> {
-  await requireOwner();
+  const me = await requireOwner();
   const phone = String(form.get("phone") ?? "").trim();
   if (phone.replace(/\D/g, "").length < 6) return { error: "Bitte eine Telefonnummer eingeben." };
   await blockPhone(phone, String(form.get("reason") ?? "").slice(0, 300).trim());
+  await audit(me, "orders", "Telefonnummer gesperrt", phone);
   revalidatePath("/admin/bestellungen");
   return { ok: "Gesperrt." };
 }
 
 export async function unblock(form: FormData) {
-  await requireOwner();
+  const me = await requireOwner();
   const id = Number(form.get("id"));
-  if (Number.isInteger(id)) await removeBlock(id);
+  if (Number.isInteger(id)) {
+    await removeBlock(id);
+    await audit(me, "orders", "Sperre aufgehoben", `#${id}`);
+  }
   revalidatePath("/admin/bestellungen");
 }
 
 export type SettingsState = { ok?: string; error?: string } | null;
 
 export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
-  await requireOwner();
+  const me = await requireOwner();
   const current = await getOrderSettings();
   const num = (k: string, fallback: number) => {
     const v = Number(String(form.get(k) ?? "").replace(",", "."));
@@ -89,6 +95,8 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
     pickupMinutes: Math.min(180, Math.max(5, Math.round(num("pickupMinutes", current.pickupMinutes)))),
   };
   await saveOrderSettings(next);
+  const changed = (Object.keys(next) as (keyof OrderSettings)[]).filter((k) => JSON.stringify(next[k]) !== JSON.stringify(current[k]));
+  if (changed.length) await audit(me, "settings", "Bestell-Einstellungen geändert", changed.join(", "), Object.fromEntries(changed.map((k) => [k, next[k]])));
   revalidatePath("/admin/bestellungen");
   return { ok: "Gespeichert." };
 }

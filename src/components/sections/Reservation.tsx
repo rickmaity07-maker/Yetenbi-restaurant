@@ -10,6 +10,7 @@ import { useAccount, useClosures } from "@/lib/account-client";
 import Embers from "../motion/Embers";
 import { ease, Heading, Rise } from "../ui/primitives";
 import { AksumFrame, LalibelaCross, Tibeb } from "../heritage/Ornaments";
+import { useHours } from "@/components/Business";
 
 const input =
   "w-full border-0 border-b bg-transparent px-0 pb-3 pt-1 font-display text-2xl text-cream placeholder:text-cream/35 transition-colors duration-500 focus:outline-none [color-scheme:dark] disabled:opacity-50";
@@ -109,6 +110,7 @@ export default function Reservation() {
   const [honeypot, setHoneypot] = useState("");
   const me = useAccount();
   const closures = useClosures();
+  const week = useHours();
   const closedDates = useMemo(() => closures.map((c) => c.date), [closures]);
 
   // Signed-in guests get their details filled in (only into empty fields).
@@ -122,7 +124,7 @@ export default function Reservation() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setToday(todayISO()), []);
 
-  const slots = useMemo(() => slotsFor(form.date, closedDates), [form.date, closedDates]);
+  const slots = useMemo(() => slotsFor(form.date, closedDates, week), [form.date, closedDates, week]);
   const err = (code?: BookingErrorCode) => (code ? t.reserve.errors[code] : undefined);
 
   const set = <K extends keyof BookingRequest>(key: K, value: BookingRequest[K]) => {
@@ -130,7 +132,7 @@ export default function Reservation() {
       const next = { ...f, [key]: value };
       // keep the time valid for the newly chosen day
       if (key === "date") {
-        const s = slotsFor(String(value), closedDates);
+        const s = slotsFor(String(value), closedDates, week);
         if (!s.includes(next.time)) next.time = s.includes("19:00") ? "19:00" : (s[0] ?? "");
       }
       return next;
@@ -144,7 +146,7 @@ export default function Reservation() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const found = validateBooking(form, undefined, closedDates);
+    const found = validateBooking(form, undefined, closedDates, { week });
     setErrors(found);
     if (Object.keys(found).length) return;
     setSending(true);

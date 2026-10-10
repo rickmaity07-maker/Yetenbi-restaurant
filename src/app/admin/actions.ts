@@ -6,24 +6,31 @@ import { requireOwner } from "@/lib/server/auth";
 import { addClosure, removeClosure, upcomingClosures } from "@/lib/server/closures";
 import { sendGuestEmail } from "@/lib/server/mailer";
 import { createReservation, setStatus, type Status } from "@/lib/server/reservations";
+import { audit } from "@/lib/server/audit";
+import { readBusiness } from "@/lib/server/business";
 
 export type AdminState = { error?: string; ok?: string } | null;
 
 /** Accept, decline or cancel a request; the guest is emailed in their language. */
 export async function decide(form: FormData) {
-  await requireOwner();
+  const me = await requireOwner();
   const id = Number(form.get("id"));
   const status = String(form.get("status")) as Status;
   const note = String(form.get("note") ?? "").slice(0, 400).trim();
   if (!Number.isInteger(id) || !["confirmed", "declined", "cancelled", "pending"].includes(status)) return;
   const reservation = await setStatus(id, status, note);
   if (reservation && (status === "confirmed" || status === "declined")) await sendGuestEmail(status, reservation);
+  if (reservation) {
+    const what = { confirmed: "Reservierung bestätigt", declined: "Reservierung abgelehnt", cancelled: "Reservierung storniert", pending: "Reservierung wieder offen" }[status];
+    await audit(me, "reservations", what, `${reservation.reference} · ${reservation.date} ${reservation.time} · ${reservation.guests} P.`);
+  }
+  revalidatePath("/admin/reservierungen");
   revalidatePath("/admin");
 }
 
 /** A reservation taken by phone: confirmed straight away, email optional. */
 export async function addPhoneBooking(_: AdminState, form: FormData): Promise<AdminState> {
-  await requireOwner();
+  const me = await requireOwner();
   const input: BookingRequest = {
     date: String(form.get("date") ?? ""),
     time: String(form.get("time") ?? ""),
@@ -34,7 +41,7 @@ export async function addPhoneBooking(_: AdminState, form: FormData): Promise<Ad
     note: String(form.get("note") ?? "").trim(),
   };
   const closures = (await upcomingClosures()).map((c) => c.date);
-  const errors = validateBooking(input, undefined, closures, { emailOptional: true });
+  const errors = validateBooking(input, undefined, closures, { emailOptional: true, week: (await readBusiness()).hours });
   const labels: Record<string, string> = {
     date: "Datum fehlt oder liegt in der Vergangenheit.",
     past: "Das Datum liegt in der Vergangenheit.",
@@ -53,22 +60,29 @@ export async function addPhoneBooking(_: AdminState, form: FormData): Promise<Ad
   if (first) return { error: labels[first] };
   const reservation = await createReservation(input, "de", { source: "phone", status: "confirmed" });
   if (reservation.email) await sendGuestEmail("confirmed", reservation);
+  await audit(me, "reservations", "Telefonische Reservierung eingetragen", `${reservation.reference} · ${reservation.date} ${reservation.time} · ${reservation.guests} P.`);
+  revalidatePath("/admin/reservierungen");
   revalidatePath("/admin");
   return { ok: `Eingetragen: ${reservation.reference}` };
 }
 
 export async function addClosedDay(_: AdminState, form: FormData): Promise<AdminState> {
-  await requireOwner();
+  const me = await requireOwner();
   const date = String(form.get("date") ?? "");
   const note = String(form.get("note") ?? "").trim().slice(0, 120);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "Bitte ein Datum wählen." };
   await addClosure(date, note);
+  await audit(me, "settings", "Schließtag eingetragen", `${date}${note ? ` · ${note}` : ""}`);
+  revalidatePath("/admin/reservierungen");
   revalidatePath("/admin");
   return { ok: "Schließtag gespeichert." };
 }
 
 export async function removeClosedDay(form: FormData) {
-  await requireOwner();
-  await removeClosure(String(form.get("date") ?? ""));
+  const me = await requireOwner();
+  const date = String(form.get("date") ?? "");
+  await removeClosure(date);
+  await audit(me, "settings", "Schließtag entfernt", date);
+  revalidatePath("/admin/reservierungen");
   revalidatePath("/admin");
 }

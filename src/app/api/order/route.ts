@@ -10,6 +10,7 @@ import { checkOrder, clientHash, phoneKey } from "@/lib/server/order-guard";
 import { createOrder, getOrderSettings } from "@/lib/server/orders";
 import { getMenu } from "@/lib/server/menu";
 import { catalogOf } from "@/lib/menu";
+import { getBusiness } from "@/lib/server/business";
 
 /*
   Places an online order. Only signed-in guests can order; the order goes to the account's email address.
@@ -43,10 +44,10 @@ export async function POST(request: Request) {
   };
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
-  const [settings, closures, menu] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu()]);
+  const [settings, closures, menu, business] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu(), getBusiness()]);
   const catalog = catalogOf(menu);
   const closedToday = closures.some((c) => c.date === todayISO());
-  const errors = validateOrder(input, settings, catalog, closedToday);
+  const errors = validateOrder(input, settings, catalog, closedToday, new Date(), business.hours);
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 
   // Each order rings the kitchen: blocked guests, floods and very large first orders are stopped here (see order-guard).

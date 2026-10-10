@@ -1,24 +1,32 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import { restaurant } from "@/lib/data";
+import { getBusiness } from "@/lib/server/business";
 
 export const metadata: Metadata = { title: "Datenschutz" };
 
 const H = ({ children }: { children: React.ReactNode }) => <h2 className="pt-6 font-display text-2xl font-semibold text-gold-soft">{children}</h2>;
 
-// TODO: Fill in the owner's name (Verantwortlicher) and have the text checked before going live.
-export default function Datenschutz() {
+// The owner's name and email come from /admin → Betrieb & Rechtliches; have the text checked before going live.
+export default async function Datenschutz() {
+  const b = await getBusiness();
   return (
     <LegalPage title="Datenschutz">
       <p>Wir freuen uns über Ihren Besuch. Hier erklären wir, welche Daten diese Website verarbeitet und wofür.</p>
 
       <H>1. Verantwortlicher</H>
       <p>
-        Yetenbi Äthiopisches Restaurant & Café, Inhaber/in: <strong>[Name wird ergänzt]</strong>
+        Yetenbi Äthiopisches Restaurant & Café, Inhaber/in: <strong>{b.ownerName || "[Name wird ergänzt]"}</strong>
         <br />
         {restaurant.street}, {restaurant.city}
         <br />
         Telefon: {restaurant.phone}
+        {b.contactEmail && (
+          <>
+            <br />
+            E-Mail: {b.contactEmail}
+          </>
+        )}
       </p>
 
       <H>2. Hosting und Server-Protokolle</H>

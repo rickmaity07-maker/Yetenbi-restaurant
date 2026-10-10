@@ -25,6 +25,7 @@ import { homeFor } from "@/lib/roles";
 import { isEmail, safeNext } from "@/lib/validate";
 import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/mailer";
 import { cancelForUser } from "@/lib/server/reservations";
+import { audit } from "@/lib/server/audit";
 
 /*
   Account actions. They return codes (not sentences) so the forms can word them in the visitor's language
@@ -68,6 +69,7 @@ export async function login(_: AccountState, form: FormData): Promise<AccountSta
     return { error: "credentials" };
   }
   await clearHits("login-email", email);
+  if (user.role !== "guest") await audit(user, "login", "Angemeldet", user.email);
   await startSession(user.id);
   const next = safeNext(str(form, "next"));
   redirect(next || homeFor(user.role));

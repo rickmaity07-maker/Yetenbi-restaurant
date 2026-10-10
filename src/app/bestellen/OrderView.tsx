@@ -11,9 +11,10 @@ import { useAccount } from "@/lib/account-client";
 import { fieldClass } from "@/components/account/AccountShell";
 import { AllergenFacts, DrinkFacts, FactsLegend } from "@/components/MenuFacts";
 import { catalogOf, hasAllergenData, type Menu } from "@/lib/menu";
+import type { DayHours } from "@/lib/hours";
 
 type Window = { open: boolean; asap: boolean; slots: string[] };
-type Availability = { available: boolean; settings: OrderSettings; menu?: Menu; closedToday?: boolean; delivery?: Window; pickup?: Window };
+type Availability = { available: boolean; settings: OrderSettings; menu?: Menu; hours?: DayHours[]; closedToday?: boolean; delivery?: Window; pickup?: Window };
 
 const CART_KEY = "yt-cart";
 const readCart = (): CartLine[] => {
@@ -138,7 +139,7 @@ export default function OrderView() {
     e.preventDefault();
     if (!s) return;
     const input: OrderInput = { method, items: cart, payment, wanted, ...form };
-    const found = validateOrder(input, s, catalog, info?.closedToday);
+    const found = validateOrder(input, s, catalog, info?.closedToday, new Date(), info?.hours);
     setErrors(found);
     if (Object.keys(found).length) return;
     setSending(true);

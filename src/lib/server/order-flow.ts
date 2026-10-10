@@ -3,6 +3,7 @@ import { canMove, type OrderStatus, type StaffRole } from "@/lib/ordering";
 import { findUserById, staffEmails, type User } from "./auth";
 import { notifyStaffOrder, sendOrderEmail } from "./mailer";
 import { advanceOrder, findOrderById } from "./orders";
+import { audit } from "./audit";
 
 /**
   The one way an order moves on, for owners, kitchen and drivers alike: checks the role may make this step,
@@ -44,5 +45,16 @@ export async function moveOrder(
     mails.push(notifyStaffOrder("completed", order, [restaurant]));
   }
   await Promise.all(mails);
+  const label: Record<string, string> = {
+    accepted: `Bestellung angenommen (${order.etaMinutes ?? "?"} Min.)`,
+    rejected: "Bestellung abgelehnt",
+    cooked: "Essen fertig",
+    packed: "Verpackt",
+    on_the_way: driver ? `An ${driver.name} übergeben` : "Zur Lieferung übergeben",
+    ready: "Abholbereit",
+    completed: order.method === "delivery" ? "Zugestellt" : "Abgeholt",
+    cancelled: "Bestellung storniert",
+  };
+  await audit(user, "orders", label[to] ?? to, order.reference, { total: order.total });
   return order;
 }

@@ -1,10 +1,10 @@
 import { restaurant } from "@/lib/data";
 import type { Menu } from "@/lib/menu";
-import { SCHEMA_DAYS, WEEK } from "@/lib/hours";
+import { SCHEMA_DAYS, type DayHours } from "@/lib/hours";
 import { siteUrl } from "@/lib/site-url";
 
 /** schema.org Restaurant data for search engines: address, hours, menu with prices, reservations. */
-export default function StructuredData({ menu }: { menu: Menu }) {
+export default function StructuredData({ menu, hours }: { menu: Menu; hours: DayHours[] }) {
   const url = siteUrl();
   const data = {
     "@context": "https://schema.org",
@@ -25,7 +25,7 @@ export default function StructuredData({ menu }: { menu: Menu }) {
       addressCountry: "DE",
     },
     geo: { "@type": "GeoCoordinates", latitude: restaurant.geo.lat, longitude: restaurant.geo.lng },
-    openingHoursSpecification: WEEK.flatMap((h, i) =>
+    openingHoursSpecification: hours.flatMap((h, i) =>
       h ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: SCHEMA_DAYS[i], opens: h.open, closes: h.close }] : [],
     ),
     hasMenu: {

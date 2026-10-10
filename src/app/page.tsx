@@ -18,14 +18,17 @@ import { PhotosProvider } from "@/components/Photos";
 import { getPhotos } from "@/lib/server/photos";
 import { MenuProvider } from "@/components/MenuFacts";
 import { getMenu } from "@/lib/server/menu";
+import { getBusiness } from "@/lib/server/business";
+import { HoursProvider } from "@/components/Business";
 
 export default async function Home() {
   // photos and menu from the database (cached; refreshed when the owner changes them)
-  const [photos, menu] = await Promise.all([getPhotos(), getMenu()]);
+  const [photos, menu, business] = await Promise.all([getPhotos(), getMenu(), getBusiness()]);
   return (
     <PhotosProvider photos={photos}>
       <MenuProvider menu={menu}>
-      <StructuredData menu={menu} />
+      <HoursProvider hours={business.hours}>
+      <StructuredData menu={menu} hours={business.hours} />
       <Intro />
       <ScrollProgress />
       <SideRail />
@@ -44,6 +47,7 @@ export default async function Home() {
         <Reservation />
       </main>
       <Footer />
+      </HoursProvider>
       </MenuProvider>
     </PhotosProvider>
   );

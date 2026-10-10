@@ -5,12 +5,13 @@ import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
 import { getOrderSettings } from "@/lib/server/orders";
 import { getMenu } from "@/lib/server/menu";
+import { getBusiness } from "@/lib/server/business";
 
 /* What the order page needs: the owner's settings and whether delivery/pickup are possible right now. */
 export async function GET() {
   await connection();
   if (!hasDatabase()) return Response.json({ available: false, settings: DEFAULT_SETTINGS });
-  const [settings, closures, menu] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu()]);
+  const [settings, closures, menu, business] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu(), getBusiness()]);
   const closedToday = closures.some((c) => c.date === todayISO());
   return Response.json(
     {
@@ -18,8 +19,9 @@ export async function GET() {
       settings,
       menu,
       closedToday,
-      delivery: orderWindow("delivery", settings, closedToday),
-      pickup: orderWindow("pickup", settings, closedToday),
+      hours: business.hours,
+      delivery: orderWindow("delivery", settings, closedToday, new Date(), business.hours),
+      pickup: orderWindow("pickup", settings, closedToday, new Date(), business.hours),
     },
     { headers: { "Cache-Control": "no-store" } },
   );

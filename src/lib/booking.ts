@@ -1,5 +1,5 @@
 import { restaurant } from "./data";
-import { toMinutes, weekdayOf, WEEK } from "./hours";
+import { toMinutes, weekdayOf, WEEK, type DayHours } from "./hours";
 import { isEmail } from "./validate";
 
 /*
@@ -42,9 +42,9 @@ export function addDays(iso: string, days: number) {
 }
 
 /** Bookable start times on a date: every half hour from opening to the last seating (none on closed days). */
-export function slotsFor(date: string, closures: string[] = []) {
+export function slotsFor(date: string, closures: string[] = [], week: DayHours[] = WEEK) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || closures.includes(date)) return [];
-  const day = WEEK[weekdayOf(date)];
+  const day = week[weekdayOf(date)];
   if (!day) return [];
   const start = toMinutes(day.open);
   const end = toMinutes(day.close) - BOOKING.lastSeatingBeforeClose;
@@ -57,16 +57,17 @@ export function validateBooking(
   input: Partial<BookingRequest>,
   today = todayISO(),
   closures: string[] = [],
-  options: { emailOptional?: boolean } = {},
+  options: { emailOptional?: boolean; week?: DayHours[] } = {},
 ): BookingErrors {
+  const week = options.week ?? WEEK;
   const e: BookingErrors = {};
   if (!input.date || !/^\d{4}-\d{2}-\d{2}$/.test(input.date)) e.date = "date";
   else if (input.date < today) e.date = "past";
   else if (input.date > addDays(today, BOOKING.maxDaysAhead)) e.date = "far";
-  else if (!WEEK[weekdayOf(input.date)] || closures.includes(input.date)) e.date = "closed";
+  else if (!week[weekdayOf(input.date)] || closures.includes(input.date)) e.date = "closed";
 
   if (!input.time) e.time = "time";
-  else if (input.date && !e.date && !slotsFor(input.date, closures).includes(input.time)) e.time = "slot";
+  else if (input.date && !e.date && !slotsFor(input.date, closures, week).includes(input.time)) e.time = "slot";
 
   if (!input.guests || input.guests < 1) e.guests = "guests";
   else if (input.guests > BOOKING.maxGuests) e.guests = "tooMany";

@@ -183,3 +183,25 @@ create table if not exists menu_items (
   updated_at   timestamptz not null default now()
 );
 create index if not exists menu_items_category_idx on menu_items (category_id, position);
+
+-- Who in the team did what and when (/admin/protokoll). Kept one year.
+create table if not exists audit_log (
+  id        bigserial primary key,
+  at        timestamptz not null default now(),
+  user_id   bigint references users (id) on delete set null,
+  actor     text not null default '',                 -- name at the time (stays if the account is deleted)
+  role      text not null default '',
+  area      text not null,                            -- orders, reservations, menu, photos, settings, team, login
+  action    text not null,                            -- what happened, in German, e.g. "Bestellung angenommen"
+  target    text not null default '',                 -- e.g. YO-7KQ2, a dish name, an email
+  details   jsonb
+);
+create index if not exists audit_log_at_idx on audit_log (at desc);
+
+-- Notes the team keeps about a guest (/admin/kunden). key = lower-case email, or "tel:" + digits.
+create table if not exists customer_notes (
+  key         text primary key,
+  note        text not null default '',
+  updated_at  timestamptz not null default now(),
+  updated_by  text not null default ''
+);
