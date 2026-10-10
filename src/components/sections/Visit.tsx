@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowUpRight, MapPin } from "@phosphor-icons/react";
 import { useState } from "react";
 import jebenaSet from "../../../public/img/jebena-set.jpg";
@@ -12,6 +11,7 @@ import Embers from "../motion/Embers";
 import { Ambient, CinematicImage, GoldButton, Heading, Rise } from "../ui/primitives";
 import { AksumFrame } from "../heritage/Ornaments";
 import EthiopianNow from "../heritage/EthiopianNow";
+import { Photo } from "@/components/Photos";
 
 export default function Visit() {
   const { t, locale } = useLanguage();
@@ -106,7 +106,7 @@ export default function Visit() {
                   className="group absolute bottom-4 left-4 flex items-center gap-3 border border-gold/40 bg-ink/90 py-2 pl-2 pr-4"
                 >
                   <span className="relative h-12 w-12 overflow-hidden">
-                    <Image src={cups} alt="" fill sizes="48px" className="object-cover" />
+                    <Photo src={cups} alt="" fill sizes="48px" className="object-cover" />
                   </span>
                   <span>
                     <span className="block font-display text-lg leading-tight text-cream">Yetenbi</span>

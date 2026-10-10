@@ -1,11 +1,12 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useRef } from "react";
 import Magnetic from "../motion/Magnetic";
 import { LalibelaCross } from "../heritage/Ornaments";
+import { Photo, useAmbientUrl } from "@/components/Photos";
 
 /*
  * The visual vocabulary of the hero, reused everywhere so the whole site reads as one piece:
@@ -221,11 +222,11 @@ export function Ambient({
   className?: string;
   opacity?: number;
 }) {
-  const name = src.src.split("/").pop()!.split(".")[0];
+  const url = useAmbientUrl(src);
   return (
     <div
       aria-hidden
-      style={{ opacity: Math.min(0.85, opacity * 1.25), backgroundImage: `url(/img/ambient/${name}.jpg)` }}
+      style={{ opacity: Math.min(0.85, opacity * 1.25), backgroundImage: `url(${url})` }}
       className={`pointer-events-none absolute bg-cover bg-center [mask-image:radial-gradient(closest-side,#000_35%,transparent)] ${className}`}
     />
   );
@@ -260,7 +261,7 @@ export function CinematicImage({
           viewport={{ once: true, margin: "-15% 0px" }}
           transition={{ duration: 2.4, ease }}
         >
-          <Image src={src} alt={alt} fill sizes={sizes} placeholder="blur" className="object-cover" style={{ objectPosition: position }} />
+          <Photo src={src} alt={alt} fill sizes={sizes} placeholder="blur" className="object-cover" style={{ objectPosition: position }} />
         </motion.div>
       </motion.div>
       {/* darkness lifting: an opacity fade, which the GPU composites without repainting the photo */}

@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { motion, useMotionValue, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useRef } from "react";
 import baskets from "../../../public/img/baskets.jpg";
@@ -9,6 +9,7 @@ import pour from "../../../public/img/jebena-pour.jpg";
 import Embers from "../motion/Embers";
 import { Ambient, Label } from "../ui/primitives";
 import { useLanguage } from "@/lib/language";
+import { Photo } from "@/components/Photos";
 
 type Token = { word: string; gold?: boolean } | { img: StaticImageData; alt: string };
 
@@ -44,7 +45,7 @@ function Pill({ token, range, progress }: { token: Extract<Token, { img: StaticI
       style={{ scale, opacity }}
       className="relative mr-[0.24em] inline-block h-[0.8em] w-[1.9em] overflow-hidden rounded-full align-[-0.06em] ring-1 ring-gold/40"
     >
-      <Image src={token.img} alt={token.alt} fill sizes="180px" className="object-cover" />
+      <Photo src={token.img} alt={token.alt} fill sizes="180px" className="object-cover" />
     </motion.span>
   );
 }

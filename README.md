@@ -59,6 +59,10 @@ npm run build && npm run start   # production build (use this to judge performan
 - Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
   export their data and delete the account. Password reset works by email.
+- **Fotos** (/admin/fotos): owners replace any picture on the website with their own photo. The browser uploads it
+  straight to Cloudinary with a one-time signature from the server (so big phone photos work), the server checks it
+  arrived in the `yetenbi/` folder and the home page refreshes. Needs `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+  `CLOUDINARY_API_SECRET`; without them the built-in pictures stay.
 - **Team** (/admin/team): owners create logins for kitchen staff, drivers and other owners (email + starting password),
   change roles, set a new password or remove someone (they keep a plain guest account). After signing in at /login,
   everyone lands on their own screen: owners /admin, kitchen /kueche, drivers /lieferung.
@@ -112,5 +116,5 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - Impressum and Datenschutz: fill in the owner's name, a contact email (required in the Impressum) and the VAT ID,
   if any – marked `[Name wird ergänzt]` / `[wird ergänzt]`.
 - Confirm the ordering settings (minimum order, delivery fee, postcodes, times) in /admin → Bestellungen → Einstellungen.
-- Photos are Unsplash stock; replace with Yetenbi's own (keep the file names in `public/img/`).
+- Photos are Unsplash stock: set the Cloudinary variables in Vercel, then upload Yetenbi's own in /admin → Fotos.
 - Amharic text should be checked by a native speaker (including the new order-step emails and status labels).

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import heroImg from "../../public/img/hero.jpg";
@@ -12,6 +11,7 @@ import { useLanguage } from "@/lib/language";
 import { ArrowRight } from "@phosphor-icons/react";
 import Stela, { STELA_FLOORS } from "./heritage/Stela";
 import { LalibelaCross, Tibeb } from "./heritage/Ornaments";
+import { Photo } from "@/components/Photos";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const intro = 0.15; // the entrance starts when the particle intro hands over
@@ -44,7 +44,7 @@ export default function Hero() {
           animate={done ? { scale: 1 } : undefined}
           transition={{ duration: 2.6, ease, delay: intro - 0.6 }}
         >
-          <Image
+          <Photo
             src={heroImg}
             alt="Äthiopische Beyaynetu-Platte mit Injera, Wots und Gemüse"
             fill

@@ -3,7 +3,7 @@ import { LalibelaCross } from "@/components/heritage/Ornaments";
 import { logout } from "@/app/account-actions";
 
 /** Title, switch between reservations, orders and team, the staff screens, and the way out. */
-export default function AdminHeader({ active }: { active: "reservations" | "orders" | "team" }) {
+export default function AdminHeader({ active }: { active: "reservations" | "orders" | "team" | "photos" }) {
   const tab = (on: boolean) => `pb-3 ${on ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`;
   return (
     <div>
@@ -27,7 +27,7 @@ export default function AdminHeader({ active }: { active: "reservations" | "orde
           </form>
         </div>
       </div>
-      <nav aria-label="Bereich" className="mt-8 flex gap-8 border-b border-gold/20 font-display text-xl">
+      <nav aria-label="Bereich" className="mt-8 flex flex-wrap gap-x-8 gap-y-2 border-b border-gold/20 font-display text-xl">
         <Link href="/admin" className={tab(active === "reservations")}>
           Reservierungen
         </Link>
@@ -36,6 +36,9 @@ export default function AdminHeader({ active }: { active: "reservations" | "orde
         </Link>
         <Link href="/admin/team" className={tab(active === "team")}>
           Team
+        </Link>
+        <Link href="/admin/fotos" className={tab(active === "photos")}>
+          Fotos
         </Link>
       </nav>
     </div>

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { menu, type MenuItem } from "@/lib/data";
-import Image, { type StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { motion as m, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import jebenaSet from "../../../public/img/jebena-set.jpg";
@@ -14,6 +14,7 @@ import Embers from "../motion/Embers";
 import { Ambient, ease, GoldButton, Lead, Rise, Title } from "../ui/primitives";
 import { AksumFrame, Harag, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useLanguage } from "@/lib/language";
+import { Photo } from "@/components/Photos";
 
 /** Dim photograph bleeding in from one side, like the pictures around the text on the printed menu. */
 function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right" }) {
@@ -31,7 +32,7 @@ function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right"
       }`}
     >
       <m.div style={{ y }} className="absolute -inset-y-[14%] inset-x-0">
-        <Image src={src} alt="" fill sizes="34vw" placeholder="blur" className="object-cover opacity-[0.38] saturate-[0.85]" />
+        <Photo src={src} alt="" fill sizes="34vw" placeholder="blur" className="object-cover opacity-[0.38] saturate-[0.85]" />
       </m.div>
       <div className="absolute inset-0 bg-gradient-to-b from-ink via-transparent to-ink" />
     </div>

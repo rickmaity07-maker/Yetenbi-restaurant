@@ -9,6 +9,7 @@ import { useLanguage } from "@/lib/language";
 import type { Dict } from "@/lib/i18n";
 import type { Tag } from "@/lib/data";
 import { geez } from "@/lib/ethiopic";
+import { useDishUrl } from "@/components/Photos";
 
 type Dish = {
   name: string;
@@ -84,6 +85,7 @@ export default function Platte() {
   const root = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
+  const dishUrl = useDishUrl();
   const { t, locale } = useLanguage();
   const { scrollYProgress } = useScroll({ target: root, offset: ["start start", "end end"] });
   const turn = useSpring(useTransform(scrollYProgress, [0.06, 0.94], [0, -(N - 1) * STEP]), { stiffness: 90, damping: 24 });
@@ -143,7 +145,7 @@ export default function Platte() {
                           on ? "scale-[1.12] ring-2 ring-gold-soft ring-offset-2 ring-offset-[#c9a272]" : "scale-95 brightness-[0.8] saturate-[0.85]"
                         }`}
                         style={{
-                          backgroundImage: `url(${d.photo})`,
+                          backgroundImage: `url(${dishUrl(d.photo)})`,
                           backgroundSize: "cover",
                           borderRadius: "48% 52% 50% 50% / 52% 48% 52% 48%",
                         }}

@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
 import { useRef, useState } from "react";
 import pour from "../../../public/img/jebena-pour.jpg";
@@ -11,6 +11,7 @@ import { ease, Heading } from "../ui/primitives";
 import { useLanguage } from "@/lib/language";
 import { AksumFrame } from "../heritage/Ornaments";
 import { geez } from "@/lib/ethiopic";
+import { Photo } from "@/components/Photos";
 
 type Round = { name: string; am: string; photo: StaticImageData; alt: string };
 
@@ -161,7 +162,7 @@ export default function Buna() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 1.1, ease }}
                 >
-                  <Image src={r.photo} alt={r.alt} fill sizes="(min-width: 768px) 26vw, 45vw" placeholder="blur" className="object-cover" />
+                  <Photo src={r.photo} alt={r.alt} fill sizes="(min-width: 768px) 26vw, 45vw" placeholder="blur" className="object-cover" />
                 </motion.div>
               </AnimatePresence>
             </AksumFrame>

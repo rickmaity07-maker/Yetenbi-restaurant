@@ -14,10 +14,14 @@ import Visit from "@/components/sections/Visit";
 import Reservation from "@/components/sections/Reservation";
 import Footer from "@/components/sections/Footer";
 import StructuredData from "@/components/StructuredData";
+import { PhotosProvider } from "@/components/Photos";
+import { getPhotos } from "@/lib/server/photos";
 
-export default function Home() {
+export default async function Home() {
+  // photos the owner uploaded in /admin → Fotos (cached; refreshed when one is saved)
+  const photos = await getPhotos();
   return (
-    <>
+    <PhotosProvider photos={photos}>
       <StructuredData />
       <Intro />
       <ScrollProgress />
@@ -37,6 +41,6 @@ export default function Home() {
         <Reservation />
       </main>
       <Footer />
-    </>
+    </PhotosProvider>
   );
 }
