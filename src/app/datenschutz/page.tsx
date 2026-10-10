@@ -50,6 +50,13 @@ export default function Datenschutz() {
         auf der Website nicht. Bestellungen werden bei Neon Inc. (EU) gespeichert und nach 180 Tagen gelöscht, soweit keine
         gesetzlichen Aufbewahrungspflichten bestehen. Der Warenkorb wird bis zur Bestellung nur in Ihrem Browser gespeichert.
       </p>
+      <p>
+        Zum Schutz vor Scherz- und Massenbestellungen speichern wir zu jeder Bestellung einen pseudonymisierten Kennwert
+        (Hash) Ihrer IP-Adresse, nicht die IP-Adresse selbst, und begrenzen damit die Zahl der Bestellungen je Gerät und
+        Telefonnummer. Der Kennwert wird nach 30 Tagen gelöscht. Nach einer Scherzbestellung können wir Telefonnummer,
+        E-Mail-Adresse und diesen Kennwert für Online-Bestellungen sperren; die Sperre wird nach spätestens einem Jahr
+        gelöscht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse am Schutz vor Missbrauch).
+      </p>
 
       <H>3b. Kundenkonto und Anmeldung mit Google</H>
       <p>

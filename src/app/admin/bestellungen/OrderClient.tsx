@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import type { OrderSettings } from "@/lib/ordering";
-import { saveSettings } from "../order-actions";
+import { addPhoneBlock, saveSettings } from "../order-actions";
 
 /** Re-fetches the board every 20 seconds so new orders appear without reloading. */
 export function LiveRefresh({ seconds = 20 }: { seconds?: number }) {
@@ -63,6 +63,28 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
         {state?.ok && <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>}
         {state?.error && <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>}
       </div>
+    </form>
+  );
+}
+
+/** Blocks a phone number by hand, e.g. after prank calls. */
+export function AddBlockForm() {
+  const [state, action, pending] = useActionState(addPhoneBlock, null);
+  return (
+    <form action={action} className="mt-6 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <label className="flex flex-col gap-1.5">
+        <span className={label}>Telefonnummer sperren</span>
+        <input name="phone" inputMode="tel" required className={field} />
+      </label>
+      <label className="flex flex-col gap-1.5">
+        <span className={label}>Grund (intern)</span>
+        <input name="reason" maxLength={300} className={field} />
+      </label>
+      <button disabled={pending} className="rounded-full border border-[#f0a080]/70 px-5 py-2.5 text-sm font-semibold text-[#f0a080] disabled:opacity-60">
+        Sperren
+      </button>
+      {state?.ok && <p role="status" className="text-sm text-[#9fe0b6] sm:col-span-3">{state.ok}</p>}
+      {state?.error && <p role="alert" className="text-sm text-[#f0a080] sm:col-span-3">{state.error}</p>}
     </form>
   );
 }

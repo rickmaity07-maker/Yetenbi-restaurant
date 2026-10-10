@@ -2,6 +2,7 @@ import { hasDatabase } from "@/lib/server/db";
 import { purgeOld } from "@/lib/server/reservations";
 import { purgeExpiredAuth } from "@/lib/server/auth";
 import { purgeOldOrders } from "@/lib/server/orders";
+import { purgeGuardData } from "@/lib/server/order-guard";
 
 /* Daily data-retention job (Vercel Cron, see vercel.json): removes reservations older than 180 days. */
 export async function GET(request: Request) {
@@ -12,5 +13,6 @@ export async function GET(request: Request) {
   const removed = await purgeOld();
   await purgeExpiredAuth();
   await purgeOldOrders();
+  await purgeGuardData();
   return Response.json({ removed });
 }

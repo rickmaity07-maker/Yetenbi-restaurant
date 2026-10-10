@@ -28,6 +28,9 @@ export type Order = {
   etaMinutes: number | null;
   staffNote: string;
   locale: Locale;
+  hasAccount: boolean;
+  /** Warning labels for the admin board (only filled by listActiveOrders). */
+  risk?: { completedBefore: number; rejectedBefore: number; blocked: boolean };
   createdAt: string;
   updatedAt: string;
 };
@@ -56,6 +59,11 @@ const toOrder = (r: Row): Order => ({
   etaMinutes: r.eta_minutes == null ? null : Number(r.eta_minutes),
   staffNote: String(r.staff_note),
   locale: r.locale as Locale,
+  hasAccount: r.user_id != null,
+  risk:
+    r.completed_before == null
+      ? undefined
+      : { completedBefore: Number(r.completed_before), rejectedBefore: Number(r.rejected_before), blocked: Boolean(r.blocked) },
   createdAt: new Date(String(r.created_at)).toISOString(),
   updatedAt: new Date(String(r.updated_at)).toISOString(),
 });
@@ -80,7 +88,13 @@ const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const newReference = () => "YO-" + Array.from({ length: 4 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("");
 
 /** Stores a validated order. Names and prices come from the menu on the server, never from the browser. */
-export async function createOrder(input: OrderInput, settings: OrderSettings, locale: Locale, userId: number | null) {
+export async function createOrder(
+  input: OrderInput,
+  settings: OrderSettings,
+  locale: Locale,
+  userId: number | null,
+  guard: { phoneKey: string; clientHash: string | null },
+) {
   const lines: OrderLine[] = input.items.map((l) => {
     const item = ITEM_BY_ID.get(l.id)!;
     return { id: l.id, name: item.name.de, qty: l.qty, unit: item.price };
@@ -91,11 +105,12 @@ export async function createOrder(input: OrderInput, settings: OrderSettings, lo
     try {
       const [row] = (await db()`
         insert into orders (reference, status_token, method, name, phone, email, street, postcode, city, address_note, note,
-                            items, subtotal, delivery_fee, total, payment, wanted, locale, user_id)
+                            items, subtotal, delivery_fee, total, payment, wanted, locale, user_id, phone_key, client_hash)
         values (${newReference()}, ${randomBytes(18).toString("base64url")}, ${input.method}, ${input.name.trim()}, ${input.phone.trim()},
                 ${input.email.trim().toLowerCase()}, ${delivery ? input.street.trim() : ""}, ${delivery ? input.postcode.trim() : ""},
                 ${delivery ? input.city.trim() || "Würzburg" : ""}, ${delivery ? input.addressNote.trim() : ""}, ${input.note.trim()},
-                ${JSON.stringify(lines)}::jsonb, ${t.subtotal}, ${t.fee}, ${t.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId})
+                ${JSON.stringify(lines)}::jsonb, ${t.subtotal}, ${t.fee}, ${t.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId},
+                ${guard.phoneKey}, ${guard.clientHash})
         returning *
       `) as Row[];
       return toOrder(row);
@@ -106,18 +121,19 @@ export async function createOrder(input: OrderInput, settings: OrderSettings, lo
   throw new Error("Could not allocate an order reference.");
 }
 
-/** Recent orders for the flood check (per phone number, last hour). */
-export async function recentOrdersByPhone(phone: string) {
-  const [row] = (await db()`
-    select count(*)::int as n from orders where phone = ${phone.trim()} and created_at > now() - interval '1 hour'
-  `) as { n: number }[];
-  return row.n;
-}
-
-/** Today's and still-open orders for the admin board, newest first. */
+/** Today's and still-open orders for the admin board, newest first, with warning labels. */
 export async function listActiveOrders() {
   const rows = (await db()`
-    select * from orders
+    select o.*,
+      (select count(*) from orders p where p.phone_key = o.phone_key and p.id <> o.id and p.status = 'completed')::int as completed_before,
+      (select count(*) from orders p
+        where p.id <> o.id and p.status in ('rejected', 'cancelled')
+          and (p.phone_key = o.phone_key or p.client_hash = o.client_hash))::int as rejected_before,
+      exists (select 1 from order_blocks b
+        where (b.kind = 'phone' and b.value = o.phone_key)
+           or (b.kind = 'email' and b.value = o.email and o.email <> '')
+           or (b.kind = 'client' and b.value = o.client_hash)) as blocked
+    from orders o
     where status in ('new', 'accepted', 'ready', 'on_the_way')
        or created_at > (now() at time zone 'Europe/Berlin')::date at time zone 'Europe/Berlin'
     order by created_at desc

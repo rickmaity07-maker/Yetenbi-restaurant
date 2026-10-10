@@ -143,6 +143,7 @@ export default function OrderView() {
         setCart([]);
         router.push(data.statusUrl);
       } else if (res.status === 422 && data.errors) setErrors(data.errors);
+      else if (data.code === "kitchen" || data.code === "large" || data.code === "blocked") setServerError(o.errors[data.code as "kitchen" | "large" | "blocked"]);
       else if (res.status === 429) setServerError(o.errors.busy);
       else setServerError(o.errors.server);
     } catch {

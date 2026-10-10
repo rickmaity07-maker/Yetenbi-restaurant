@@ -102,3 +102,21 @@ create table if not exists settings (
   value       jsonb not null,
   updated_at  timestamptz not null default now()
 );
+
+-- Abuse protection for online ordering.
+-- client_hash: keyed hash of the visitor's IP address (never the IP itself), cleared after 30 days.
+alter table orders add column if not exists client_hash text;
+alter table orders add column if not exists phone_key text;
+create index if not exists orders_client_idx on orders (client_hash, created_at);
+create index if not exists orders_phone_key_idx on orders (phone_key, created_at);
+
+-- Guests the team has blocked from ordering online (phone, email or device). Expire after one year.
+create table if not exists order_blocks (
+  id          bigserial primary key,
+  kind        text not null check (kind in ('phone', 'email', 'client')),
+  value       text not null,
+  label       text not null default '',               -- what the team sees, e.g. the phone number or "Gerät von YO-7KQ2"
+  reason      text not null default '',
+  created_at  timestamptz not null default now(),
+  unique (kind, value)
+);

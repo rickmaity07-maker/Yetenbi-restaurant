@@ -2,11 +2,12 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { requireOwner } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
+import { LIMITS, listBlocks, type Block } from "@/lib/server/order-guard";
 import { getOrderSettings, listActiveOrders, type Order } from "@/lib/server/orders";
 import type { OrderStatus } from "@/lib/ordering";
 import AdminHeader from "../AdminHeader";
-import { updateOrder } from "../order-actions";
-import { LiveRefresh, SettingsForm } from "./OrderClient";
+import { blockGuest, unblock, updateOrder } from "../order-actions";
+import { AddBlockForm, LiveRefresh, SettingsForm } from "./OrderClient";
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
 const time = (iso: string) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
@@ -33,6 +34,93 @@ function Button({ status, children, primary }: { status: OrderStatus; children: 
   );
 }
 
+/** Warning labels so the team knows when to call back before cooking. */
+function RiskLabels({ o }: { o: Order }) {
+  const r = o.risk;
+  if (!r) return null;
+  const labels: { text: string; warn?: boolean }[] = [];
+  if (r.blocked) labels.push({ text: "Gesperrt", warn: true });
+  if (r.rejectedBefore > 0) labels.push({ text: `Schon ${r.rejectedBefore}× abgelehnt/storniert`, warn: true });
+  labels.push({ text: r.completedBefore === 0 ? "Erste Bestellung" : `${r.completedBefore}× bestellt` });
+  if (o.total >= 100) labels.push({ text: "Große Bestellung" });
+  if (o.hasAccount) labels.push({ text: "Mit Konto" });
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {labels.map((l) => (
+        <span
+          key={l.text}
+          className={`rounded-full border px-2.5 py-0.5 text-[0.7rem] font-semibold ${l.warn ? "border-[#f0a080]/70 text-[#f0a080]" : "border-cream/25 text-cream/70"}`}
+        >
+          {l.text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Rejects or cancels the order (if still open) and blocks the guest's phone, email and device. */
+function BlockForm({ o }: { o: Order }) {
+  if (o.status === "completed" || o.risk?.blocked) return null;
+  const label = o.status === "new" ? "Ablehnen & sperren" : ["accepted", "ready", "on_the_way"].includes(o.status) ? "Stornieren & sperren" : "Gast sperren";
+  return (
+    <details className="mt-4 text-sm">
+      <summary className="cursor-pointer text-cream/55 hover:text-[#f0a080]">Scherzbestellung? Gast sperren</summary>
+      <form action={blockGuest} className="mt-3 space-y-3">
+        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="current" value={o.status} />
+        <input
+          name="note"
+          maxLength={300}
+          placeholder="Grund (nur intern sichtbar)"
+          aria-label="Grund für die Sperre"
+          className="w-full border-0 border-b border-[#f0a080]/40 bg-transparent px-0 pb-2 text-sm text-cream placeholder:text-cream/40 focus:border-[#f0a080] focus:outline-none"
+        />
+        <p className="text-xs text-cream/55">Sperrt Telefonnummer, E-Mail und Gerät für Online-Bestellungen (ein Jahr, jederzeit aufhebbar).</p>
+        <button className="rounded-full border border-[#f0a080]/70 px-5 py-2 text-sm font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink">
+          {label}
+        </button>
+      </form>
+    </details>
+  );
+}
+
+const BLOCK_KIND: Record<Block["kind"], string> = { phone: "Telefon", email: "E-Mail", client: "Gerät" };
+
+function BlockList({ blocks }: { blocks: Block[] }) {
+  return (
+    <section className="mt-10 border border-gold/20 bg-ink/40 p-6 md:p-8">
+      <h2 className="font-display text-2xl font-semibold text-gold-soft">Gesperrte Gäste</h2>
+      <p className="mb-6 mt-2 text-sm text-cream/65">
+        Gesperrte Telefonnummern, E-Mail-Adressen und Geräte können nicht online bestellen und werden gebeten anzurufen. Automatisch gilt
+        außerdem: höchstens {LIMITS.perPhonePerHour} Bestellungen pro Telefonnummer und {LIMITS.perDevicePerHour} pro Gerät in der Stunde,
+        höchstens {LIMITS.maxUnconfirmed} unbestätigte Bestellungen gleichzeitig, und Erstbestellungen über {euro(LIMITS.largeFirstOrder)} nur
+        telefonisch.
+      </p>
+      {blocks.length === 0 ? (
+        <p className="text-cream/60">Niemand gesperrt.</p>
+      ) : (
+        <ul className="divide-y divide-gold/10 border-y border-gold/10">
+          {blocks.map((b) => (
+            <li key={b.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+              <span className="text-cream">
+                <span className="mr-2 text-xs uppercase tracking-[0.2em] text-gold">{BLOCK_KIND[b.kind]}</span>
+                {b.label}
+                {b.reason && <span className="text-cream/55"> · {b.reason}</span>}
+                <span className="text-cream/40"> · seit {new Date(b.createdAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}</span>
+              </span>
+              <form action={unblock}>
+                <input type="hidden" name="id" value={b.id} />
+                <button className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold">Entsperren</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+      <AddBlockForm />
+    </section>
+  );
+}
+
 function OrderCard({ o }: { o: Order }) {
   const s = STATUS[o.status];
   const delivery = o.method === "delivery";
@@ -48,6 +136,7 @@ function OrderCard({ o }: { o: Order }) {
         Eingang {time(o.createdAt)} · {o.wanted === "asap" ? "so schnell wie möglich" : `gewünscht ${o.wanted} Uhr`} · {o.payment === "cash" ? "bar" : "Karte"}
         {o.etaMinutes && o.status !== "new" ? ` · ca. ${o.etaMinutes} Min.` : ""}
       </p>
+      <RiskLabels o={o} />
       <p className="mt-3 text-cream">
         <strong className="font-semibold">{o.name}</strong> ·{" "}
         <a href={`tel:${o.phone}`} className="underline decoration-gold/40 underline-offset-4">
@@ -132,6 +221,7 @@ function OrderCard({ o }: { o: Order }) {
           <Button status="cancelled">Stornieren</Button>
         </form>
       )}
+      <BlockForm o={o} />
     </li>
   );
 }
@@ -140,7 +230,7 @@ async function Board() {
   await connection();
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const [orders, settings] = await Promise.all([listActiveOrders(), getOrderSettings()]);
+  const [orders, settings, blocks] = await Promise.all([listActiveOrders(), getOrderSettings(), listBlocks()]);
   const open = orders.filter((o) => ["new", "accepted", "ready", "on_the_way"].includes(o.status));
   const done = orders.filter((o) => !open.includes(o));
   const revenue = orders.filter((o) => o.status === "completed").reduce((n, o) => n + o.total, 0);
@@ -160,6 +250,10 @@ async function Board() {
         </p>
         {settings.paused && <p className="self-end font-semibold text-[#f0a080]">Online-Bestellungen sind pausiert.</p>}
       </div>
+
+      <p className="mt-4 text-sm text-cream/60">
+        Tipp: Bei <span className="text-cream/85">Erste Bestellung</span> oder roten Hinweisen kurz zurückrufen, bevor ihr kocht.
+      </p>
 
       {open.length === 0 && <p className="mt-12 font-display text-2xl italic text-cream/70">Gerade keine offenen Bestellungen.</p>}
       <ul className="mt-10 grid gap-4 md:grid-cols-2">
@@ -184,6 +278,8 @@ async function Board() {
         <p className="mb-6 mt-2 text-sm text-cream/65">Bestellungen sind während der Öffnungszeiten bis 30 Minuten vor Schluss möglich und an Schließtagen gesperrt.</p>
         <SettingsForm settings={settings} />
       </section>
+
+      <BlockList blocks={blocks} />
     </>
   );
 }

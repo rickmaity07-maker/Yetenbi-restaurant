@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { OrderSettings, OrderStatus } from "@/lib/ordering";
 import { requireOwner } from "@/lib/server/auth";
 import { sendOrderEmail } from "@/lib/server/mailer";
+import { blockOrderGuest, blockPhone, removeBlock } from "@/lib/server/order-guard";
 import { getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";
 
 const NEXT: OrderStatus[] = ["accepted", "ready", "on_the_way", "completed", "rejected", "cancelled"];
@@ -19,6 +20,43 @@ export async function updateOrder(form: FormData) {
   const note = String(form.get("note") ?? "").slice(0, 300).trim();
   const order = await setOrderStatus(id, status, eta, note);
   if (order && (status === "accepted" || status === "on_the_way" || status === "rejected")) await sendOrderEmail(status, order);
+  revalidatePath("/admin/bestellungen");
+}
+
+/**
+  Blocks the guest of an order (phone number, email and device) from ordering online.
+  An open order is rejected or cancelled at the same time.
+*/
+export async function blockGuest(form: FormData) {
+  await requireOwner();
+  const id = Number(form.get("id"));
+  const current = String(form.get("current")) as OrderStatus | "new";
+  if (!Number.isInteger(id)) return;
+  const reason = String(form.get("note") ?? "").slice(0, 300).trim();
+  if (!(await blockOrderGuest(id, reason))) return;
+  const next: OrderStatus | null = current === "new" ? "rejected" : ["accepted", "ready", "on_the_way"].includes(current) ? "cancelled" : null;
+  if (next) {
+    const order = await setOrderStatus(id, next, null, reason);
+    if (order && next === "rejected") await sendOrderEmail("rejected", order);
+  }
+  revalidatePath("/admin/bestellungen");
+}
+
+export type BlockState = { ok?: string; error?: string } | null;
+
+export async function addPhoneBlock(_: BlockState, form: FormData): Promise<BlockState> {
+  await requireOwner();
+  const phone = String(form.get("phone") ?? "").trim();
+  if (phone.replace(/\D/g, "").length < 6) return { error: "Bitte eine Telefonnummer eingeben." };
+  await blockPhone(phone, String(form.get("reason") ?? "").slice(0, 300).trim());
+  revalidatePath("/admin/bestellungen");
+  return { ok: "Gesperrt." };
+}
+
+export async function unblock(form: FormData) {
+  await requireOwner();
+  const id = Number(form.get("id"));
+  if (Number.isInteger(id)) await removeBlock(id);
   revalidatePath("/admin/bestellungen");
 }
 

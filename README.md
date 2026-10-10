@@ -33,6 +33,10 @@ npm run build && npm run start   # production build (use this to judge performan
 - Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days.
 - The team handles orders at **/admin/bestellungen** (accept with ETA, on the way / ready, complete, reject).
   Under *Einstellungen* there: pause ordering, minimum order, delivery fee, free delivery from, delivery postcodes, times.
+- Protection against prank and flood orders (`src/lib/server/order-guard.ts`): at most 3 orders per hour per phone
+  number (however it is typed) and per device (IP address, stored only as a keyed hash for 30 days), at most 8
+  unconfirmed orders at once, and first orders over 150 € only by phone. The board labels first-time and previously
+  rejected guests, and *Gast sperren* blocks a guest's phone, email and device (list and unblock at the bottom).
 - Guests follow their order live at **/bestellung**; signed-in guests see their orders in the profile.
 
 ## Accounts
