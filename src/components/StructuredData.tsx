@@ -1,9 +1,10 @@
-import { menu, restaurant } from "@/lib/data";
+import { restaurant } from "@/lib/data";
+import type { Menu } from "@/lib/menu";
 import { SCHEMA_DAYS, WEEK } from "@/lib/hours";
 import { siteUrl } from "@/lib/site-url";
 
 /** schema.org Restaurant data for search engines: address, hours, menu with prices, reservations. */
-export default function StructuredData() {
+export default function StructuredData({ menu }: { menu: Menu }) {
   const url = siteUrl();
   const data = {
     "@context": "https://schema.org",
@@ -30,15 +31,15 @@ export default function StructuredData() {
     hasMenu: {
       "@type": "Menu",
       inLanguage: "de",
-      hasMenuSection: menu.map((c) => ({
+      hasMenuSection: menu.filter((c) => c.items.length).map((c) => ({
         "@type": "MenuSection",
         name: c.title.de,
         hasMenuItem: c.items.map((item) => ({
           "@type": "MenuItem",
           name: item.name.de,
           ...(item.description ? { description: item.description.de } : {}),
-          offers: { "@type": "Offer", price: item.price.replace(",", "."), priceCurrency: "EUR" },
-          ...(item.tags?.includes("vegan") ? { suitableForDiet: "https://schema.org/VeganDiet" } : {}),
+          offers: { "@type": "Offer", price: item.price.toFixed(2), priceCurrency: "EUR" },
+          ...(item.tags.includes("vegan") ? { suitableForDiet: "https://schema.org/VeganDiet" } : {}),
         })),
       })),
     },

@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import { menu, type MenuItem } from "@/lib/data";
 import type { StaticImageData } from "next/image";
 import { motion as m, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
@@ -15,8 +14,8 @@ import { Ambient, ease, GoldButton, Lead, Rise, Title } from "../ui/primitives";
 import { AksumFrame, Harag, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useLanguage } from "@/lib/language";
 import { Photo } from "@/components/Photos";
-import { AllergenFacts, DrinkFacts, FactsLegend, useMenuInfo, useTags } from "@/components/MenuFacts";
-import { DRINK_CATEGORIES, hasAllergenData } from "@/lib/menu-info";
+import { AllergenFacts, DrinkFacts, FactsLegend, useMenu, useTagLabels } from "@/components/MenuFacts";
+import { hasAllergenData, priceText, type Dish } from "@/lib/menu";
 
 /** Dim photograph bleeding in from one side, like the pictures around the text on the printed menu. */
 function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right" }) {
@@ -51,9 +50,9 @@ function Ornament() {
   );
 }
 
-function Item({ id, item, compact, drink }: { id: string; item: MenuItem; compact: boolean; drink: boolean }) {
-  const { locale } = useLanguage();
-  const tags = useTags(item, id);
+function Item({ item, compact, drink }: { item: Dish; compact: boolean; drink: boolean }) {
+  const { t, locale } = useLanguage();
+  const tags = useTagLabels(item);
   return (
     <motion.li
       variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } } }}
@@ -68,7 +67,7 @@ function Item({ id, item, compact, drink }: { id: string; item: MenuItem; compac
           {item.name[locale]}
         </h4>
         <span aria-hidden className="mb-1.5 flex-1 border-b border-dotted border-gold/35" />
-        <span className={`font-display tabular-nums text-gold-soft ${compact ? "text-xl" : "text-[1.6rem]"}`}>{item.price} €</span>
+        <span className={`font-display tabular-nums text-gold-soft ${compact ? "text-xl" : "text-[1.6rem]"}`}>{priceText(item.price)} €</span>
       </div>
       {item.amharic && (
         <p className="mt-0.5 font-ethiopic text-[13px] text-gold/60" lang="am">
@@ -82,23 +81,24 @@ function Item({ id, item, compact, drink }: { id: string; item: MenuItem; compac
       )}
       {drink && (
         <p className="mt-0.5">
-          <DrinkFacts id={id} price={Number(item.price.replace(",", "."))} />
+          <DrinkFacts dish={item} />
         </p>
       )}
+      {!item.available && <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#f0a080]">{t.menu.soldOut}</p>}
       {tags.length > 0 && !compact && <p className="mt-2 font-display text-[0.95rem] italic text-gold/80">{tags.join(", ")}</p>}
-      <AllergenFacts id={id} className="mt-1" />
+      <AllergenFacts dish={item} className="mt-1" />
     </motion.li>
   );
 }
 
 /** The menu as a framed card, modelled on Yetenbi's printed black-and-gold menu. */
 export default function MenuCard() {
-  const [active, setActive] = useState(menu[0].id);
+  const menu = useMenu().filter((c) => c.items.length > 0);
+  const [active, setActive] = useState(menu[0]?.id ?? "");
   const reduce = useReducedMotion();
   const category = menu.find((c) => c.id === active) ?? menu[0];
-  const compact = category.items.every((i) => !i.description || i.description.de.length < 40);
+  const compact = category?.items.every((i) => !i.description || i.description.de.length < 40) ?? true;
   const { t, locale } = useLanguage();
-  const menuInfo = useMenuInfo();
 
   return (
     <section id="speisekarte" className="relative overflow-hidden py-32 md:py-48">
@@ -151,6 +151,7 @@ export default function MenuCard() {
                 ))}
               </div>
 
+              {category && (
               <AnimatePresence mode="wait">
                 <motion.div
                   key={category.id}
@@ -179,18 +180,19 @@ export default function MenuCard() {
                     transition={{ staggerChildren: 0.06, delayChildren: 0.15 }}
                     className={`mt-12 ${compact ? "grid gap-x-14 gap-y-5 md:grid-cols-2" : "mx-auto max-w-3xl space-y-9"}`}
                   >
-                    {category.items.map((item, i) => (
-                      <Item key={`${item.name.de}-${i}`} id={`${category.id}-${i}`} item={item} compact={compact} drink={DRINK_CATEGORIES.has(category.id)} />
+                    {category.items.map((item) => (
+                      <Item key={item.id} item={item} compact={compact} drink={category.drinks} />
                     ))}
                   </motion.ul>
                 </motion.div>
               </AnimatePresence>
+              )}
 
               <div className="mt-16 text-center">
                 <Ornament />
                 <p className="mt-5 font-display text-2xl italic text-cream/85">{t.menu.appetit}</p>
-                <p className="mt-2 text-xs text-cream/50">{hasAllergenData(menuInfo) ? t.menu.priceNoteCodes : t.menu.priceNote}</p>
-                {hasAllergenData(menuInfo) && <FactsLegend className="mx-auto mt-4 max-w-2xl text-left" />}
+                <p className="mt-2 text-xs text-cream/50">{hasAllergenData(menu) ? t.menu.priceNoteCodes : t.menu.priceNote}</p>
+                {hasAllergenData(menu) && <FactsLegend className="mx-auto mt-4 max-w-2xl text-left" />}
               </div>
             </div>
           </AksumFrame>

@@ -59,9 +59,12 @@ npm run build && npm run start   # production build (use this to judge performan
 - Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
   export their data and delete the account. Password reset works by email.
-- **Speisekarte** (/admin/speisekarte): allergens (A–N) and additives (numbers) per item, drink volume and deposit,
-  and the gluten wording. Shown on the menu card and the order page with a legend; the deposit is charged and stored
-  separately on the order (`src/lib/menu-info.ts`).
+- **Speisekarte** (/admin/speisekarte): the whole menu lives in the database (tables `menu_categories`, `menu_items`).
+  Owners add, edit, reorder and delete categories and dishes (names and descriptions in three languages, price,
+  tags, "online orderable", "sold out" switch), plus allergens (A–N), additives, drink volume and deposit, and the
+  gluten wording. Every change shows on the website at once (cached menu, refreshed on save). The menu card, the
+  order page, the order API and the search-engine data all read it (`src/lib/menu.ts`, `src/lib/server/menu.ts`).
+  `npm run db:setup` copies the original menu (`db/menu-seed.mts`) in once, when the tables are empty.
 - **Fotos** (/admin/fotos): owners replace any picture on the website with their own photo. The browser uploads it
   straight to Cloudinary with a one-time signature from the server (so big phone photos work), the server checks it
   arrived in the `yetenbi/` folder and the home page refreshes. Needs `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
@@ -75,7 +78,7 @@ npm run build && npm run start   # production build (use this to judge performan
   proved its address (otherwise someone could pre-register a guest's email); its old password is then removed.
 - Booking emails contain a signed cancel link (**/stornieren**), so guests can cancel without an account.
 
-Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`, menu text in `src/lib/data.ts`.
+Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`; the menu (three languages) is edited in /admin → Speisekarte.
 
 ## What's on the page
 
@@ -97,7 +100,8 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 
 ## Where things live
 
-- `src/lib/data.ts` – restaurant details and the full menu (prices, three languages).
+- `src/lib/data.ts` – restaurant details (address, phone, map).
+- `src/lib/menu.ts` / `src/lib/server/menu.ts` – the menu from the database, allergens and additives, editing.
 - `src/lib/hours.ts` – opening hours (used everywhere, incl. search-engine data).
 - `src/lib/booking.ts` – booking rules shared by form, API and admin.
 - `src/lib/ordering.ts` – ordering rules, default order settings (the owner overrides them in /admin) and who may make which step (`canMove`).

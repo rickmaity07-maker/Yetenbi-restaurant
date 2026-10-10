@@ -5,22 +5,21 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Bag, Minus, Moped, Plus, Storefront } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
-import { menu } from "@/lib/data";
-import { formatEuro, ORDERABLE, totals, validateOrder, type CartLine, type Method, type OrderErrors, type OrderInput, type OrderSettings, type Payment } from "@/lib/ordering";
+import { formatEuro, totals, validateOrder, type CartLine, type Method, type OrderErrors, type OrderInput, type OrderSettings, type Payment } from "@/lib/ordering";
 import { useLanguage } from "@/lib/language";
 import { useAccount } from "@/lib/account-client";
 import { fieldClass } from "@/components/account/AccountShell";
-import { AllergenFacts, DrinkFacts, FactsLegend, MenuInfoProvider } from "@/components/MenuFacts";
-import { DRINK_CATEGORIES, hasAllergenData, type MenuInfo } from "@/lib/menu-info";
+import { AllergenFacts, DrinkFacts, FactsLegend } from "@/components/MenuFacts";
+import { catalogOf, hasAllergenData, type Menu } from "@/lib/menu";
 
 type Window = { open: boolean; asap: boolean; slots: string[] };
-type Availability = { available: boolean; settings: OrderSettings; menuInfo?: MenuInfo; closedToday?: boolean; delivery?: Window; pickup?: Window };
+type Availability = { available: boolean; settings: OrderSettings; menu?: Menu; closedToday?: boolean; delivery?: Window; pickup?: Window };
 
 const CART_KEY = "yt-cart";
 const readCart = (): CartLine[] => {
   try {
     const raw = JSON.parse(window.localStorage.getItem(CART_KEY) ?? "[]") as CartLine[];
-    return raw.filter((l) => ORDERABLE.some((i) => i.id === l.id) && l.qty > 0);
+    return raw.filter((l) => typeof l.id === "string" && l.qty > 0); // checked against the menu once it has loaded
   } catch {
     return [];
   }
@@ -65,7 +64,7 @@ export default function OrderView() {
   const me = useAccount();
   const [info, setInfo] = useState<Availability | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [category, setCategory] = useState(menu[0].id);
+  const [category, setCategory] = useState("");
   const [method, setMethod] = useState<Method>("delivery");
   const [payment, setPayment] = useState<Payment>("cash");
   const [wanted, setWanted] = useState("asap");
@@ -105,8 +104,16 @@ export default function OrderView() {
   const s = info?.settings;
   const win = info ? info[method] : undefined;
   const euro = (n: number) => formatEuro(n, t.dateLocale);
-  const menuInfo = info?.menuInfo;
-  const sum = useMemo(() => (s ? totals(cart, method, s, menuInfo) : { subtotal: 0, deposit: 0, fee: 0, total: 0 }), [cart, method, s, menuInfo]);
+  const menu = useMemo(() => info?.menu ?? [], [info]);
+  const catalog = useMemo(() => catalogOf(menu), [menu]);
+  const sum = useMemo(() => (s ? totals(cart, method, s, catalog) : { subtotal: 0, deposit: 0, fee: 0, total: 0 }), [cart, method, s, catalog]);
+
+  // drop basket lines that are no longer on the menu (deleted, sold out, not orderable) once it has loaded
+  useEffect(() => {
+    if (!info?.menu) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCart((c) => (c.every((l) => catalog.has(l.id)) ? c : c.filter((l) => catalog.has(l.id))));
+  }, [info, catalog]);
   const count = cart.reduce((n, l) => n + l.qty, 0);
   const qtyOf = (id: string) => cart.find((l) => l.id === id)?.qty ?? 0;
   const setQty = (id: string, qty: number) =>
@@ -131,7 +138,7 @@ export default function OrderView() {
     e.preventDefault();
     if (!s) return;
     const input: OrderInput = { method, items: cart, payment, wanted, ...form };
-    const found = validateOrder(input, s, info?.closedToday);
+    const found = validateOrder(input, s, catalog, info?.closedToday);
     setErrors(found);
     if (Object.keys(found).length) return;
     setSending(true);
@@ -157,11 +164,12 @@ export default function OrderView() {
     }
   };
 
-  const items = ORDERABLE.filter((i) => i.categoryId === category);
-  const categories = menu.filter((c) => ORDERABLE.some((i) => i.categoryId === c.id));
+  // only what can be ordered right now (orderable and not sold out)
+  const categories = menu.map((c) => ({ ...c, items: c.items.filter((i) => catalog.has(i.id)) })).filter((c) => c.items.length > 0);
+  const current = categories.find((c) => c.id === category) ?? categories[0];
+  const items = current?.items ?? [];
 
   return (
-    <MenuInfoProvider info={menuInfo ?? {}}>
     <div>
       <h1 className="font-display text-4xl font-semibold leading-[1.05] text-cream md:text-6xl">{o.title}</h1>
       <p className="mt-3 font-display text-xl italic text-cream/75 md:text-2xl">{o.lead}</p>
@@ -180,15 +188,15 @@ export default function OrderView() {
               <button
                 key={c.id}
                 role="tab"
-                aria-selected={category === c.id}
+                aria-selected={current?.id === c.id}
                 onClick={() => setCategory(c.id)}
-                className={`px-1 text-[0.7rem] font-semibold uppercase tracking-[0.24em] ${category === c.id ? "text-gold-soft" : "text-cream/50 hover:text-cream/80"}`}
+                className={`px-1 text-[0.7rem] font-semibold uppercase tracking-[0.24em] ${current?.id === c.id ? "text-gold-soft" : "text-cream/50 hover:text-cream/80"}`}
               >
                 {c.title[locale]}
               </button>
             ))}
           </div>
-          {category === "kaffee" && <p className="mt-5 text-sm italic text-cream/65">{o.ceremony}</p>}
+          {current?.id === "kaffee" && <p className="mt-5 text-sm italic text-cream/65">{o.ceremony}</p>}
           <ul className="mt-6 divide-y divide-cream/10">
             {items.map((item) => {
               const q = qtyOf(item.id);
@@ -202,10 +210,10 @@ export default function OrderView() {
                       </p>
                     )}
                     {item.description && <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-cream/60">{item.description[locale]}</p>}
-                    <AllergenFacts id={item.id} className="mt-1" />
+                    <AllergenFacts dish={item} className="mt-1" />
                     <p className="mt-2 font-display text-lg text-gold-soft">
                       {euro(item.price)}{" "}
-                      {DRINK_CATEGORIES.has(item.categoryId) && <DrinkFacts id={item.id} price={item.price} />}
+                      {current?.drinks && <DrinkFacts dish={item} />}
                     </p>
                   </div>
                   <div className="shrink-0 pt-1">
@@ -225,7 +233,7 @@ export default function OrderView() {
               );
             })}
           </ul>
-          {menuInfo && hasAllergenData(menuInfo) && <FactsLegend className="mt-6" />}
+          {hasAllergenData(menu) && <FactsLegend className="mt-6" />}
         </div>
 
         {/* Cart + checkout */}
@@ -277,7 +285,8 @@ export default function OrderView() {
               ) : (
                 <ul className="mt-4 space-y-2">
                   {cart.map((l) => {
-                    const item = ORDERABLE.find((i) => i.id === l.id)!;
+                    const item = catalog.get(l.id);
+                    if (!item) return null;
                     return (
                       <li key={l.id} className="flex items-center justify-between gap-3 text-sm">
                         <span className="text-cream">
@@ -441,6 +450,5 @@ export default function OrderView() {
         </a>
       )}
     </div>
-    </MenuInfoProvider>
   );
 }

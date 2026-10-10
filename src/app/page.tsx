@@ -16,16 +16,16 @@ import Footer from "@/components/sections/Footer";
 import StructuredData from "@/components/StructuredData";
 import { PhotosProvider } from "@/components/Photos";
 import { getPhotos } from "@/lib/server/photos";
-import { MenuInfoProvider } from "@/components/MenuFacts";
-import { getMenuInfo } from "@/lib/server/menu-info";
+import { MenuProvider } from "@/components/MenuFacts";
+import { getMenu } from "@/lib/server/menu";
 
 export default async function Home() {
-  // photos the owner uploaded in /admin → Fotos (cached; refreshed when one is saved)
-  const [photos, menuInfo] = await Promise.all([getPhotos(), getMenuInfo()]);
+  // photos and menu from the database (cached; refreshed when the owner changes them)
+  const [photos, menu] = await Promise.all([getPhotos(), getMenu()]);
   return (
     <PhotosProvider photos={photos}>
-      <MenuInfoProvider info={menuInfo}>
-      <StructuredData />
+      <MenuProvider menu={menu}>
+      <StructuredData menu={menu} />
       <Intro />
       <ScrollProgress />
       <SideRail />
@@ -44,7 +44,7 @@ export default async function Home() {
         <Reservation />
       </main>
       <Footer />
-      </MenuInfoProvider>
+      </MenuProvider>
     </PhotosProvider>
   );
 }

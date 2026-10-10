@@ -154,3 +154,32 @@ update users set email_verified = true where role <> 'guest' and email_verified 
 
 -- Deposit (Pfand) on bottled or canned drinks, charged and shown separately (PAngV § 7).
 alter table orders add column if not exists deposit numeric(8,2) not null default 0;
+
+-- The menu, edited in /admin → Speisekarte. Names and texts in three languages (jsonb {de, en, am}).
+-- Item ids are stable ("fleisch-0" for the original dishes, "i-…" for new ones): carts and old orders refer to them.
+create table if not exists menu_categories (
+  id        text primary key,
+  title     jsonb not null,
+  note      jsonb,
+  drinks    boolean not null default false,          -- drinks get volume and deposit fields
+  position  int not null default 0
+);
+create table if not exists menu_items (
+  id           text primary key,
+  category_id  text not null references menu_categories (id) on delete restrict,
+  name         jsonb not null,
+  amharic      text not null default '',
+  description  jsonb,
+  price        numeric(8,2) not null check (price >= 0),
+  tags         text[] not null default '{}',           -- special, spicy, mild, vegan
+  gluten       text not null default 'none' check (gluten in ('free', 'noGluten', 'none')),
+  allergens    text[] not null default '{}',           -- LMIV letters A–N
+  additives    int[] not null default '{}',            -- additive numbers
+  volume       numeric(6,3),                           -- litres (drinks)
+  deposit      numeric(6,2) not null default 0,        -- Pfand per item (drinks)
+  orderable    boolean not null default true,          -- false: on the menu card only (e.g. coffee ceremony)
+  available    boolean not null default true,          -- false: sold out for now
+  position     int not null default 0,
+  updated_at   timestamptz not null default now()
+);
+create index if not exists menu_items_category_idx on menu_items (category_id, position);

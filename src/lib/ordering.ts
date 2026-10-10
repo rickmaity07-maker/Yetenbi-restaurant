@@ -1,7 +1,6 @@
-import { menu, type L, type MenuItem } from "./data";
 import { berlinNow, toMinutes, WEEK } from "./hours";
 import { isEmail } from "./validate";
-import { infoOf, type MenuInfo } from "./menu-info";
+import type { Catalog } from "./menu";
 
 /*
   Online ordering rules, shared by the order page and the API (the server recomputes everything).
@@ -42,27 +41,6 @@ export const DEFAULT_SETTINGS: OrderSettings = {
 export const LAST_ORDER_BEFORE_CLOSE = 30; // minutes
 export const MAX_QTY = 20;
 
-export type OrderableItem = { id: string; categoryId: string; name: L; description?: L; amharic?: string; price: number; tags?: MenuItem["tags"] };
-
-const toNumber = (price: string) => Number(price.replace(",", "."));
-
-/** Everything that can be ordered. The coffee ceremony is served at the table only. */
-export const ORDERABLE: OrderableItem[] = menu.flatMap((category) =>
-  category.items
-    .map((item, i) => ({ item, i }))
-    .filter(({ item }) => item.name.de !== "Jebena Buna")
-    .map(({ item, i }) => ({
-      id: `${category.id}-${i}`,
-      categoryId: category.id,
-      name: item.name,
-      description: item.description,
-      amharic: item.amharic,
-      price: toNumber(item.price),
-      tags: item.tags,
-    })),
-);
-export const ITEM_BY_ID = new Map(ORDERABLE.map((i) => [i.id, i]));
-
 export type Method = "delivery" | "pickup";
 export type Payment = "cash" | "card";
 export type CartLine = { id: string; qty: number };
@@ -84,10 +62,10 @@ export type OrderInput = {
 
 export const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** Food and drink, deposit (Pfand, from the owner's menu details), delivery fee. Minimum order and free delivery count the food only. */
-export function totals(items: CartLine[], method: Method, s: OrderSettings, info?: MenuInfo) {
-  const subtotal = round2(items.reduce((sum, l) => sum + (ITEM_BY_ID.get(l.id)?.price ?? 0) * l.qty, 0));
-  const deposit = round2(items.reduce((sum, l) => sum + infoOf(info, l.id).deposit * l.qty, 0));
+/** Food and drink, deposit (Pfand), delivery fee, priced from the menu. Minimum order and free delivery count the food only. */
+export function totals(items: CartLine[], method: Method, s: OrderSettings, catalog: Catalog) {
+  const subtotal = round2(items.reduce((sum, l) => sum + (catalog.get(l.id)?.price ?? 0) * l.qty, 0));
+  const deposit = round2(items.reduce((sum, l) => sum + (catalog.get(l.id)?.deposit ?? 0) * l.qty, 0));
   const fee = method === "delivery" && !(s.freeDeliveryFrom > 0 && subtotal >= s.freeDeliveryFrom) ? s.deliveryFee : 0;
   return { subtotal, deposit, fee: round2(fee), total: round2(subtotal + deposit + fee) };
 }
@@ -133,10 +111,10 @@ export type OrderErrorCode =
   | "note";
 export type OrderErrors = Partial<Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>>;
 
-export function validateOrder(o: OrderInput, s: OrderSettings, closedToday = false, now = new Date()): OrderErrors {
+export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog, closedToday = false, now = new Date()): OrderErrors {
   const e: OrderErrors = {};
   if (!o.items.length) e.items = "empty";
-  else if (o.items.some((l) => !ITEM_BY_ID.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY)) e.items = "item";
+  else if (o.items.some((l) => !catalog.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY)) e.items = "item";
 
   if (o.method !== "delivery" && o.method !== "pickup") e.method = "method";
   else if ((o.method === "delivery" && !s.delivery) || (o.method === "pickup" && !s.pickup)) e.method = "method";
@@ -148,7 +126,7 @@ export function validateOrder(o: OrderInput, s: OrderSettings, closedToday = fal
   }
 
   if (o.method === "delivery" && !e.items) {
-    if (totals(o.items, o.method, s).subtotal < s.minOrder) e.items = "min";
+    if (totals(o.items, o.method, s, catalog).subtotal < s.minOrder) e.items = "min";
     if (!s.postcodes.includes(o.postcode.trim())) e.postcode = "postcode";
     if (o.street.trim().length < 4 || o.street.length > 120) e.street = "street";
   }

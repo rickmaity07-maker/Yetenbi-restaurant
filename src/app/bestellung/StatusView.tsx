@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Check } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import { formatEuro, ITEM_BY_ID, type OrderStatus } from "@/lib/ordering";
+import { formatEuro, type OrderStatus } from "@/lib/ordering";
+import type { L } from "@/lib/data";
 import { useLanguage } from "@/lib/language";
 
 type Status = {
@@ -15,7 +16,7 @@ type Status = {
   etaMinutes: number | null;
   updatedAt: string;
   staffNote: string;
-  items: { id: string; name: string; qty: number; unit: number }[];
+  items: { id: string; name: string; qty: number; unit: number; names: L | null }[];
   subtotal: number;
   deposit?: number;
   deliveryFee: number;
@@ -65,7 +66,7 @@ export default function StatusView() {
   const reached = steps.indexOf(data.status);
   const failed = data.status === "rejected" || data.status === "cancelled";
   const euro = (n: number) => formatEuro(n, t.dateLocale);
-  const nameOf = (id: string, fallback: string) => ITEM_BY_ID.get(id)?.name[locale] ?? fallback;
+
 
   const message = failed
     ? data.status === "rejected"
@@ -119,7 +120,7 @@ export default function StatusView() {
           {data.items.map((l) => (
             <li key={l.id} className="flex justify-between gap-3">
               <span className="text-cream">
-                {l.qty} × {nameOf(l.id, l.name)}
+                {l.qty} × {l.names?.[locale] ?? l.name}
               </span>
               <span className="tabular-nums text-cream/80">{euro(l.qty * l.unit)}</span>
             </li>

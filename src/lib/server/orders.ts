@@ -1,8 +1,8 @@
 import "server-only";
 import { randomBytes, randomInt } from "node:crypto";
 import type { Locale } from "@/lib/i18n";
-import { DEFAULT_SETTINGS, ITEM_BY_ID, OPEN_STATUSES, totals, type OrderInput, type OrderSettings, type OrderStatus } from "@/lib/ordering";
-import { infoOf, type MenuInfo } from "@/lib/menu-info";
+import { DEFAULT_SETTINGS, OPEN_STATUSES, totals, type OrderInput, type OrderSettings, type OrderStatus } from "@/lib/ordering";
+import type { Catalog } from "@/lib/menu";
 import { db } from "./db";
 
 export type OrderLine = { id: string; name: string; qty: number; unit: number; deposit?: number };
@@ -113,14 +113,14 @@ export async function createOrder(
   locale: Locale,
   userId: number | null,
   guard: { phoneKey: string; clientHash: string | null },
-  info: MenuInfo = {},
+  catalog: Catalog,
 ) {
   const lines: OrderLine[] = input.items.map((l) => {
-    const item = ITEM_BY_ID.get(l.id)!;
-    const deposit = infoOf(info, l.id).deposit;
+    const item = catalog.get(l.id)!;
+    const deposit = item.deposit;
     return { id: l.id, name: item.name.de, qty: l.qty, unit: item.price, ...(deposit ? { deposit } : {}) };
   });
-  const t = totals(input.items, input.method, settings, info);
+  const t = totals(input.items, input.method, settings, catalog);
   const delivery = input.method === "delivery";
   for (let attempt = 0; attempt < 5; attempt++) {
     try {

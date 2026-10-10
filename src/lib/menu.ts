@@ -1,10 +1,36 @@
-import { menu, type L, type MenuItem, type Tag } from "./data";
+import type { L, Tag } from "./data";
 
 /*
-  Food information the owner enters in /admin → Speisekarte (stored in Neon, not in the code):
-  allergens (LMIV Annex II, letters A–N as usual in Germany), additives that must be named for loose food (LMIDV),
-  drink volume (for the price per litre, PAngV), deposit (Pfand, shown and charged separately) and the gluten claim.
+  The menu as it comes from the database (tables menu_categories / menu_items, edited in /admin → Speisekarte),
+  shared by the menu card, the order page and the server. Besides names and prices each item carries what food and
+  price law ask for online: allergens (LMIV Annex II, letters A–N), additives that must be named for loose food
+  (LMIDV), the volume of drinks (price per litre, PAngV), the deposit (Pfand) and the gluten claim.
 */
+
+export type GlutenClaim = "free" | "noGluten" | "none";
+export type DishTag = Exclude<Tag, "glutenfree">;
+
+export type Dish = {
+  id: string;
+  categoryId: string;
+  name: L;
+  amharic: string;
+  description: L | null;
+  price: number;
+  tags: DishTag[];
+  gluten: GlutenClaim;
+  allergens: string[];
+  additives: number[];
+  volume: number | null;
+  deposit: number;
+  orderable: boolean;
+  available: boolean;
+};
+
+export type MenuCategory = { id: string; title: L; note: L | null; drinks: boolean; items: Dish[] };
+export type Menu = MenuCategory[];
+
+export const DISH_TAGS: DishTag[] = ["special", "spicy", "mild", "vegan"];
 
 export const ALLERGENS: { code: string; label: L }[] = [
   { code: "A", label: { de: "Glutenhaltiges Getreide", en: "Cereals containing gluten", am: "ግሉተን ያለው እህል" } },
@@ -38,29 +64,17 @@ export const ADDITIVES: { code: number; label: L }[] = [
   { code: 12, label: { de: "chininhaltig", en: "contains quinine", am: "ኪኒን ያለው" } },
 ];
 
-/** How a dish's gluten line reads: keep the menu's tag, "gluten-free", "no gluten-containing ingredients", or nothing. */
-export type GlutenClaim = "keep" | "free" | "noGluten" | "none";
+/** Dishes that can be ordered online right now, by id (prices and names for the order and the server). */
+export const catalogOf = (menu: Menu) =>
+  new Map(menu.flatMap((c) => c.items.filter((i) => i.orderable && i.available).map((i) => [i.id, i] as const)));
+export type Catalog = ReturnType<typeof catalogOf>;
 
-export type ItemInfo = { allergens: string[]; additives: number[]; volume: number | null; deposit: number; gluten: GlutenClaim };
-export type MenuInfo = Record<string, ItemInfo>;
+/** The tags to show, including the gluten wording. */
+export const tagsOf = (dish: Dish): (DishTag | "glutenfree" | "noGluten")[] =>
+  dish.gluten === "free" ? [...dish.tags, "glutenfree"] : dish.gluten === "noGluten" ? [...dish.tags, "noGluten"] : dish.tags;
 
-export const EMPTY_INFO: ItemInfo = { allergens: [], additives: [], volume: null, deposit: 0, gluten: "keep" };
+/** Whether any allergen or additive has been entered at all (switches the menu's note and shows the legend). */
+export const hasAllergenData = (menu: Menu) => menu.some((c) => c.items.some((i) => i.allergens.length || i.additives.length));
 
-/** Drink categories get volume and deposit fields; the others the gluten choice. */
-export const DRINK_CATEGORIES = new Set(["kaffee", "heiss", "kalt"]);
-
-/** Every item on the menu with a stable id (the same ids the order page uses). */
-export const ALL_ITEMS = menu.flatMap((c) => c.items.map((item, i) => ({ id: `${c.id}-${i}`, categoryId: c.id, item })));
-
-export const infoOf = (info: MenuInfo | undefined, id: string): ItemInfo => ({ ...EMPTY_INFO, ...(info?.[id] ?? {}) });
-
-/** The tags to show, with the gluten claim the owner chose. */
-export function tagsFor(item: Pick<MenuItem, "tags">, info: ItemInfo): (Tag | "noGluten")[] {
-  const base = (item.tags ?? []).filter((t) => t !== "glutenfree");
-  const hadClaim = item.tags?.includes("glutenfree") ?? false;
-  const claim = info.gluten === "keep" ? (hadClaim ? "free" : "none") : info.gluten;
-  return claim === "free" ? [...base, "glutenfree"] : claim === "noGluten" ? [...base, "noGluten"] : base;
-}
-
-/** Whether the owner has entered any allergen or additive information at all (switches the menu's note). */
-export const hasAllergenData = (info: MenuInfo) => Object.values(info).some((i) => i.allergens?.length || i.additives?.length);
+/** "18,00" style price for the menu card. */
+export const priceText = (n: number) => n.toFixed(2).replace(".", ",");

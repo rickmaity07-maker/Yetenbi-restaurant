@@ -8,7 +8,8 @@ import { hasDatabase } from "@/lib/server/db";
 import { notifyRestaurantOrder, orderStatusUrl, sendOrderEmail } from "@/lib/server/mailer";
 import { checkOrder, clientHash, phoneKey } from "@/lib/server/order-guard";
 import { createOrder, getOrderSettings } from "@/lib/server/orders";
-import { getMenuInfo } from "@/lib/server/menu-info";
+import { getMenu } from "@/lib/server/menu";
+import { catalogOf } from "@/lib/menu";
 
 /*
   Places an online order. Only signed-in guests can order; the order goes to the account's email address.
@@ -42,20 +43,21 @@ export async function POST(request: Request) {
   };
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
-  const [settings, closures, info] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenuInfo()]);
+  const [settings, closures, menu] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu()]);
+  const catalog = catalogOf(menu);
   const closedToday = closures.some((c) => c.date === todayISO());
-  const errors = validateOrder(input, settings, closedToday);
+  const errors = validateOrder(input, settings, catalog, closedToday);
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 
   // Each order rings the kitchen: blocked guests, floods and very large first orders are stopped here (see order-guard).
   const guard = { phoneKey: phoneKey(input.phone), clientHash: clientHash(request) };
-  const blockedBy = await checkOrder({ ...guard, email: input.email, total: totals(input.items, input.method, settings, info).total });
+  const blockedBy = await checkOrder({ ...guard, email: input.email, total: totals(input.items, input.method, settings, catalog).total });
   if (blockedBy) {
     const status = { blocked: 403, busy: 429, kitchen: 429, large: 422 }[blockedBy];
     return Response.json({ code: blockedBy }, { status });
   }
 
-  const order = await createOrder(input, settings, locale, me.id, guard, info);
+  const order = await createOrder(input, settings, locale, me.id, guard, catalog);
   const origin = new URL(request.url).origin;
   after(async () => {
     await notifyRestaurantOrder(order, origin);
