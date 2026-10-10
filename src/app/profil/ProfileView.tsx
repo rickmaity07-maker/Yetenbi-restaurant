@@ -6,6 +6,7 @@ import { cancelMyBooking, changePassword, deleteAccount, logout, updateProfile }
 import { content, LOCALES, type Locale } from "@/lib/i18n";
 import { formatEuro, type OrderStatus } from "@/lib/ordering";
 import { useLanguage } from "@/lib/language";
+import { homeFor, type Role } from "@/lib/roles";
 import { AuthField, fieldClass, FormMessage, SubmitButton } from "@/components/account/AccountShell";
 
 export type ProfileBooking = {
@@ -18,7 +19,7 @@ export type ProfileBooking = {
 };
 
 type Props = {
-  user: { name: string; email: string; phone: string; role: "guest" | "owner"; locale: Locale };
+  user: { name: string; email: string; phone: string; role: Role; locale: Locale };
   bookings: ProfileBooking[];
   today: string;
   /** false for accounts that only sign in with Google */
@@ -91,9 +92,9 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
           <p className="mt-2 text-cream/65">{user.email}</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          {user.role === "owner" && (
-            <Link href="/admin" className="rounded-full border border-gold/60 px-5 py-2 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink">
-              {a.adminLink}
+          {user.role !== "guest" && (
+            <Link href={homeFor(user.role)} className="rounded-full border border-gold/60 px-5 py-2 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink">
+              {user.role === "owner" ? a.adminLink : user.role === "kitchen" ? "Zur Küche" : "Zu den Lieferungen"}
             </Link>
           )}
           <form action={logout}>

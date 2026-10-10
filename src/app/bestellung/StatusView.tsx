@@ -60,7 +60,7 @@ export default function StatusView() {
   if (missing) return <p className="font-display text-2xl italic text-cream/80">{o.notFound}</p>;
   if (!data) return <div className="h-80" aria-busy />;
 
-  const steps: OrderStatus[] = data.method === "delivery" ? ["new", "accepted", "on_the_way", "completed"] : ["new", "accepted", "ready", "completed"];
+  const steps: OrderStatus[] = ["new", "accepted", "cooked", "packed", data.method === "delivery" ? "on_the_way" : "ready", "completed"];
   const reached = steps.indexOf(data.status);
   const failed = data.status === "rejected" || data.status === "cancelled";
   const euro = (n: number) => formatEuro(n, t.dateLocale);
@@ -90,7 +90,7 @@ export default function StatusView() {
       {data.staffNote && <p className="mt-3 border-l-2 border-gold/60 pl-4 text-cream/80">{data.staffNote}</p>}
 
       {!failed && (
-        <ol className="mt-10 grid grid-cols-4 gap-2">
+        <ol className="mt-10 grid grid-cols-3 gap-x-2 gap-y-6 sm:grid-cols-6">
           {steps.map((step, i) => {
             const done = i <= reached;
             return (

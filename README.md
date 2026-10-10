@@ -31,7 +31,20 @@ npm run build && npm run start   # production build (use this to judge performan
 - **/bestellen**: guests order for delivery or pickup, as soon as possible or for a later time today; payment in cash
   or by card on handover. The server re-prices every order from the menu.
 - Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days.
-- The team handles orders at **/admin/bestellungen** (accept with ETA, on the way / ready, complete, reject).
+- Order flow (each step is emailed to the guest, in their language):
+
+  | Step | Who | Where |
+  | --- | --- | --- |
+  | Accept with ETA, or reject | owner | /admin/bestellungen |
+  | *Essen fertig*, then *Verpackt* | kitchen | **/kueche** (food only, no prices or guest details) |
+  | *Zur Lieferung übergeben* (choose the driver) or *Abholbereit* | owner | /admin/bestellungen |
+  | *Zugestellt* | driver (own deliveries only) | **/lieferung** (address, map link, phone, amount to collect) |
+  | *Abgeholt* (pickup) | owner | /admin/bestellungen |
+
+  The team is emailed too: kitchen accounts when an order is accepted, the driver when an order is handed to them,
+  and the restaurant (`RESERVATION_NOTIFY_EMAIL`) when the kitchen has packed an order and when a driver has delivered it.
+  Owners can press every step themselves (e.g. on days without kitchen or driver accounts). Each button only works
+  for the status it was shown for, so two people pressing at once change nothing twice.
   Under *Einstellungen* there: pause ordering, minimum order, delivery fee, free delivery from, delivery postcodes, times.
 - Protection against prank and flood orders (`src/lib/server/order-guard.ts`): at most 3 orders per hour per phone
   number (however it is typed) and per device (IP address, stored only as a keyed hash for 30 days), at most 8
@@ -44,6 +57,9 @@ npm run build && npm run start   # production build (use this to judge performan
 - Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
   export their data and delete the account. Password reset works by email.
+- **Team** (/admin/team): owners create logins for kitchen staff, drivers and other owners (email + starting password),
+  change roles, set a new password or remove someone (they keep a plain guest account). After signing in at /login,
+  everyone lands on their own screen: owners /admin, kitchen /kueche, drivers /lieferung.
 - Booking emails contain a signed cancel link (**/stornieren**), so guests can cancel without an account.
 
 Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`, menu text in `src/lib/data.ts`.
@@ -71,7 +87,8 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `src/lib/data.ts` – restaurant details and the full menu (prices, three languages).
 - `src/lib/hours.ts` – opening hours (used everywhere, incl. search-engine data).
 - `src/lib/booking.ts` – booking rules shared by form, API and admin.
-- `src/lib/ordering.ts` – ordering rules and default order settings (the owner overrides them in /admin).
+- `src/lib/ordering.ts` – ordering rules, default order settings (the owner overrides them in /admin) and who may make which step (`canMove`).
+- `src/lib/server/order-flow.ts` – moves an order one step and sends the emails; used by /admin, /kueche and /lieferung.
 - `src/lib/server/` – database, reservations, orders, emails, accounts and sessions, Google sign-in.
 - `src/lib/ethiopic.ts` – Ethiopian calendar, Addis clock and Ge'ez numerals.
 - `src/components/heritage/` – Aksum stela, Lalibela cross, Aksumite frame, tibeb/harag bands.

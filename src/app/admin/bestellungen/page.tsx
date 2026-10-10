@@ -1,23 +1,26 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { requireOwner } from "@/lib/server/auth";
+import { listDrivers, requireOwner, type User } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import { LIMITS, listBlocks, type Block } from "@/lib/server/order-guard";
 import { getOrderSettings, listActiveOrders, type Order } from "@/lib/server/orders";
-import type { OrderStatus } from "@/lib/ordering";
+import { OPEN_STATUSES, type OrderStatus } from "@/lib/ordering";
 import AdminHeader from "../AdminHeader";
 import { blockGuest, unblock, updateOrder } from "../order-actions";
-import { AddBlockForm, LiveRefresh, SettingsForm } from "./OrderClient";
+import LiveRefresh from "@/components/LiveRefresh";
+import { AddBlockForm, SettingsForm } from "./OrderClient";
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
 const time = (iso: string) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
 const STATUS: Record<OrderStatus, { label: string; tone: string }> = {
   new: { label: "Neu", tone: "border-gold bg-gold text-ink" },
-  accepted: { label: "Angenommen", tone: "border-gold/60 text-gold-soft" },
+  accepted: { label: "In der Küche", tone: "border-gold/60 text-gold-soft" },
+  cooked: { label: "Essen fertig", tone: "border-gold/60 text-gold-soft" },
+  packed: { label: "Verpackt", tone: "border-[#7fcf9c] bg-[#7fcf9c] text-ink" },
   ready: { label: "Abholbereit", tone: "border-[#7fcf9c]/60 text-[#9fe0b6]" },
   on_the_way: { label: "Unterwegs", tone: "border-[#7fcf9c]/60 text-[#9fe0b6]" },
-  completed: { label: "Abgeschlossen", tone: "border-cream/30 text-cream/60" },
+  completed: { label: "Erledigt", tone: "border-cream/30 text-cream/60" },
   rejected: { label: "Abgelehnt", tone: "border-[#f0a080]/60 text-[#f0a080]" },
   cancelled: { label: "Storniert", tone: "border-cream/30 text-cream/60" },
 };
@@ -61,7 +64,7 @@ function RiskLabels({ o }: { o: Order }) {
 /** Rejects or cancels the order (if still open) and blocks the guest's phone, email and device. */
 function BlockForm({ o }: { o: Order }) {
   if (o.status === "completed" || o.risk?.blocked) return null;
-  const label = o.status === "new" ? "Ablehnen & sperren" : ["accepted", "ready", "on_the_way"].includes(o.status) ? "Stornieren & sperren" : "Gast sperren";
+  const label = o.status === "new" ? "Ablehnen & sperren" : OPEN_STATUSES.includes(o.status) ? "Stornieren & sperren" : "Gast sperren";
   return (
     <details className="mt-4 text-sm">
       <summary className="cursor-pointer text-cream/55 hover:text-[#f0a080]">Scherzbestellung? Gast sperren</summary>
@@ -121,11 +124,38 @@ function BlockList({ blocks }: { blocks: Block[] }) {
   );
 }
 
-function OrderCard({ o }: { o: Order }) {
+/** Hidden fields every step form sends: which order, and the status the button was shown for. */
+function Step({ o }: { o: Order }) {
+  return (
+    <>
+      <input type="hidden" name="id" value={o.id} />
+      <input type="hidden" name="from" value={o.status} />
+    </>
+  );
+}
+
+/** Where an order stands in the kitchen and on the road, with the time of each step. */
+function Progress({ o }: { o: Order }) {
+  const steps: [string, string | null][] = [
+    ["Essen fertig", o.cookedAt],
+    ["Verpackt", o.packedAt],
+    [o.method === "delivery" ? "Unterwegs" : "Abholbereit", o.outAt],
+    [o.method === "delivery" ? "Zugestellt" : "Abgeholt", o.completedAt],
+  ];
+  if (o.status === "new" || o.status === "rejected") return null;
+  return (
+    <p className="mt-2 text-xs text-cream/55">
+      {steps.map(([label, at]) => (at ? `${label} ${time(at)}` : null)).filter(Boolean).join(" · ") || "Küche bereitet zu"}
+      {o.driverName && <span className="text-cream/75"> · Fahrer: {o.driverName}</span>}
+    </p>
+  );
+}
+
+function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
   const s = STATUS[o.status];
   const delivery = o.method === "delivery";
   return (
-    <li className={`border p-5 md:p-6 ${o.status === "new" ? "border-gold bg-gold/[0.06]" : "border-gold/25 bg-ink/60"}`}>
+    <li className={`border p-5 md:p-6 ${o.status === "new" || o.status === "packed" ? "border-gold bg-gold/[0.06]" : "border-gold/25 bg-ink/60"}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <p className="font-display text-2xl text-cream">
           {o.reference} · {delivery ? "Lieferung" : "Abholung"}
@@ -136,6 +166,7 @@ function OrderCard({ o }: { o: Order }) {
         Eingang {time(o.createdAt)} · {o.wanted === "asap" ? "so schnell wie möglich" : `gewünscht ${o.wanted} Uhr`} · {o.payment === "cash" ? "bar" : "Karte"}
         {o.etaMinutes && o.status !== "new" ? ` · ca. ${o.etaMinutes} Min.` : ""}
       </p>
+      <Progress o={o} />
       <RiskLabels o={o} />
       <p className="mt-3 text-cream">
         <strong className="font-semibold">{o.name}</strong> ·{" "}
@@ -173,7 +204,7 @@ function OrderCard({ o }: { o: Order }) {
 
       {o.status === "new" && (
         <form action={updateOrder} className="mt-5 space-y-3">
-          <input type="hidden" name="id" value={o.id} />
+          <Step o={o} />
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-xs uppercase tracking-[0.2em] text-gold" htmlFor={`eta-${o.id}`}>
               Fertig in
@@ -201,24 +232,47 @@ function OrderCard({ o }: { o: Order }) {
           </div>
         </form>
       )}
-      {(o.status === "accepted" || o.status === "ready" || o.status === "on_the_way") && (
-        <form action={updateOrder} className="mt-5 flex flex-wrap gap-3">
-          <input type="hidden" name="id" value={o.id} />
-          <input type="hidden" name="note" value={o.staffNote} />
-          {o.status === "accepted" &&
-            (delivery ? (
-              <Button status="on_the_way" primary>
-                Unterwegs
+      {OPEN_STATUSES.includes(o.status) && o.status !== "new" && (
+        <form action={updateOrder} className="mt-5 space-y-3">
+          <Step o={o} />
+          {o.status === "packed" && delivery && (
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-xs uppercase tracking-[0.2em] text-gold" htmlFor={`driver-${o.id}`}>
+                Fahrer
+              </label>
+              <select id={`driver-${o.id}`} name="driver" defaultValue={drivers[0]?.id ?? ""} className="border-0 border-b border-gold/30 bg-transparent text-cream [color-scheme:dark] focus:outline-none">
+                {drivers.map((d) => (
+                  <option key={d.id} value={d.id} className="bg-coal">
+                    {d.name}
+                  </option>
+                ))}
+                <option value="" className="bg-coal">
+                  Ohne Fahrer-Konto
+                </option>
+              </select>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3">
+            {o.status === "packed" &&
+              (delivery ? (
+                <Button status="on_the_way" primary>
+                  Zur Lieferung übergeben
+                </Button>
+              ) : (
+                <Button status="ready" primary>
+                  Abholbereit
+                </Button>
+              ))}
+            {(o.status === "ready" || o.status === "on_the_way") && (
+              <Button status="completed" primary>
+                {delivery ? "Zugestellt" : "Abgeholt"}
               </Button>
-            ) : (
-              <Button status="ready" primary>
-                Abholbereit
-              </Button>
-            ))}
-          <Button status="completed" primary={o.status !== "accepted"}>
-            Abgeschlossen
-          </Button>
-          <Button status="cancelled">Stornieren</Button>
+            )}
+            {/* Kitchen steps, in case nobody from the kitchen is signed in */}
+            {o.status === "accepted" && <Button status="cooked">Essen fertig</Button>}
+            {o.status === "cooked" && <Button status="packed">Verpackt</Button>}
+            <Button status="cancelled">Stornieren</Button>
+          </div>
         </form>
       )}
       <BlockForm o={o} />
@@ -230,8 +284,8 @@ async function Board() {
   await connection();
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const [orders, settings, blocks] = await Promise.all([listActiveOrders(), getOrderSettings(), listBlocks()]);
-  const open = orders.filter((o) => ["new", "accepted", "ready", "on_the_way"].includes(o.status));
+  const [orders, settings, blocks, drivers] = await Promise.all([listActiveOrders(), getOrderSettings(), listBlocks(), listDrivers()]);
+  const open = orders.filter((o) => OPEN_STATUSES.includes(o.status));
   const done = orders.filter((o) => !open.includes(o));
   const revenue = orders.filter((o) => o.status === "completed").reduce((n, o) => n + o.total, 0);
 
@@ -246,6 +300,9 @@ async function Board() {
           <span className="font-display text-3xl text-gold-soft">{open.length}</span> in Arbeit
         </p>
         <p>
+          <span className="font-display text-3xl text-gold-soft">{orders.filter((o) => o.status === "packed").length}</span> bereit zur Übergabe
+        </p>
+        <p>
           <span className="font-display text-3xl text-gold-soft">{euro(revenue)}</span> heute abgeschlossen
         </p>
         {settings.paused && <p className="self-end font-semibold text-[#f0a080]">Online-Bestellungen sind pausiert.</p>}
@@ -253,12 +310,14 @@ async function Board() {
 
       <p className="mt-4 text-sm text-cream/60">
         Tipp: Bei <span className="text-cream/85">Erste Bestellung</span> oder roten Hinweisen kurz zurückrufen, bevor ihr kocht.
+        Angenommene Bestellungen erscheinen in der <a href="/kueche" className="text-cream/85 underline underline-offset-4">Küche</a>; verpackte
+        übergebt ihr hier an einen Fahrer{drivers.length === 0 && " (Fahrer-Konten legt ihr unter Team an)"}.
       </p>
 
       {open.length === 0 && <p className="mt-12 font-display text-2xl italic text-cream/70">Gerade keine offenen Bestellungen.</p>}
       <ul className="mt-10 grid gap-4 md:grid-cols-2">
         {open.map((o) => (
-          <OrderCard key={o.id} o={o} />
+          <OrderCard key={o.id} o={o} drivers={drivers} />
         ))}
       </ul>
 
@@ -267,7 +326,7 @@ async function Board() {
           <h2 className="font-display text-2xl font-semibold text-gold-soft">Heute erledigt</h2>
           <ul className="mt-5 grid gap-4 md:grid-cols-2">
             {done.map((o) => (
-              <OrderCard key={o.id} o={o} />
+              <OrderCard key={o.id} o={o} drivers={drivers} />
             ))}
           </ul>
         </section>

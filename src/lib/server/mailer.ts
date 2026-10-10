@@ -13,6 +13,7 @@ import { siteUrl } from "@/lib/site-url";
 
   To the guest, in the language they booked in:  received · confirmed (+ calendar file) · declined
   To the restaurant (RESERVATION_NOTIFY_EMAIL):   every new request, with a link to /admin
+  Orders: the guest gets every step; kitchen and drivers get what they need (notifyStaffOrder).
 
   Nothing is sent until GMAIL_USER, GMAIL_APP_PASSWORD and RESERVATION_NOTIFY_EMAIL are set,
   and an email failure never loses or blocks a booking.
@@ -243,7 +244,8 @@ export async function sendPasswordReset(to: string, name: string, locale: Locale
 
 /* ---------- online orders ---------- */
 
-type OrderKind = "received" | "accepted" | "on_the_way" | "rejected";
+/** Every step of an order is emailed to the guest (if they gave an email address). */
+export type OrderKind = "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
 
 const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string }> = {
   de: {
@@ -252,7 +254,18 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
       subject: `Bestellung ${o.reference} angenommen`,
       intro: `eure Bestellung ist angenommen. ${o.method === "delivery" ? "Lieferung" : "Abholbereit"} in etwa ${o.etaMinutes ?? 30} Minuten.`,
     }),
+    cooked: (o) => ({ subject: `Bestellung ${o.reference}: Essen ist fertig`, intro: "euer Essen ist fertig gekocht und wird jetzt verpackt." }),
+    packed: (o) => ({
+      subject: `Bestellung ${o.reference} ist verpackt`,
+      intro: o.method === "delivery" ? "eure Bestellung ist verpackt und geht gleich an den Fahrer." : "eure Bestellung ist verpackt und gleich abholbereit.",
+    }),
+    ready: (o) => ({ subject: `Bestellung ${o.reference} ist abholbereit`, intro: "eure Bestellung wartet auf euch in der Theaterstraße 6. Bis gleich!" }),
     on_the_way: (o) => ({ subject: `Bestellung ${o.reference} ist unterwegs`, intro: "eure Bestellung ist unterwegs zu euch. Guten Appetit!" }),
+    completed: (o) => ({
+      subject: o.method === "delivery" ? `Bestellung ${o.reference} geliefert` : `Bestellung ${o.reference} abgeholt`,
+      intro: `eure Bestellung wurde ${o.method === "delivery" ? "geliefert" : "abgeholt"}. Danke und guten Appetit!`,
+    }),
+    cancelled: (o) => ({ subject: `Bestellung ${o.reference} storniert`, intro: "eure Bestellung wurde storniert. Bei Fragen ruft uns bitte an." }),
     rejected: (o) => ({ subject: `Bestellung ${o.reference}`, intro: "leider können wir eure Bestellung gerade nicht annehmen. Bitte ruft uns an, wir helfen gerne weiter." }),
     status: "Status ansehen",
     total: "Summe",
@@ -265,7 +278,18 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
       subject: `Order ${o.reference} accepted`,
       intro: `your order is accepted. ${o.method === "delivery" ? "Delivery" : "Ready for pick-up"} in about ${o.etaMinutes ?? 30} minutes.`,
     }),
+    cooked: (o) => ({ subject: `Order ${o.reference}: food is ready`, intro: "your food is cooked and is being packed now." }),
+    packed: (o) => ({
+      subject: `Order ${o.reference} is packed`,
+      intro: o.method === "delivery" ? "your order is packed and goes to the driver shortly." : "your order is packed and will be ready for pick-up in a moment.",
+    }),
+    ready: (o) => ({ subject: `Order ${o.reference} is ready for pick-up`, intro: "your order is waiting for you at Theaterstraße 6. See you soon!" }),
     on_the_way: (o) => ({ subject: `Order ${o.reference} is on its way`, intro: "your order is on its way to you. Enjoy your meal!" }),
+    completed: (o) => ({
+      subject: o.method === "delivery" ? `Order ${o.reference} delivered` : `Order ${o.reference} picked up`,
+      intro: `your order has been ${o.method === "delivery" ? "delivered" : "picked up"}. Thank you, and enjoy your meal!`,
+    }),
+    cancelled: (o) => ({ subject: `Order ${o.reference} cancelled`, intro: "your order has been cancelled. Please call us if you have any questions." }),
     rejected: (o) => ({ subject: `Order ${o.reference}`, intro: "unfortunately we can't take your order right now. Please give us a call and we'll help." }),
     status: "View status",
     total: "Total",
@@ -278,7 +302,18 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
       subject: `ትዕዛዝ ${o.reference} ተቀባይነት አግኝቷል`,
       intro: `ትዕዛዝዎ ተቀባይነት አግኝቷል። በግምት በ${o.etaMinutes ?? 30} ደቂቃ ${o.method === "delivery" ? "ይደርሳል" : "ዝግጁ ይሆናል"}።`,
     }),
+    cooked: (o) => ({ subject: `ትዕዛዝ ${o.reference}፦ ምግቡ ተዘጋጅቷል`, intro: "ምግብዎ ተበስሏል፤ አሁን እየታሸገ ነው።" }),
+    packed: (o) => ({
+      subject: `ትዕዛዝ ${o.reference} ታሽጓል`,
+      intro: o.method === "delivery" ? "ትዕዛዝዎ ታሽጓል፤ በቅርቡ ለአድራሹ ይሰጣል።" : "ትዕዛዝዎ ታሽጓል፤ በቅርቡ ለመውሰድ ዝግጁ ይሆናል።",
+    }),
+    ready: (o) => ({ subject: `ትዕዛዝ ${o.reference} ለመውሰድ ዝግጁ ነው`, intro: "ትዕዛዝዎ Theaterstraße 6 ላይ ይጠብቅዎታል። በቅርቡ እንገናኝ!" }),
     on_the_way: (o) => ({ subject: `ትዕዛዝ ${o.reference} በመንገድ ላይ ነው`, intro: "ትዕዛዝዎ ወደ እርስዎ በመንገድ ላይ ነው። መልካም ምግብ!" }),
+    completed: (o) => ({
+      subject: o.method === "delivery" ? `ትዕዛዝ ${o.reference} ደርሷል` : `ትዕዛዝ ${o.reference} ተወስዷል`,
+      intro: `ትዕዛዝዎ ${o.method === "delivery" ? "ደርሷል" : "ተወስዷል"}። እናመሰግናለን፣ መልካም ምግብ!`,
+    }),
+    cancelled: (o) => ({ subject: `ትዕዛዝ ${o.reference} ተሰርዟል`, intro: "ትዕዛዝዎ ተሰርዟል። ጥያቄ ካለዎ እባክዎ ይደውሉልን።" }),
     rejected: (o) => ({ subject: `ትዕዛዝ ${o.reference}`, intro: "ይቅርታ፣ አሁን ትዕዛዝዎን መቀበል አንችልም። እባክዎ ይደውሉልን።" }),
     status: "ሁኔታውን ይመልከቱ",
     total: "ድምር",
@@ -311,7 +346,7 @@ export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl
       subject,
       html: layout(
         esc(o.name) + ",",
-        `<p style="margin:0">${esc(intro)}</p>${note}${kind === "rejected" ? "" : orderTable(o, c.total)}<p style="margin:20px 0 0"><a href="${esc(orderStatusUrl(origin, o))}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.status)}</a></p>`,
+        `<p style="margin:0">${esc(intro)}</p>${note}${kind === "rejected" || kind === "cancelled" ? "" : orderTable(o, c.total)}<p style="margin:20px 0 0"><a href="${esc(orderStatusUrl(origin, o))}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.status)}</a></p>`,
       ),
     });
   } catch (error) {
@@ -337,5 +372,66 @@ export async function notifyRestaurantOrder(o: Order, origin = siteUrl()) {
     });
   } catch (error) {
     console.error("Restaurant order email failed", o.reference, error);
+  }
+}
+
+/* ---------- staff ---------- */
+
+const button = (href: string, text: string) =>
+  `<p style="margin:20px 0 0"><a href="${esc(href)}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(text)}</a></p>`;
+
+/** Food only, without prices or guest details: what the kitchen needs. */
+const kitchenList = (o: Order) =>
+  `<ul style="margin:12px 0 0;padding-left:18px">${o.items.map((l) => `<li style="padding:2px 0">${l.qty} × ${esc(l.name)}</li>`).join("")}</ul>${
+    o.note ? `<p style="margin:12px 0 0;border-left:2px solid #c9a24a;padding-left:12px">${esc(o.note)}</p>` : ""
+  }`;
+
+export type StaffKind = "kitchen" | "packed" | "driver" | "completed";
+
+/**
+  Emails to the team as an order moves on:
+  kitchen   – accepted order, to every kitchen account (food only)
+  packed    – ready to hand out, to the restaurant
+  driver    – handed to a driver, to that driver (address, phone, amount to collect)
+  completed – delivered or picked up, to the restaurant
+*/
+export async function notifyStaffOrder(kind: StaffKind, o: Order, to: (string | undefined)[], origin = siteUrl()) {
+  const recipients = [...new Set(to.filter((v): v is string => Boolean(v)))];
+  if (!isMailerConfigured() || !recipients.length) return;
+  const way = o.method === "delivery" ? "Lieferung" : "Abholung";
+  const when = o.wanted === "asap" ? "so schnell wie möglich" : `${esc(o.wanted)} Uhr`;
+  const mail: Record<StaffKind, { subject: string; heading: string; body: string }> = {
+    kitchen: {
+      subject: `Küche: ${o.reference} zubereiten (${way})`,
+      heading: "Neue Bestellung für die Küche",
+      body: `<p style="margin:0">${way} · ${when}${o.etaMinutes ? ` · fertig in ca. ${o.etaMinutes} Min.` : ""}</p>${kitchenList(o)}${button(`${origin}/kueche`, "Zur Küche")}`,
+    },
+    packed: {
+      subject: `${o.reference} ist verpackt (${way})`,
+      heading: "Bereit zur Übergabe",
+      body: `<p style="margin:0">${esc(o.name)} · ${way} · ${euro(o.total)}</p><p style="margin:8px 0 0">${
+        o.method === "delivery" ? "Bitte einem Fahrer übergeben." : "Bitte als abholbereit markieren."
+      }</p>${button(`${origin}/admin/bestellungen`, "Zur Verwaltung")}`,
+    },
+    driver: {
+      subject: `Lieferung ${o.reference}: ${o.street}`,
+      heading: "Neue Lieferung für dich",
+      body: `<p style="margin:0"><strong>${esc(o.name)}</strong> · <a href="tel:${esc(o.phone)}" style="color:#e7cd8a">${esc(o.phone)}</a><br>${esc(o.street)}, ${esc(o.postcode)} ${esc(o.city)}${
+        o.addressNote ? `<br><em>${esc(o.addressNote)}</em>` : ""
+      }</p><p style="margin:12px 0 0">${o.payment === "cash" ? "Bar kassieren" : "Kartenzahlung bei Übergabe"}: <strong>${euro(o.total)}</strong></p>${button(`${origin}/lieferung`, "Zu meinen Lieferungen")}`,
+    },
+    completed: {
+      subject: `${o.reference} ${o.method === "delivery" ? "geliefert" : "abgeholt"}`,
+      heading: o.method === "delivery" ? "Zugestellt" : "Abgeholt",
+      body: `<p style="margin:0">${esc(o.name)} · ${way} · ${euro(o.total)} (${o.payment === "cash" ? "bar" : "Karte"})${
+        o.driverName ? ` · Fahrer: ${esc(o.driverName)}` : ""
+      }</p>${button(`${origin}/admin/bestellungen`, "Zur Verwaltung")}`,
+    },
+  };
+  const m = mail[kind];
+  try {
+    await mailer().sendMail({ from: from(), to: recipients.join(", "), subject: m.subject, html: layout(m.heading, m.body) });
+  } catch (error) {
+    console.error("Staff order email failed", kind, o.reference, error);
   }
 }

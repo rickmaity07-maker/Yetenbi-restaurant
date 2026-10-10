@@ -143,7 +143,33 @@ export function validateOrder(o: OrderInput, s: OrderSettings, closedToday = fal
   return e;
 }
 
-export type OrderStatus = "new" | "accepted" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
+/*
+  Order flow. Delivery: new → accepted (owner) → cooked → packed (kitchen) → on_the_way (owner hands it to a driver)
+  → completed (driver, "delivered"). Pickup: … → packed → ready (owner) → completed (owner, "picked up").
+*/
+export type OrderStatus = "new" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
+
+/** Orders that are still being worked on. */
+export const OPEN_STATUSES: OrderStatus[] = ["new", "accepted", "cooked", "packed", "ready", "on_the_way"];
+
+export type StaffRole = "owner" | "kitchen" | "driver";
+
+/** Which status each role may move an order to, from which status. Checked on the server for every button. */
+export function canMove(role: StaffRole, from: OrderStatus, to: OrderStatus, method: Method) {
+  if (role === "kitchen") return (from === "accepted" && to === "cooked") || (from === "cooked" && to === "packed");
+  if (role === "driver") return from === "on_the_way" && to === "completed";
+  // owner: every step, so the shop also runs on days without kitchen or driver accounts
+  if (to === "cancelled") return OPEN_STATUSES.includes(from) && from !== "new";
+  const flow: Partial<Record<OrderStatus, OrderStatus[]>> = {
+    new: ["accepted", "rejected"],
+    accepted: ["cooked"],
+    cooked: ["packed"],
+    packed: [method === "delivery" ? "on_the_way" : "ready"],
+    ready: ["completed"],
+    on_the_way: ["completed"],
+  };
+  return flow[from]?.includes(to) ?? false;
+}
 
 export const formatEuro = (n: number, dateLocale: string) =>
   new Intl.NumberFormat(dateLocale === "am-ET" ? "de-DE" : dateLocale, { style: "currency", currency: "EUR" }).format(n);

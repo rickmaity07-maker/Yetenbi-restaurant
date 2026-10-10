@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import type { Role } from "@/lib/roles";
 
 /*
   Tiny shared stores for the public page: who is signed in (/api/me) and upcoming closed days
   (/api/closures). Each is fetched once per page load, however many components ask for it.
 */
 
-export type Me = { name: string; email: string; phone: string; role: "guest" | "owner" } | null;
+export type Me = { name: string; email: string; phone: string; role: Role } | null;
 export type ClosedDay = { date: string; note: string };
 
 function createStore<T>(url: string, pick: (json: unknown) => T, initial: T) {

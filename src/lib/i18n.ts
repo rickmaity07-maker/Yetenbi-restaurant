@@ -306,6 +306,8 @@ const de = {
     status: {
       new: "Eingegangen",
       accepted: "Angenommen",
+      cooked: "Essen fertig",
+      packed: "Verpackt",
       ready: "Abholbereit",
       on_the_way: "Unterwegs",
       completed: "Abgeschlossen",
@@ -632,6 +634,8 @@ const en: Dict = {
     status: {
       new: "Received",
       accepted: "Accepted",
+      cooked: "Food ready",
+      packed: "Packed",
       ready: "Ready for pick-up",
       on_the_way: "On its way",
       completed: "Completed",
@@ -956,6 +960,8 @@ const am: Dict = {
     status: {
       new: "ደርሷል",
       accepted: "ተቀባይነት አግኝቷል",
+      cooked: "ምግቡ ተዘጋጅቷል",
+      packed: "ታሽጓል",
       ready: "ለመውሰድ ዝግጁ",
       on_the_way: "በመንገድ ላይ",
       completed: "ተጠናቋል",

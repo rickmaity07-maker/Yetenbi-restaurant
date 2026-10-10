@@ -120,3 +120,21 @@ create table if not exists order_blocks (
   created_at  timestamptz not null default now(),
   unique (kind, value)
 );
+
+-- Staff roles: kitchen staff (see the food, mark it cooked and packed) and drivers (mark deliveries done).
+alter table users drop constraint if exists users_role_check;
+alter table users add constraint users_role_check check (role in ('guest', 'owner', 'kitchen', 'driver'));
+
+-- Kitchen steps between "accepted" and handing the order out.
+alter table orders drop constraint if exists orders_status_check;
+alter table orders add constraint orders_status_check
+  check (status in ('new', 'accepted', 'cooked', 'packed', 'ready', 'on_the_way', 'completed', 'rejected', 'cancelled'));
+
+-- The driver an order was handed to, and when each step happened (shown on the boards).
+alter table orders add column if not exists driver_id bigint references users (id) on delete set null;
+alter table orders add column if not exists accepted_at timestamptz;
+alter table orders add column if not exists cooked_at timestamptz;
+alter table orders add column if not exists packed_at timestamptz;
+alter table orders add column if not exists out_at timestamptz;
+alter table orders add column if not exists completed_at timestamptz;
+create index if not exists orders_driver_idx on orders (driver_id, status);

@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { validateBooking, type BookingRequest } from "@/lib/booking";
 import { requireOwner } from "@/lib/server/auth";
 import { addClosure, removeClosure, upcomingClosures } from "@/lib/server/closures";
-import { db } from "@/lib/server/db";
 import { sendGuestEmail } from "@/lib/server/mailer";
 import { createReservation, setStatus, type Status } from "@/lib/server/reservations";
 
@@ -72,13 +71,4 @@ export async function removeClosedDay(form: FormData) {
   await requireOwner();
   await removeClosure(String(form.get("date") ?? ""));
   revalidatePath("/admin");
-}
-
-/** Gives an existing account owner rights (the person must have signed up first). */
-export async function promoteOwner(_: AdminState, form: FormData): Promise<AdminState> {
-  await requireOwner();
-  const email = String(form.get("email") ?? "").trim().toLowerCase();
-  const rows = (await db()`update users set role = 'owner' where lower(email) = ${email} returning id`) as { id: string }[];
-  revalidatePath("/admin");
-  return rows.length ? { ok: `${email} hat jetzt Zugriff auf die Verwaltung.` } : { error: "Kein Konto mit dieser E-Mail. Die Person muss sich zuerst registrieren." };
 }

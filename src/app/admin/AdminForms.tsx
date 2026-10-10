@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addClosedDay, addPhoneBooking, promoteOwner, type AdminState } from "./actions";
+import { addClosedDay, addPhoneBooking, type AdminState } from "./actions";
 
 const field =
   "w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 pt-1 text-base text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none [color-scheme:dark]";
@@ -57,23 +57,6 @@ export function ClosedDayForm() {
       </div>
       <button disabled={pending} className="rounded-full border border-gold/60 px-5 py-2.5 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink disabled:opacity-60">
         Schließen
-      </button>
-      <div className="basis-full">
-        <Message state={state} />
-      </div>
-    </form>
-  );
-}
-
-export function PromoteForm() {
-  const [state, action, pending] = useActionState(promoteOwner, null);
-  return (
-    <form action={action} className="flex flex-wrap items-end gap-5">
-      <div className="min-w-64 flex-1">
-        <Input name="email" title="E-Mail eines bestehenden Kontos" type="email" required />
-      </div>
-      <button disabled={pending} className="rounded-full border border-gold/60 px-5 py-2.5 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink disabled:opacity-60">
-        Zugriff geben
       </button>
       <div className="basis-full">
         <Message state={state} />

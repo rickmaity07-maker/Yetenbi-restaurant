@@ -20,6 +20,7 @@ import {
   verifyPassword,
 } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
+import { homeFor } from "@/lib/roles";
 import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/mailer";
 import { cancelForUser } from "@/lib/server/reservations";
 
@@ -61,7 +62,7 @@ export async function login(_: AccountState, form: FormData): Promise<AccountSta
   }
   await startSession(user.id);
   const next = safeNext(str(form, "next"));
-  redirect(next || (user.role === "owner" ? "/admin" : "/profil"));
+  redirect(next || homeFor(user.role));
 }
 
 export async function register(_: AccountState, form: FormData): Promise<AccountState> {

@@ -8,7 +8,7 @@ import { hasDatabase } from "@/lib/server/db";
 import { isMailerConfigured } from "@/lib/server/mailer";
 import { listBetween, listReservations, type Reservation, type Status } from "@/lib/server/reservations";
 import { decide, removeClosedDay } from "./actions";
-import { ClosedDayForm, PhoneBookingForm, PromoteForm } from "./AdminForms";
+import { ClosedDayForm, PhoneBookingForm } from "./AdminForms";
 import AdminHeader from "./AdminHeader";
 
 const STATUS: Record<Status, { label: string; tone: string }> = {
@@ -179,10 +179,6 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
               </ul>
             )}
             <ClosedDayForm />
-          </Panel>
-          <Panel title="Team">
-            <p className="mb-5 text-sm text-cream/65">Wer sich unter /login registriert hat, kann hier Zugriff auf die Verwaltung bekommen.</p>
-            <PromoteForm />
           </Panel>
         </div>
       )}

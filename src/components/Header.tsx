@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/
 import { ArrowUpRight, UserCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useAccount } from "@/lib/account-client";
+import { homeFor } from "@/lib/roles";
 import { useState } from "react";
 import Jebena from "./Jebena";
 import Magnetic from "./motion/Magnetic";
@@ -20,7 +21,7 @@ export default function Header() {
   const { t } = useLanguage();
   useHtmlLang();
   const me = useAccount();
-  const accountHref = me ? (me.role === "owner" ? "/admin" : "/profil") : "/login";
+  const accountHref = me ? homeFor(me.role) : "/login";
   const accountLabel = me ? t.account.myAccount : t.account.signIn;
   const links = [
     { href: "#platte", label: t.nav.links.platte },

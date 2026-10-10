@@ -1,21 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import type { OrderSettings } from "@/lib/ordering";
 import { addPhoneBlock, saveSettings } from "../order-actions";
-
-/** Re-fetches the board every 20 seconds so new orders appear without reloading. */
-export function LiveRefresh({ seconds = 20 }: { seconds?: number }) {
-  const router = useRouter();
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (document.visibilityState === "visible") router.refresh();
-    }, seconds * 1000);
-    return () => clearInterval(id);
-  }, [router, seconds]);
-  return null;
-}
 
 const field = "w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 pt-1 text-base text-cream focus:border-gold focus:outline-none";
 const label = "text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold";

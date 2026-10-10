@@ -4,10 +4,12 @@ import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
+import { homeFor, type Role } from "@/lib/roles";
 import { db } from "./db";
 
 /*
-  One login for everyone. Guests get a profile with their bookings; owners are sent to /admin.
+  One login for everyone. Guests get a profile with their bookings; owners are sent to /admin,
+  kitchen staff to /kueche and drivers to /lieferung (see lib/roles).
   Passwords: scrypt with a random salt. Sessions: a random token in an http-only cookie, of which only
   a SHA-256 hash is stored in Neon, valid for 30 days.
 */
@@ -16,7 +18,7 @@ const scryptAsync = promisify(scrypt) as (password: string, salt: Buffer, keylen
 const COOKIE = "yt_session";
 const SESSION_DAYS = 30;
 
-export type Role = "guest" | "owner";
+export type { Role };
 export type User = { id: number; email: string; name: string; phone: string; role: Role; locale: Locale; createdAt: string };
 
 type UserRow = { id: string; email: string; name: string; phone: string; role: Role; locale: Locale; created_at: string; password_hash?: string };
@@ -125,11 +127,45 @@ export async function requireUser() {
   return user;
 }
 
-export async function requireOwner() {
+/** The signed-in user if they have one of the roles; others are sent to their own start page. */
+export async function requireRole(roles: Role[], loginNext: string) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/admin");
-  if (user.role !== "owner") redirect("/profil");
+  if (!user) redirect(`/login?next=${encodeURIComponent(loginNext)}`);
+  if (!roles.includes(user.role)) redirect(homeFor(user.role));
   return user;
+}
+
+export const requireOwner = () => requireRole(["owner"], "/admin");
+
+/* ---------- team ---------- */
+
+export type StaffMember = User & { googleOnly: boolean };
+
+export async function listStaff(): Promise<StaffMember[]> {
+  const rows = (await db()`select * from users where role <> 'guest' order by role, lower(name)`) as UserRow[];
+  return rows.map((r) => ({ ...toUser(r), googleOnly: r.password_hash === "none" }));
+}
+
+export async function listDrivers() {
+  const rows = (await db()`select * from users where role = 'driver' order by lower(name)`) as UserRow[];
+  return rows.map(toUser);
+}
+
+/** Changes a role and signs the person out everywhere, so the new rights apply at once. */
+export async function setRole(id: number, role: Role) {
+  await db()`update users set role = ${role} where id = ${id}`;
+  await db()`delete from sessions where user_id = ${id}`;
+}
+
+export async function findUserById(id: number) {
+  const [row] = (await db()`select * from users where id = ${id}`) as UserRow[];
+  return row ? toUser(row) : null;
+}
+
+/** Email addresses of everyone with a role (for staff notifications). */
+export async function staffEmails(role: Role) {
+  const rows = (await db()`select email from users where role = ${role}`) as { email: string }[];
+  return rows.map((r) => r.email);
 }
 
 /* ---------- password reset ---------- */

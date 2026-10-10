@@ -1,25 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { OrderSettings, OrderStatus } from "@/lib/ordering";
+import { OPEN_STATUSES, type OrderSettings, type OrderStatus } from "@/lib/ordering";
 import { requireOwner } from "@/lib/server/auth";
 import { sendOrderEmail } from "@/lib/server/mailer";
 import { blockOrderGuest, blockPhone, removeBlock } from "@/lib/server/order-guard";
+import { moveOrder } from "@/lib/server/order-flow";
 import { getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";
 
-const NEXT: OrderStatus[] = ["accepted", "ready", "on_the_way", "completed", "rejected", "cancelled"];
-
-/** Moves an order along; the guest is emailed on accept, on the way and reject. */
+/** Moves an order one step (accept with ETA, reject, kitchen steps, hand to a driver, done, cancel); emails follow. */
 export async function updateOrder(form: FormData) {
-  await requireOwner();
+  const me = await requireOwner();
   const id = Number(form.get("id"));
+  const from = String(form.get("from")) as OrderStatus;
   const status = String(form.get("status")) as OrderStatus;
-  if (!Number.isInteger(id) || !NEXT.includes(status)) return;
+  if (!Number.isInteger(id)) return;
   const etaRaw = Number(form.get("eta"));
   const eta = Number.isFinite(etaRaw) && etaRaw > 0 ? Math.min(180, Math.round(etaRaw)) : null;
-  const note = String(form.get("note") ?? "").slice(0, 300).trim();
-  const order = await setOrderStatus(id, status, eta, note);
-  if (order && (status === "accepted" || status === "on_the_way" || status === "rejected")) await sendOrderEmail(status, order);
+  const note = form.has("note") ? String(form.get("note")).slice(0, 300).trim() : undefined;
+  const driverId = Number(form.get("driver")) || null;
+  await moveOrder(me, id, from, status, { eta, staffNote: note, driverId });
   revalidatePath("/admin/bestellungen");
 }
 
@@ -34,10 +34,10 @@ export async function blockGuest(form: FormData) {
   if (!Number.isInteger(id)) return;
   const reason = String(form.get("note") ?? "").slice(0, 300).trim();
   if (!(await blockOrderGuest(id, reason))) return;
-  const next: OrderStatus | null = current === "new" ? "rejected" : ["accepted", "ready", "on_the_way"].includes(current) ? "cancelled" : null;
+  const next: OrderStatus | null = current === "new" ? "rejected" : OPEN_STATUSES.includes(current) ? "cancelled" : null;
   if (next) {
     const order = await setOrderStatus(id, next, null, reason);
-    if (order && next === "rejected") await sendOrderEmail("rejected", order);
+    if (order) await sendOrderEmail(next, order);
   }
   revalidatePath("/admin/bestellungen");
 }
