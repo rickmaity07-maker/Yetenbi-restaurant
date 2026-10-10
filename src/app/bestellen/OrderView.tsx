@@ -292,7 +292,9 @@ export default function OrderView() {
                   </div>
                 )}
                 <div className="flex justify-between pt-1 font-display text-2xl text-gold-soft">
-                  <dt>{o.total}</dt>
+                  <dt>
+                    {o.total} <span className="font-sans text-xs text-cream/55">{o.vat}</span>
+                  </dt>
                   <dd className="tabular-nums">{euro(sum.total)}</dd>
                 </div>
               </dl>
@@ -395,7 +397,12 @@ export default function OrderView() {
               </button>
               </>
             )}
-            <p className="text-center text-xs text-cream/50">
+            <p className="text-center text-xs leading-relaxed text-cream/55">
+              {o.terms}{" "}
+              <Link href="/bestellbedingungen" className="underline underline-offset-4">
+                {o.termsLink}
+              </Link>
+              {" · "}
               <Link href="/datenschutz" className="underline underline-offset-4">
                 {t.footer.privacy}
               </Link>

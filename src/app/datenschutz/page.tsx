@@ -44,9 +44,11 @@ export default function Datenschutz() {
 
       <H>3a. Online-Bestellungen</H>
       <p>
-        Für Bestellungen zur Lieferung oder Abholung verarbeiten wir Name, Telefonnummer, optional Ihre E-Mail-Adresse,
-        bei Lieferung Ihre Adresse sowie die bestellten Speisen, um die Bestellung zuzubereiten, zu liefern und Sie über
-        den Status zu informieren (Art. 6 Abs. 1 lit. b DSGVO). Bezahlt wird bei Übergabe; Zahlungsdaten verarbeiten wir
+        Zum Bestellen ist ein Kundenkonto nötig. Für Bestellungen zur Lieferung oder Abholung verarbeiten wir Name,
+        Telefonnummer, die E-Mail-Adresse Ihres Kontos, bei Lieferung Ihre Adresse sowie die bestellten Speisen, um die
+        Bestellung zuzubereiten, zu liefern und Sie bei jedem Schritt per E-Mail über den Status zu informieren
+        (Art. 6 Abs. 1 lit. b DSGVO). Innerhalb des Restaurants sieht die Küche nur die Speisen und Ihre Anmerkung, die
+        Fahrerin oder der Fahrer nur die eigenen Lieferungen mit Name, Adresse, Telefonnummer und Betrag. Bezahlt wird bei Übergabe; Zahlungsdaten verarbeiten wir
         auf der Website nicht. Bestellungen werden bei Neon Inc. (EU) gespeichert und nach 180 Tagen gelöscht, soweit keine
         gesetzlichen Aufbewahrungspflichten bestehen. Der Warenkorb wird bis zur Bestellung nur in Ihrem Browser gespeichert.
       </p>
@@ -70,6 +72,24 @@ export default function Datenschutz() {
         Ltd.
       </p>
 
+      <H>3c. Schutz vor Missbrauch</H>
+      <p>
+        Um Passwort-Rateversuche, massenhafte Anmeldungen, Reservierungen und E-Mails zu verhindern, zählen wir Versuche je
+        E-Mail-Adresse und je pseudonymisiertem Kennwert (Hash) Ihrer IP-Adresse, nicht der IP-Adresse selbst. Diese
+        Einträge werden nach einem Tag gelöscht (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Sicherheit
+        der Website und Ihres Kontos).
+      </p>
+
+      <H>3d. Fotos (Cloudinary)</H>
+      <p>
+        Fotos, die das Restaurant selbst hochlädt, werden über den Bilddienst Cloudinary (Cloudinary Ltd., Israel, mit
+        Servern u. a. in der EU und den USA) gespeichert und ausgeliefert. Beim Anzeigen dieser Fotos wird Ihre IP-Adresse
+        technisch bedingt an Cloudinary übertragen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an einer schnellen
+        Darstellung). Für Israel besteht ein Angemessenheitsbeschluss der EU-Kommission; Übermittlungen in die USA erfolgen
+        auf Grundlage des EU-US Data Privacy Framework bzw. von Standardvertragsklauseln. Die übrigen Bilder liefern wir von
+        unserem eigenen Server aus.
+      </p>
+
       <H>4. Karte (Google Maps)</H>
       <p>
         Die Karte im Bereich „Anfahrt“ wird erst geladen, wenn Sie auf „Karte laden“ klicken. Erst dann werden Daten
@@ -80,9 +100,12 @@ export default function Datenschutz() {
       <H>5. Schriften, Cookies und lokale Speicherung</H>
       <p>
         Schriften werden von unserem eigenen Server geladen, nicht von Google. Wir setzen keine Analyse- oder
-        Werbe-Cookies. Ihre Sprachwahl (Deutsch, Englisch, Amharisch) wird nur in Ihrem Browser gespeichert
-        (localStorage) und nicht an uns übertragen. Für den Anmeldebereich unseres Teams wird ein technisch notwendiges
-        Cookie verwendet.
+        Werbe-Cookies und keine Tracking-Dienste, daher gibt es auch kein Cookie-Banner. Ihre Sprachwahl (Deutsch,
+        Englisch, Amharisch) und Ihr Warenkorb werden nur in Ihrem Browser gespeichert (localStorage) und erst mit der
+        Bestellung an uns übertragen. Wenn Sie sich anmelden, setzen wir ein technisch notwendiges Sitzungs-Cookie
+        (30 Tage); bei der Anmeldung mit Google zusätzlich für höchstens 10 Minuten ein Cookie zur Absicherung des
+        Anmeldevorgangs. Diese Speicherungen sind für die von Ihnen gewünschten Funktionen unbedingt erforderlich
+        (§ 25 Abs. 2 Nr. 2 TDDDG).
       </p>
 
       <H>6. Ihre Rechte</H>

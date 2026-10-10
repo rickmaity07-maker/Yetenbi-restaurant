@@ -35,12 +35,15 @@ export default function Footer() {
             <a href={restaurant.phoneHref} className="transition-colors hover:text-gold-soft">
               {restaurant.phone}
             </a>
-            <span className="mt-3 flex gap-6">
+            <span className="mt-3 flex flex-wrap gap-x-6 gap-y-1">
               <Link href="/impressum" className="transition-colors hover:text-gold-soft">
                 {t.footer.imprint}
               </Link>
               <Link href="/datenschutz" className="transition-colors hover:text-gold-soft">
                 {t.footer.privacy}
+              </Link>
+              <Link href="/bestellbedingungen" className="transition-colors hover:text-gold-soft">
+                {t.footer.terms}
               </Link>
             </span>
           </div>

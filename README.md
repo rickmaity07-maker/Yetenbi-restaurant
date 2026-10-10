@@ -115,6 +115,13 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - Google sign-in: if the OAuth consent screen in Google Cloud is still in "Testing", publish it so every guest can use it.
 - Impressum and Datenschutz: fill in the owner's name, a contact email (required in the Impressum) and the VAT ID,
   if any – marked `[Name wird ergänzt]` / `[wird ergänzt]`.
+- **Allergens (LMIV/LMIDV):** for online orders the 14 allergens (and additives) must be shown per dish before
+  ordering. Needs the kitchen's list; then add them to `src/lib/data.ts` and section 7 of /bestellbedingungen.
+- Drinks in bottles or cans for delivery: if a deposit (Pfand) is charged, it must be shown separately (PAngV § 7).
+- Online orders are deleted after 180 days. Make sure every order is booked in the till (KassenSichV), which keeps
+  the records for the tax office; otherwise keep them longer (§ 147 AO).
+- Have the legal pages (Impressum, Datenschutz, Bestellbedingungen) checked by a lawyer or a service such as the
+  IHK / Händlerbund before relying on them.
 - Confirm the ordering settings (minimum order, delivery fee, postcodes, times) in /admin → Bestellungen → Einstellungen.
 - Photos are Unsplash stock: set the Cloudinary variables in Vercel, then upload Yetenbi's own in /admin → Fotos.
 - Amharic text should be checked by a native speaker (including the new order-step emails and status labels).

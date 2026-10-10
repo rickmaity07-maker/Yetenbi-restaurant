@@ -8,5 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${url}/bestellen`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${url}/impressum`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${url}/datenschutz`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${url}/bestellbedingungen`, changeFrequency: "yearly", priority: 0.2 },
   ];
 }

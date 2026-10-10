@@ -24,6 +24,10 @@ export default function Impressum() {
         E-Mail: [wird ergänzt]
       </p>
       <p>Umsatzsteuer-ID: [falls vorhanden, wird ergänzt]</p>
+      <p>
+        Verbraucherstreitbeilegung: Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer
+        Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).
+      </p>
       <p className="pt-4 text-sm text-cream/60">
         Fotos: Unsplash (Unsplash-Lizenz). Gestaltung und Umsetzung der Website: im Auftrag von Yetenbi.
       </p>

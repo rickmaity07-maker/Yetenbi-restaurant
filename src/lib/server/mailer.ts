@@ -247,7 +247,7 @@ export async function sendPasswordReset(to: string, name: string, locale: Locale
 /** Every step of an order is emailed to the guest (if they gave an email address). */
 export type OrderKind = "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
 
-const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string }> = {
+const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string; terms: string; termsLink: string }> = {
   de: {
     received: (o) => ({ subject: `Eure Bestellung ${o.reference} ist eingegangen`, intro: "danke für eure Bestellung! Wir bestätigen sie gleich und sagen euch, wann sie fertig ist." }),
     accepted: (o) => ({
@@ -268,7 +268,9 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
     cancelled: (o) => ({ subject: `Bestellung ${o.reference} storniert`, intro: "eure Bestellung wurde storniert. Bei Fragen ruft uns bitte an." }),
     rejected: (o) => ({ subject: `Bestellung ${o.reference}`, intro: "leider können wir eure Bestellung gerade nicht annehmen. Bitte ruft uns an, wir helfen gerne weiter." }),
     status: "Status ansehen",
-    total: "Summe",
+    total: "Summe (inkl. MwSt.)",
+    terms: "Es gelten unsere Bestellbedingungen. Für frisch zubereitete Speisen besteht kein Widerrufsrecht (§ 312g Abs. 2 BGB).",
+    termsLink: "Bestellbedingungen ansehen",
     delivery: "Lieferung",
     pickup: "Abholung",
   },
@@ -292,7 +294,9 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
     cancelled: (o) => ({ subject: `Order ${o.reference} cancelled`, intro: "your order has been cancelled. Please call us if you have any questions." }),
     rejected: (o) => ({ subject: `Order ${o.reference}`, intro: "unfortunately we can't take your order right now. Please give us a call and we'll help." }),
     status: "View status",
-    total: "Total",
+    total: "Total (incl. VAT)",
+    terms: "Our ordering terms apply. Freshly prepared food has no right of withdrawal (§ 312g(2) German Civil Code).",
+    termsLink: "Read the ordering terms",
     delivery: "Delivery",
     pickup: "Pick-up",
   },
@@ -316,7 +320,9 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
     cancelled: (o) => ({ subject: `ትዕዛዝ ${o.reference} ተሰርዟል`, intro: "ትዕዛዝዎ ተሰርዟል። ጥያቄ ካለዎ እባክዎ ይደውሉልን።" }),
     rejected: (o) => ({ subject: `ትዕዛዝ ${o.reference}`, intro: "ይቅርታ፣ አሁን ትዕዛዝዎን መቀበል አንችልም። እባክዎ ይደውሉልን።" }),
     status: "ሁኔታውን ይመልከቱ",
-    total: "ድምር",
+    total: "ድምር (ተ.እ.ታ. ጨምሮ)",
+    terms: "የትዕዛዝ ደንቦቻችን ይተገበራሉ። ትኩስ ለተዘጋጀ ምግብ የመሰረዝ መብት የለም።",
+    termsLink: "የትዕዛዝ ደንቦችን ይመልከቱ",
     delivery: "ማድረስ",
     pickup: "መውሰድ",
   },
@@ -346,7 +352,11 @@ export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl
       subject,
       html: layout(
         esc(o.name) + ",",
-        `<p style="margin:0">${esc(intro)}</p>${note}${kind === "rejected" || kind === "cancelled" ? "" : orderTable(o, c.total)}<p style="margin:20px 0 0"><a href="${esc(orderStatusUrl(origin, o))}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.status)}</a></p>`,
+        `<p style="margin:0">${esc(intro)}</p>${note}${kind === "rejected" || kind === "cancelled" ? "" : orderTable(o, c.total)}<p style="margin:20px 0 0"><a href="${esc(orderStatusUrl(origin, o))}" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">${esc(c.status)}</a></p>${
+          kind === "received" || kind === "accepted"
+            ? `<p style="margin:20px 0 0;font-size:12px;color:#b9ab92">${esc(c.terms)} <a href="${esc(origin)}/bestellbedingungen" style="color:#e7cd8a">${esc(c.termsLink)}</a></p>`
+            : ""
+        }`,
       ),
     });
   } catch (error) {
