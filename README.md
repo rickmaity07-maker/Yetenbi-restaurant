@@ -9,8 +9,9 @@ Live: https://yetenbi-restaurant.vercel.app (every push to `main` deploys automa
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in at least DATABASE_URL and ADMIN_PASSWORD
-npm run db:setup             # creates the reservations table (once)
+cp .env.example .env.local   # fill in at least DATABASE_URL and ADMIN_SESSION_SECRET
+npm run db:setup             # creates the tables (safe to repeat)
+npm run owner:create -- owner@example.com "long password" "Name"   # first /admin login
 npm run dev                  # development, http://localhost:3000
 npm run build && npm run start   # production build (use this to judge performance)
 ```
@@ -18,11 +19,28 @@ npm run build && npm run start   # production build (use this to judge performan
 ## Reservations
 
 - Guests book on the page; requests are stored in Neon Postgres (project **yetenbi**, Frankfurt) as *pending*.
-- The team signs in at **/admin** with `ADMIN_PASSWORD` and accepts or declines each request (optionally with a message).
+- The team signs in at **/login** with an owner account and lands in **/admin**, where they accept or decline each request
+  (optionally with a message), enter phone bookings and set closed days.
 - Emails (receipt, confirmation with calendar file, decline; plus a notification to the restaurant) are sent once
   `GMAIL_USER`, `GMAIL_APP_PASSWORD` and `RESERVATION_NOTIFY_EMAIL` are set (see `.env.example`).
 - Reservations older than 180 days are deleted daily (`/api/cron/cleanup`, Vercel Cron, `CRON_SECRET`).
 - Without `DATABASE_URL` the form falls back to a prepared WhatsApp message.
+
+## Online ordering
+
+- **/bestellen**: guests order for delivery or pickup, as soon as possible or for a later time today; payment in cash
+  or by card on handover. The server re-prices every order from the menu.
+- Orders are taken while the restaurant is open, until 30 minutes before closing, and not on closed days.
+- The team handles orders at **/admin/bestellungen** (accept with ETA, on the way / ready, complete, reject).
+  Under *Einstellungen* there: pause ordering, minimum order, delivery fee, free delivery from, delivery postcodes, times.
+- Guests follow their order live at **/bestellung**; signed-in guests see their orders in the profile.
+
+## Accounts
+
+- Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
+  `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
+  export their data and delete the account. Password reset works by email.
+- Booking emails contain a signed cancel link (**/stornieren**), so guests can cancel without an account.
 
 Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`, menu text in `src/lib/data.ts`.
 
@@ -39,6 +57,7 @@ Languages: German, English and Amharic (switch in the navigation); text lives in
 | Sprichwort / Gut zu wissen / Amharisch | Proverb band, practical facts, a few Amharic phrases with a live fidel chart. |
 | Anfahrt | Address, map, and today's date and hour in Addis Ababa (Ethiopian calendar and clock). |
 | Reservierung | Request form with a live ticket; stored in the database and handled by the team in /admin. |
+| Speisekarte → Online bestellen | Links to /bestellen (also in the navigation). |
 
 Background: a fixed lattice after Ethiopian cross-stitch, with clay oil lamps (three.js flames) in a
 diagonal rhythm. A small Aksum stela on the right edge lights up as you move down the page.
@@ -48,7 +67,8 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `src/lib/data.ts` – restaurant details and the full menu (prices, three languages).
 - `src/lib/hours.ts` – opening hours (used everywhere, incl. search-engine data).
 - `src/lib/booking.ts` – booking rules shared by form, API and admin.
-- `src/lib/server/` – database, reservations, emails, admin login.
+- `src/lib/ordering.ts` – ordering rules and default order settings (the owner overrides them in /admin).
+- `src/lib/server/` – database, reservations, orders, emails, accounts and sessions, Google sign-in.
 - `src/lib/ethiopic.ts` – Ethiopian calendar, Addis clock and Ge'ez numerals.
 - `src/components/heritage/` – Aksum stela, Lalibela cross, Aksumite frame, tibeb/harag bands.
 - `src/components/three/` – intro particles, 3D jebena, background clay lamps.
@@ -57,7 +77,10 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 
 ## Still to do
 
-- Set the Gmail variables in Vercel so booking emails are sent.
-- Impressum and Datenschutz: fill in the owner's name (and VAT ID, if any) – marked `[Name wird ergänzt]`.
+- Set the Gmail variables in Vercel so booking and order emails are sent (also needed for password reset).
+- Optional: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in Vercel to show "Sign in with Google".
+- Impressum and Datenschutz: fill in the owner's name, a contact email (required in the Impressum) and the VAT ID,
+  if any – marked `[Name wird ergänzt]` / `[wird ergänzt]`.
+- Confirm the ordering settings (minimum order, delivery fee, postcodes, times) in /admin → Bestellungen → Einstellungen.
 - Photos are Unsplash stock; replace with Yetenbi's own (keep the file names in `public/img/`).
 - Amharic text should be checked by a native speaker.
