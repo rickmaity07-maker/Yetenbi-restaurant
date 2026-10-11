@@ -22,19 +22,21 @@ export const SCHEMA_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Frida
 /** Rows for display: consecutive days with the same hours are grouped ("Mo, Di", "Do–Sa"). */
 export function groupedHours(week: DayHours[] = WEEK) {
   const rows: { days: number[]; hours: DayHours }[] = [];
-  week.forEach((h, i) => {
-    const last = rows[rows.length - 1];
-    const same = last && JSON.stringify(last.hours) === JSON.stringify(h) && last.days[last.days.length - 1] === i - 1;
-    if (same) last.days.push(i);
-    else rows.push({ days: [i], hours: h });
+  week.forEach((hours, day) => {
+    const previous = rows[rows.length - 1];
+    const continuesPrevious =
+      previous && JSON.stringify(previous.hours) === JSON.stringify(hours) && previous.days.at(-1) === day - 1;
+    if (continuesPrevious) previous.days.push(day);
+    else rows.push({ days: [day], hours });
   });
   return rows;
 }
 
 /** Monday-first weekday index for a YYYY-MM-DD string, read as a calendar date (no time-zone drift). */
 export function weekdayOf(date: string) {
-  const [y, m, d] = date.split("-").map(Number);
-  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+  const [year, month, day] = date.split("-").map(Number);
+  const sundayFirst = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return (sundayFirst + 6) % 7;
 }
 
 /** Current Berlin time as weekday index and minutes since midnight. */
@@ -46,14 +48,15 @@ export function berlinNow(now = new Date()) {
     minute: "2-digit",
     hourCycle: "h23",
   }).formatToParts(now);
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-  const day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(get("weekday"));
-  return { day, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
+  const part = (type: string) => parts.find((candidate) => candidate.type === type)?.value ?? "";
+  const day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(part("weekday"));
+  return { day, minutes: Number(part("hour")) * 60 + Number(part("minute")) };
 }
 
+/** "18:30" → 1110 (minutes since midnight). */
 export const toMinutes = (time: string) => {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
 };
 
 /** Whether the restaurant is open right now, and when it next opens or closes. */
@@ -63,9 +66,9 @@ export function openState(now = new Date(), week: DayHours[] = WEEK) {
   if (today && minutes >= toMinutes(today.open) && minutes < toMinutes(today.close))
     return { open: true as const, until: today.close };
   if (today && minutes < toMinutes(today.open)) return { open: false as const, day, at: today.open };
-  for (let k = 1; k <= 7; k++) {
-    const d = (day + k) % 7;
-    if (week[d]) return { open: false as const, day: d, at: week[d]!.open };
+  for (let daysAhead = 1; daysAhead <= 7; daysAhead++) {
+    const nextDay = (day + daysAhead) % 7;
+    if (week[nextDay]) return { open: false as const, day: nextDay, at: week[nextDay]!.open };
   }
   return { open: false as const, day, at: "" };
 }

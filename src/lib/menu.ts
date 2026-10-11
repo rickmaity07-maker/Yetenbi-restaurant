@@ -69,7 +69,11 @@ export const ADDITIVES: { code: number; label: L }[] = [
 
 /** Dishes that can be ordered online right now, by id (prices and names for the order and the server). */
 export const catalogOf = (menu: Menu) =>
-  new Map(menu.flatMap((c) => c.items.filter((i) => i.orderable && i.available).map((i) => [i.id, i] as const)));
+  new Map(
+    menu.flatMap((category) =>
+      category.items.filter((dish) => dish.orderable && dish.available).map((dish) => [dish.id, dish] as const),
+    ),
+  );
 export type Catalog = ReturnType<typeof catalogOf>;
 
 /** The tags to show, including the gluten wording. */
@@ -82,7 +86,8 @@ export const tagsOf = (dish: Dish): (DishTag | "glutenfree" | "noGluten")[] =>
 
 /** Whether any allergen or additive has been entered at all (switches the menu's note and shows the legend). */
 export const hasAllergenData = (menu: Menu) =>
-  menu.some((c) => c.items.some((i) => i.allergens.length || i.additives.length));
+  menu.some((category) => category.items.some((dish) => dish.allergens.length || dish.additives.length));
 
 /** "18,00" style price for the menu card. */
-export const priceText = (n: number) => n.toFixed(2).replace(".", ",");
+/** 12.5 → "12,50" (German price format without the € sign). */
+export const priceText = (amount: number) => amount.toFixed(2).replace(".", ",");

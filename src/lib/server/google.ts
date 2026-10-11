@@ -68,8 +68,8 @@ export async function exchangeCode(origin: string, code: string, verifier: strin
 }
 
 /** Finds the account for a Google profile, linking an existing account with the same verified email, or creates one. */
-export async function upsertGoogleUser(p: GoogleProfile) {
-  const [bySub] = (await db()`select id, role from users where google_sub = ${p.sub}`) as {
+export async function upsertGoogleUser(profile: GoogleProfile) {
+  const [bySub] = (await db()`select id, role from users where google_sub = ${profile.sub}`) as {
     id: string;
     role: string;
   }[];
@@ -80,8 +80,8 @@ export async function upsertGoogleUser(p: GoogleProfile) {
     real owner of the Google account gets in. They can set a new password in the profile.
   */
   const [linked] = (await db()`
-    with old as (select id, email_verified from users where lower(email) = ${p.email} and google_sub is null)
-    update users u set google_sub = ${p.sub}, password_hash = case when old.email_verified then u.password_hash else 'none' end, email_verified = true
+    with old as (select id, email_verified from users where lower(email) = ${profile.email} and google_sub is null)
+    update users u set google_sub = ${profile.sub}, password_hash = case when old.email_verified then u.password_hash else 'none' end, email_verified = true
     from old where u.id = old.id
     returning u.id, u.role, old.email_verified as was_verified
   `) as { id: string; role: string; was_verified: boolean }[];
@@ -90,7 +90,7 @@ export async function upsertGoogleUser(p: GoogleProfile) {
     return { id: Number(linked.id), role: linked.role };
   }
   const [created] = (await db()`
-    insert into users (email, name, password_hash, google_sub, email_verified) values (${p.email}, ${p.name.slice(0, 80)}, 'none', ${p.sub}, true) returning id, role
+    insert into users (email, name, password_hash, google_sub, email_verified) values (${profile.email}, ${profile.name.slice(0, 80)}, 'none', ${profile.sub}, true) returning id, role
   `) as { id: string; role: string }[];
   return { id: Number(created.id), role: created.role };
 }

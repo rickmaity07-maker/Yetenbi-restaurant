@@ -33,21 +33,21 @@ type Row = {
   created_at: string;
 };
 
-const toReservation = (r: Row): Reservation => ({
-  id: Number(r.id),
-  reference: r.reference,
-  date: String(r.date).slice(0, 10),
-  time: r.time,
-  guests: r.guests,
-  name: r.name,
-  email: r.email,
-  phone: r.phone,
-  note: r.note,
-  locale: r.locale,
-  status: r.status,
-  staffNote: r.staff_note,
-  source: r.source ?? "website",
-  createdAt: String(r.created_at),
+const toReservation = (row: Row): Reservation => ({
+  id: Number(row.id),
+  reference: row.reference,
+  date: String(row.date).slice(0, 10),
+  time: row.time,
+  guests: row.guests,
+  name: row.name,
+  email: row.email,
+  phone: row.phone,
+  note: row.note,
+  locale: row.locale,
+  status: row.status,
+  staffNote: row.staff_note,
+  source: row.source ?? "website",
+  createdAt: String(row.created_at),
 });
 
 // No 0/O/1/I so references can be read out on the phone.

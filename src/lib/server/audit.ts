@@ -46,15 +46,15 @@ export async function listAudit(filter: { area?: string; actor?: string; q?: str
       and (${filter.q ?? ""} = '' or action ilike ${"%" + (filter.q ?? "") + "%"} or target ilike ${"%" + (filter.q ?? "") + "%"})
     order by at desc limit ${filter.limit ?? 200}
   `) as Record<string, unknown>[];
-  return rows.map((r) => ({
-    id: Number(r.id),
-    at: new Date(String(r.at)).toISOString(),
-    actor: String(r.actor),
-    role: String(r.role),
-    area: r.area as Area,
-    action: String(r.action),
-    target: String(r.target),
-    details: (r.details as Record<string, unknown> | null) ?? null,
+  return rows.map((entry) => ({
+    id: Number(entry.id),
+    at: new Date(String(entry.at)).toISOString(),
+    actor: String(entry.actor),
+    role: String(entry.role),
+    area: entry.area as Area,
+    action: String(entry.action),
+    target: String(entry.target),
+    details: (entry.details as Record<string, unknown> | null) ?? null,
   })) satisfies AuditEntry[];
 }
 
@@ -63,7 +63,7 @@ export async function auditActors() {
     (await db()`select distinct actor from audit_log where at > now() - interval '1 year' order by actor`) as {
       actor: string;
     }[];
-  return rows.map((r) => r.actor);
+  return rows.map((row) => row.actor);
 }
 
 export async function purgeAudit() {

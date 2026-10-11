@@ -40,14 +40,14 @@ type UserRow = {
   password_hash?: string;
   email_verified?: boolean;
 };
-const toUser = (r: UserRow): User => ({
-  id: Number(r.id),
-  email: r.email,
-  name: r.name,
-  phone: r.phone,
-  role: r.role,
-  locale: r.locale,
-  createdAt: String(r.created_at),
+const toUser = (row: UserRow): User => ({
+  id: Number(row.id),
+  email: row.email,
+  name: row.name,
+  phone: row.phone,
+  role: row.role,
+  locale: row.locale,
+  createdAt: String(row.created_at),
 });
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
@@ -176,7 +176,7 @@ type StaffMember = User & { googleOnly: boolean };
 
 export async function listStaff(): Promise<StaffMember[]> {
   const rows = (await db()`select * from users where role <> 'guest' order by role, lower(name)`) as UserRow[];
-  return rows.map((r) => ({ ...toUser(r), googleOnly: r.password_hash === "none" }));
+  return rows.map((row) => ({ ...toUser(row), googleOnly: row.password_hash === "none" }));
 }
 
 export async function listDrivers() {
@@ -198,7 +198,7 @@ export async function findUserById(id: number) {
 /** Email addresses of everyone with a role (for staff notifications). */
 export async function staffEmails(role: Role) {
   const rows = (await db()`select email from users where role = ${role}`) as { email: string }[];
-  return rows.map((r) => r.email);
+  return rows.map((row) => row.email);
 }
 
 /* ---------- password reset ---------- */

@@ -37,34 +37,34 @@ export function clientHash(request: Request) {
   return ip ? createHmac("sha256", signingKey()).update(`client:${ip}`).digest("base64url").slice(0, 32) : null;
 }
 
-export async function checkOrder(g: {
+export async function checkOrder(order: {
   phoneKey: string;
   email: string;
   clientHash: string | null;
   total: number;
 }): Promise<GuardCode | null> {
-  const email = g.email.trim().toLowerCase();
-  const [r] = (await db()`
+  const email = order.email.trim().toLowerCase();
+  const [counts] = (await db()`
     select
       (select count(*) from order_blocks
-        where (kind = 'phone' and value = ${g.phoneKey})
+        where (kind = 'phone' and value = ${order.phoneKey})
            or (kind = 'email' and value = ${email} and ${email} <> '')
-           or (kind = 'client' and value = ${g.clientHash}))::int as blocked,
-      (select count(*) from orders where phone_key = ${g.phoneKey} and created_at > now() - interval '1 hour')::int as phone_hour,
-      (select count(*) from orders where client_hash = ${g.clientHash} and created_at > now() - interval '1 hour')::int as device_hour,
-      (select count(*) from orders where client_hash = ${g.clientHash} and created_at > now() - interval '1 day')::int as device_day,
+           or (kind = 'client' and value = ${order.clientHash}))::int as blocked,
+      (select count(*) from orders where phone_key = ${order.phoneKey} and created_at > now() - interval '1 hour')::int as phone_hour,
+      (select count(*) from orders where client_hash = ${order.clientHash} and created_at > now() - interval '1 hour')::int as device_hour,
+      (select count(*) from orders where client_hash = ${order.clientHash} and created_at > now() - interval '1 day')::int as device_day,
       (select count(*) from orders where status = 'new' and created_at > now() - interval '3 hours')::int as unconfirmed,
-      (select count(*) from orders where phone_key = ${g.phoneKey} and status = 'completed')::int as completed
+      (select count(*) from orders where phone_key = ${order.phoneKey} and status = 'completed')::int as completed
   `) as Record<string, number>[];
-  if (r.blocked > 0) return "blocked";
+  if (counts.blocked > 0) return "blocked";
   if (
-    r.phone_hour >= LIMITS.perPhonePerHour ||
-    r.device_hour >= LIMITS.perDevicePerHour ||
-    r.device_day >= LIMITS.perDevicePerDay
+    counts.phone_hour >= LIMITS.perPhonePerHour ||
+    counts.device_hour >= LIMITS.perDevicePerHour ||
+    counts.device_day >= LIMITS.perDevicePerDay
   )
     return "busy";
-  if (r.unconfirmed >= LIMITS.maxUnconfirmed) return "kitchen";
-  if (g.total > LIMITS.largeFirstOrder && r.completed === 0) return "large";
+  if (counts.unconfirmed >= LIMITS.maxUnconfirmed) return "kitchen";
+  if (order.total > LIMITS.largeFirstOrder && counts.completed === 0) return "large";
   return null;
 }
 
@@ -80,16 +80,16 @@ export type Block = {
 
 /** Blocks the phone number, email and device of an order. Returns false if the order does not exist. */
 export async function blockOrderGuest(orderId: number, reason: string) {
-  const [o] =
+  const [order] =
     (await db()`select reference, phone, phone_key, email, client_hash from orders where id = ${orderId}`) as Record<
       string,
       string | null
     >[];
-  if (!o) return false;
-  const pk = o.phone_key || phoneKey(String(o.phone));
-  const entries: [Block["kind"], string, string][] = [["phone", pk, String(o.phone)]];
-  if (o.email) entries.push(["email", o.email, o.email]);
-  if (o.client_hash) entries.push(["client", o.client_hash, `Gerät von ${o.reference}`]);
+  if (!order) return false;
+  const phone = order.phone_key || phoneKey(String(order.phone));
+  const entries: [Block["kind"], string, string][] = [["phone", phone, String(order.phone)]];
+  if (order.email) entries.push(["email", order.email, order.email]);
+  if (order.client_hash) entries.push(["client", order.client_hash, `Gerät von ${order.reference}`]);
   for (const [kind, value, label] of entries) {
     await db()`insert into order_blocks (kind, value, label, reason) values (${kind}, ${value}, ${label}, ${reason}) on conflict (kind, value) do nothing`;
   }

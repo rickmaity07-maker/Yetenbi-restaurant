@@ -16,25 +16,26 @@ function createStore<T>(url: string, pick: (json: unknown) => T, initial: T, fai
   let value = initial;
   let started = false;
   const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((listener) => listener());
   const load = () => {
     if (started) return;
     started = true;
     fetch(url, { credentials: "same-origin" })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((response) => (response.ok ? response.json() : null))
       .then((json) => {
         value = json ? pick(json) : failed;
-        listeners.forEach((l) => l());
+        notify();
       })
       .catch(() => {
         value = failed;
-        listeners.forEach((l) => l());
+        notify();
       });
   };
   return {
     load,
-    subscribe: (l: () => void) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
     get: () => value,
     initial: () => initial,
@@ -42,11 +43,11 @@ function createStore<T>(url: string, pick: (json: unknown) => T, initial: T, fai
 }
 
 // undefined until /api/me has answered, then the user or null (signed out)
-const meStore = createStore<Me | undefined>("/api/me", (j) => (j as { user: Me }).user ?? null, undefined, null);
+const meStore = createStore<Me | undefined>("/api/me", (json) => (json as { user: Me }).user ?? null, undefined, null);
 const EMPTY: ClosedDay[] = [];
 const closuresStore = createStore<ClosedDay[]>(
   "/api/closures",
-  (j) => (j as { closures: ClosedDay[] }).closures ?? EMPTY,
+  (json) => (json as { closures: ClosedDay[] }).closures ?? EMPTY,
   EMPTY,
 );
 
