@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { todayISO } from "@/lib/booking";
 import { LOCALES, type Locale } from "@/lib/i18n";
-import { totals, validateOrder, type OrderInput } from "@/lib/ordering";
+import { mergeCartLines, totals, validateOrder, type OrderInput } from "@/lib/ordering";
 import { getCurrentUser } from "@/lib/server/auth";
 import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
@@ -16,16 +16,6 @@ import { getBusiness } from "@/lib/server/business";
   Places an online order. Only signed-in guests can order; the order goes to the account's email address.
   Everything is re-validated and re-priced here; the browser's totals are ignored.
 */
-/** One line per dish, so sending the same dish twice can't get around the per-dish maximum. */
-function mergeLines(lines: unknown[]) {
-  const quantities = new Map<string, number>();
-  for (const line of lines as { id?: unknown; qty?: unknown }[]) {
-    const id = String(line?.id ?? "");
-    quantities.set(id, (quantities.get(id) ?? 0) + Number(line?.qty));
-  }
-  return [...quantities].map(([id, qty]) => ({ id, qty }));
-}
-
 export async function POST(request: Request) {
   if (!hasDatabase()) return Response.json({ code: "unavailable" }, { status: 503 });
   const me = await getCurrentUser();
@@ -40,7 +30,7 @@ export async function POST(request: Request) {
 
   const input: OrderInput = {
     method: body.method === "pickup" ? "pickup" : "delivery",
-    items: mergeLines(Array.isArray(body.items) ? body.items.slice(0, 60) : []),
+    items: mergeCartLines(Array.isArray(body.items) ? body.items.slice(0, 60) : []),
     name: String(body.name ?? ""),
     phone: String(body.phone ?? ""),
     email: me.email,

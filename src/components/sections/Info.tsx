@@ -35,7 +35,7 @@ export default function Info() {
                   >
                     <span
                       className={`font-display text-[clamp(2rem,4.4vw,3.75rem)] font-semibold leading-none transition-colors duration-500 ${
-                        isOpen ? "text-gold-soft" : "text-cream/45"
+                        isOpen ? "text-gold-soft" : "text-cream/55"
                       }`}
                     >
                       {fact.term}

@@ -59,7 +59,7 @@ export default function Footer() {
         <FooterWordmark />
       </div>
       <Tibeb className="opacity-70" />
-      <p className="pb-6 pt-2 text-center text-xs text-cream/45">
+      <p className="pb-6 pt-2 text-center text-xs text-cream/55">
         © 2026 Yetenbi Äthiopisches Restaurant & Café, Würzburg
       </p>
     </footer>

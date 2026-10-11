@@ -231,7 +231,7 @@ export default function Platte() {
             {dishes.map((d, i) => (
               <li
                 key={d.name}
-                className={`text-sm transition-colors duration-500 ${i === active ? "text-cream" : "text-cream/45"}`}
+                className={`text-sm transition-colors duration-500 ${i === active ? "text-cream" : "text-cream/55"}`}
               >
                 <span className="block h-px overflow-hidden bg-cream/15">
                   <span

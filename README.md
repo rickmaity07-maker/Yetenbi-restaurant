@@ -14,6 +14,8 @@ npm run db:setup             # creates the tables (safe to repeat)
 npm run owner:create -- owner@example.com "long password" "Name"   # first /admin login
 npm run dev                  # development, http://localhost:3000
 npm run build && npm run start   # production build (use this to judge performance)
+npm test                     # unit tests (ordering, booking, opening hours, validation)
+npm run format               # format the code with Prettier
 ```
 
 ## Reservations
@@ -78,7 +80,7 @@ npm run build && npm run start   # production build (use this to judge performan
   proved its address (otherwise someone could pre-register a guest's email); its old password is then removed.
 - Booking emails contain a signed cancel link (**/stornieren**), so guests can cancel without an account.
 
-Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n.ts`; the menu (three languages) is edited in /admin → Speisekarte.
+Languages: German, English and Amharic (switch in the navigation); text lives in `src/lib/i18n/` (`de.ts`, `en.ts`, `am.ts`; German defines the keys); the menu (three languages) is edited in /admin → Speisekarte.
 
 ## What's on the page
 
@@ -106,7 +108,9 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `src/lib/booking.ts` – booking rules shared by form, API and admin.
 - `src/lib/ordering.ts` – ordering rules, default order settings (the owner overrides them in /admin) and who may make which step (`canMove`).
 - `src/lib/server/order-flow.ts` – moves an order one step and sends the emails; used by /admin, /kueche and /lieferung.
-- `src/lib/server/` – database, reservations, orders, emails, accounts and sessions, Google sign-in.
+- `src/lib/server/` – database, reservations, orders, accounts and sessions, Google sign-in.
+- `src/lib/server/email/` – every email the site sends: `send.ts` (mail server), `html.ts` (layout and building
+  blocks), `texts.ts` (guest wording in three languages), `reservation-emails.ts`, `order-emails.ts`.
 - `src/lib/ethiopic.ts` – Ethiopian calendar, Addis clock and Ge'ez numerals.
 - `src/components/heritage/` – Aksum stela, Lalibela cross, Aksumite frame, tibeb/harag bands.
 - `src/components/three/` – intro particles, 3D jebena, background clay lamps.
@@ -114,6 +118,12 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `public/img/` – photos; `ambient/` and `dish/` are small pre-blurred / pre-cropped copies.
 
 ## Testing
+
+`npm test` runs the unit tests in `tests/unit/` (Vitest): order prices and time windows, which role may move an order
+which step, booking slots and validation, opening hours, email and redirect checks. They need no database.
+
+Every push runs types, lint, formatting and the unit tests on GitHub (`.github/workflows/checks.yml`).
+
 
 `npm run test:devices` tests the live site on emulated devices: iPhone 14 and iPad Pro 11 on WebKit (Safari's engine),
 Pixel 7 and a 1440 px desktop on Chromium. It checks the public pages, the menu card, languages, accessibility (axe),

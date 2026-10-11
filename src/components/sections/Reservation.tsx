@@ -119,7 +119,7 @@ function Ticket({ form }: { form: BookingRequest }) {
             <div key={cell.label} className="min-w-0">
               <dt className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-cream/55">{cell.label}</dt>
               <dd
-                className={`mt-1 truncate font-display text-lg ${cell.value ? "text-cream" : "italic text-cream/45"}`}
+                className={`mt-1 truncate font-display text-lg ${cell.value ? "text-cream" : "italic text-cream/55"}`}
               >
                 {cell.value || t.reserve.open}
               </dd>

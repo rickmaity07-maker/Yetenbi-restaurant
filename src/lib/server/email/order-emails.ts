@@ -21,12 +21,17 @@ export function orderStatusUrl(origin: string, order: Order) {
   return `${origin}/bestellung?r=${encodeURIComponent(order.reference)}&t=${order.statusToken}`;
 }
 
-function orderPriceTable(order: Order, totalLabel: string) {
+type PriceLabels = { total: string; deposit: string; deliveryFee: string };
+
+/** German labels for the emails to the restaurant. */
+const GERMAN_PRICE_LABELS: PriceLabels = { total: "Summe", deposit: "+ Pfand", deliveryFee: "+ Lieferung" };
+
+function orderPriceTable(order: Order, labels: PriceLabels) {
   const lines: [string, number][] = order.items.map((line) => [`${line.qty} × ${line.name}`, line.qty * line.unit]);
   const extras: [string, number][] = [];
-  if (order.deposit) extras.push(["+ Pfand", order.deposit]);
-  if (order.deliveryFee) extras.push(["+ Lieferung", order.deliveryFee]);
-  return priceTable(lines, extras, totalLabel, order.total);
+  if (order.deposit) extras.push([labels.deposit, order.deposit]);
+  if (order.deliveryFee) extras.push([labels.deliveryFee, order.deliveryFee]);
+  return priceTable(lines, extras, labels.total, order.total);
 }
 
 function wantedTime(order: Order) {
@@ -46,7 +51,7 @@ export async function sendOrderEmail(kind: OrderEmailKind, order: Order, origin 
 
   let body = paragraph(intro);
   if (order.staffNote) body += quote(order.staffNote);
-  if (kind !== "rejected" && kind !== "cancelled") body += orderPriceTable(order, text.total);
+  if (kind !== "rejected" && kind !== "cancelled") body += orderPriceTable(order, text);
   body += button(orderStatusUrl(origin, order), text.status);
   if (kind === "received" || kind === "accepted") {
     body += smallPrint(`${escapeHtml(text.terms)} ${textLink(`${origin}/bestellbedingungen`, text.termsLink)}`);
@@ -78,7 +83,7 @@ export async function notifyRestaurantOrder(order: Order, origin = siteUrl()) {
     `<p style="margin:0"><strong>${escapeHtml(order.name)}</strong> · ${escapeHtml(order.phone)}<br>` +
     `${escapeHtml(address)}<br>Zeit: ${escapeHtml(wantedTime(order))} · Zahlung: ${payment}</p>`;
   if (order.note) body += quote(order.note);
-  body += orderPriceTable(order, "Summe");
+  body += orderPriceTable(order, GERMAN_PRICE_LABELS);
   body += button(`${origin}/admin/bestellungen`, "Bestellung annehmen");
 
   await sendEmail(

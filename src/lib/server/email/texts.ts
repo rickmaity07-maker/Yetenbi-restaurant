@@ -113,6 +113,8 @@ export const orderTexts: Record<
   Record<OrderEmailKind, (order: Order) => { subject: string; intro: string }> & {
     status: string;
     total: string;
+    deposit: string;
+    deliveryFee: string;
     delivery: string;
     pickup: string;
     terms: string;
@@ -164,6 +166,8 @@ export const orderTexts: Record<
     }),
     status: "Status ansehen",
     total: "Summe (inkl. MwSt.)",
+    deposit: "+ Pfand",
+    deliveryFee: "+ Lieferung",
     terms:
       "Es gelten unsere Bestellbedingungen. Für frisch zubereitete Speisen besteht kein Widerrufsrecht (§ 312g Abs. 2 BGB).",
     termsLink: "Bestellbedingungen ansehen",
@@ -213,6 +217,8 @@ export const orderTexts: Record<
     }),
     status: "View status",
     total: "Total (incl. VAT)",
+    deposit: "+ Deposit",
+    deliveryFee: "+ Delivery",
     terms: "Our ordering terms apply. Freshly prepared food has no right of withdrawal (§ 312g(2) German Civil Code).",
     termsLink: "Read the ordering terms",
     delivery: "Delivery",
@@ -248,6 +254,8 @@ export const orderTexts: Record<
     rejected: (order) => ({ subject: `ትዕዛዝ ${order.reference}`, intro: "ይቅርታ፣ አሁን ትዕዛዝዎን መቀበል አንችልም። እባክዎ ይደውሉልን።" }),
     status: "ሁኔታውን ይመልከቱ",
     total: "ድምር (ተ.እ.ታ. ጨምሮ)",
+    deposit: "+ የጠርሙስ ተቀማጭ",
+    deliveryFee: "+ ማድረሻ",
     terms: "የትዕዛዝ ደንቦቻችን ይተገበራሉ። ትኩስ ለተዘጋጀ ምግብ የመሰረዝ መብት የለም።",
     termsLink: "የትዕዛዝ ደንቦችን ይመልከቱ",
     delivery: "ማድረስ",

@@ -60,6 +60,16 @@ export type OrderInput = {
   wanted: string; // "asap" or HH:MM
 };
 
+/** One line per dish, so sending the same dish twice can't get around the per-dish maximum. */
+export function mergeCartLines(lines: unknown[]): CartLine[] {
+  const quantities = new Map<string, number>();
+  for (const line of lines as { id?: unknown; qty?: unknown }[]) {
+    const id = String(line?.id ?? "");
+    quantities.set(id, (quantities.get(id) ?? 0) + Number(line?.qty));
+  }
+  return [...quantities].map(([id, qty]) => ({ id, qty }));
+}
+
 const roundCents = (amount: number) => Math.round(amount * 100) / 100;
 
 /** Food and drink, deposit (Pfand), delivery fee, priced from the menu. Minimum order and free delivery count the food only. */

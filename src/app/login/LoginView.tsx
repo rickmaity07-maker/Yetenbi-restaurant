@@ -70,7 +70,7 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
       {mode !== "forgot" && googleEnabled && (
         <div className="mt-8">
           <GoogleButton label={text.google} next={next} />
-          <div className="mt-8 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-cream/45">
+          <div className="mt-8 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-cream/55">
             <span className="h-px flex-1 bg-gold/20" />
             {text.or}
             <span className="h-px flex-1 bg-gold/20" />

@@ -113,7 +113,7 @@ export default function StatusView() {
                 >
                   {done ? <Check size={18} weight="bold" /> : i + 1}
                 </motion.span>
-                <span className={`text-xs ${done ? "text-cream" : "text-cream/45"}`}>{text.status[step]}</span>
+                <span className={`text-xs ${done ? "text-cream" : "text-cream/55"}`}>{text.status[step]}</span>
               </li>
             );
           })}

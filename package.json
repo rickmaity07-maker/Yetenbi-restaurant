@@ -11,7 +11,8 @@
     "owner:create": "node --env-file-if-exists=.env.local scripts/create-owner.mjs",
     "test:devices": "node --env-file-if-exists=.env.local tests/device-suite.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
@@ -39,6 +40,7 @@
     "playwright": "1.62.1",
     "prettier": "3.6.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   }
 }
