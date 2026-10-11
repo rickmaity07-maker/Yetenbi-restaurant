@@ -15,8 +15,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # next typegen writes the route and image types that a build would otherwise generate.
       - name: Types
-        run: npx tsc --noEmit
+        run: npm run typecheck
       - name: Lint
         run: npm run lint
       - name: Formatting

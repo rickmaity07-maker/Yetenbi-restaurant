@@ -12,7 +12,8 @@
     "test:devices": "node --env-file-if-exists=.env.local tests/device-suite.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
