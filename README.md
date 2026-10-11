@@ -113,6 +113,23 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `src/components/sections/` – the page sections.
 - `public/img/` – photos; `ambient/` and `dish/` are small pre-blurred / pre-cropped copies.
 
+## Testing
+
+`npm run test:devices` tests the live site on emulated devices: iPhone 14 and iPad Pro 11 on WebKit (Safari's engine),
+Pixel 7 and a 1440 px desktop on Chromium. It checks the public pages, the menu card, languages, accessibility (axe),
+then runs a whole order through every role (guest → admin → kitchen → driver) and a reservation.
+
+- One-time setup: `npx playwright install chromium webkit`, and the `TEST_*` logins in `.env.local` (see `.env.example`).
+- `HEADED=1` shows the browser windows; `ONLY=public` or `ONLY=flow` runs one part; `SITE=…` tests another address.
+- The order flow places real test orders named "Suite Test …", so their emails arrive. It deletes them at the end, and
+  if ordering outside opening hours is off, it switches it on for the run and back off afterwards.
+- Results and screenshots go to `test-results/devices/`.
+
+## Deploying
+
+The GitHub repository is connected to Vercel: every push to `main` goes live automatically. `vercel --prod` still works
+for a manual deploy.
+
 ## Still to do
 
 - Create the team's logins in /admin → Team (kitchen staff and drivers), then run one test order through every step
