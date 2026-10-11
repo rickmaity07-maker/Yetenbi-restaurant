@@ -12,8 +12,8 @@ export default function FooterWordmark() {
       whileInView="show"
       viewport={{ once: true, margin: "-5% 0px" }}
       transition={{ staggerChildren: 0.07 }}
-      aria-label="Yetenbi"
     >
+      <span className="sr-only">Yetenbi</span>
       {"YETENBI".split("").map((l, i) => (
         <motion.span
           key={i}

@@ -70,9 +70,10 @@ export default function Manifesto() {
         <p
           key={locale}
           ref={ref}
-          aria-label={plain}
           className="mt-10 font-display text-[clamp(2.2rem,5vw,4.6rem)] font-medium leading-[1.14] tracking-tight text-cream"
         >
+          <span className="sr-only">{plain}</span>
+          <span aria-hidden>
           {tokens.map((t, i) => {
             const range: [number, number] = [i / tokens.length, Math.min(1, (i + 1.5) / tokens.length)];
             return "img" in t ? (
@@ -81,6 +82,7 @@ export default function Manifesto() {
               <Word key={i} token={t} range={range} progress={progress} />
             );
           })}
+          </span>
         </p>
       </div>
     </section>

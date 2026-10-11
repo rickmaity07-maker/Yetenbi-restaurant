@@ -67,7 +67,7 @@ function Item({ item, compact, drink }: { item: Dish; compact: boolean; drink: b
           {item.name[locale]}
         </h4>
         <span aria-hidden className="mb-1.5 flex-1 border-b border-dotted border-gold/35" />
-        <span className={`font-display tabular-nums text-gold-soft ${compact ? "text-xl" : "text-[1.6rem]"}`}>{priceText(item.price)} €</span>
+        <span className={`shrink-0 whitespace-nowrap font-display tabular-nums text-gold-soft ${compact ? "text-xl" : "text-[1.6rem]"}`}>{priceText(item.price)} €</span>
       </div>
       {item.amharic && (
         <p className="mt-0.5 font-ethiopic text-[13px] text-gold/60" lang="am">

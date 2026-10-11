@@ -17,7 +17,7 @@ export default function Info() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Heading key={locale} title={t.info.title} em={t.info.em} size="md" />
 
-        <dl className="mt-14 border-t border-gold/20">
+        <div className="mt-14 border-t border-gold/20">
           {facts.map((f, i) => {
             const isOpen = open === i;
             return (
@@ -33,16 +33,16 @@ export default function Info() {
                     aria-expanded={isOpen}
                     className="grid w-full grid-cols-[1fr_auto] items-baseline gap-x-6 gap-y-1 py-7 text-left md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] md:py-9"
                   >
-                    <dt
+                    <span
                       className={`font-display text-[clamp(2rem,4.4vw,3.75rem)] font-semibold leading-none transition-colors duration-500 ${
                         isOpen ? "text-gold-soft" : "text-cream/45"
                       }`}
                     >
                       {f.term}
-                    </dt>
-                    <dd className="order-3 col-span-2 font-display text-xl italic text-cream/85 md:order-none md:col-span-1 md:text-2xl">
+                    </span>
+                    <span className="order-3 col-span-2 font-display text-xl italic text-cream/85 md:order-none md:col-span-1 md:text-2xl">
                       {f.value}
-                    </dd>
+                    </span>
                     <span
                       aria-hidden
                       className={`flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 text-gold-soft transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -69,7 +69,7 @@ export default function Info() {
               </Rise>
             );
           })}
-        </dl>
+        </div>
       </div>
     </section>
   );

@@ -38,7 +38,7 @@ export function Label({ children, className = "", am }: { children: React.ReactN
         {children}
       </motion.p>
       {am && (
-        <span lang="am" className="font-ethiopic text-sm text-gold/70">
+        <span lang="am" className="font-ethiopic text-sm text-gold/85">
           {am}
         </span>
       )}
@@ -68,8 +68,9 @@ export function Title({
       whileInView="show"
       viewport={{ once: true, margin: "-12% 0px" }}
       transition={{ staggerChildren: 0.07, delayChildren: delay }}
-      aria-label={text}
     >
+      {/* read once as a sentence; the animated words are decoration (aria-label is not allowed on a plain p) */}
+      <span className="sr-only">{text}</span>
       {words.map((w, i) => (
         <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.14em] align-bottom">
           <motion.span

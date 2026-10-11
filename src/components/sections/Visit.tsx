@@ -41,6 +41,7 @@ export default function Visit() {
                 sizes="(min-width: 1024px) 35vw, 45vw"
               />
             </AksumFrame>
+            <div className="space-y-5">
             <dl className="space-y-5">
               <Rise>
                 <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{t.visit.hours}</dt>
@@ -62,6 +63,7 @@ export default function Visit() {
                   </dd>
                 </Rise>
               ))}
+            </dl>
               <Rise delay={0.25} className="border-t border-gold/20 pt-6">
                 <EthiopianNow />
               </Rise>
@@ -70,7 +72,7 @@ export default function Visit() {
                   {t.visit.route}
                 </GoldButton>
               </Rise>
-            </dl>
+            </div>
           </div>
 
           {/* Framed map */}
