@@ -6,7 +6,7 @@ import { requireOwner } from "@/lib/server/auth";
 import { decodeKey, encodeKey, getCustomer, saveNote } from "@/lib/server/customers";
 import { blockPhone } from "@/lib/server/order-guard";
 
-export type NoteState = { ok?: string; error?: string } | null;
+type NoteState = { ok?: string; error?: string } | null;
 
 /** The team's note about a guest (e.g. "allergic to nuts", "always call before delivery"). */
 export async function saveCustomerNote(_: NoteState, form: FormData): Promise<NoteState> {

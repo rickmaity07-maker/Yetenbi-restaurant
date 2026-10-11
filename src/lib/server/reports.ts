@@ -9,9 +9,9 @@ import { db } from "./db";
 
 type Row = Record<string, unknown>;
 
-export type Range = { from: string; to: string };
+type Range = { from: string; to: string };
 
-export type Report = {
+type Report = {
   orders: { completed: number; revenue: number; average: number; deposit: number; fees: number; rejected: number; cancelled: number; all: number };
   byMethod: { method: string; count: number; revenue: number }[];
   byPayment: { payment: string; count: number; revenue: number }[];
@@ -101,7 +101,7 @@ const csvCell = (v: string | number) => {
   return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 /** Semicolons and a byte-order mark, so German Excel opens it with the right columns and umlauts. */
-export const toCsv = (rows: (string | number)[][]) => "﻿" + rows.map((r) => r.map(csvCell).join(";")).join("\r\n") + "\r\n";
+const toCsv = (rows: (string | number)[][]) => "﻿" + rows.map((r) => r.map(csvCell).join(";")).join("\r\n") + "\r\n";
 
 const STATUS_DE: Record<string, string> = {
   new: "neu", accepted: "angenommen", cooked: "zubereitet", packed: "verpackt", ready: "abholbereit",

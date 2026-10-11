@@ -9,7 +9,7 @@ import { phoneKey } from "./order-guard";
 
 type Row = Record<string, unknown>;
 
-export const customerKey = (email: string, phone: string) => (email.trim() ? email.trim().toLowerCase() : `tel:${phoneKey(phone)}`);
+const customerKey = (email: string, phone: string) => (email.trim() ? email.trim().toLowerCase() : `tel:${phoneKey(phone)}`);
 export const encodeKey = (key: string) => Buffer.from(key).toString("base64url");
 export const decodeKey = (v: string) => {
   try {
@@ -19,10 +19,10 @@ export const decodeKey = (v: string) => {
   }
 };
 
-export type CustomerOrder = { reference: string; createdAt: string; status: string; method: string; total: number };
-export type CustomerBooking = { reference: string; date: string; time: string; guests: number; status: string; source: string };
+type CustomerOrder = { reference: string; createdAt: string; status: string; method: string; total: number };
+type CustomerBooking = { reference: string; date: string; time: string; guests: number; status: string; source: string };
 
-export type Customer = {
+type Customer = {
   key: string;
   name: string;
   email: string;

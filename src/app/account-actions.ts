@@ -32,8 +32,8 @@ import { audit } from "@/lib/server/audit";
   (account.errors in lib/i18n).
 */
 
-export type AccountState = { error?: AccountError; ok?: boolean } | null;
-export type AccountError =
+type AccountState = { error?: AccountError; ok?: boolean } | null;
+type AccountError =
   | "credentials"
   | "exists"
   | "name"

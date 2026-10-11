@@ -9,7 +9,7 @@ import { useLanguage } from "@/lib/language";
 import { homeFor, type Role } from "@/lib/roles";
 import { AuthField, fieldClass, FormMessage, SubmitButton } from "@/components/account/AccountShell";
 
-export type ProfileBooking = {
+type ProfileBooking = {
   id: number;
   reference: string;
   date: string;

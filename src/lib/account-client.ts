@@ -8,8 +8,8 @@ import type { Role } from "@/lib/roles";
   (/api/closures). Each is fetched once per page load, however many components ask for it.
 */
 
-export type Me = { name: string; email: string; phone: string; role: Role } | null;
-export type ClosedDay = { date: string; note: string };
+type Me = { name: string; email: string; phone: string; role: Role } | null;
+type ClosedDay = { date: string; note: string };
 
 /** `failed` is what the store holds when the request does not work (default: stays `initial`). */
 function createStore<T>(url: string, pick: (json: unknown) => T, initial: T, failed: T = initial) {

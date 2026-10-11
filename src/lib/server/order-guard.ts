@@ -20,7 +20,7 @@ export const LIMITS = {
   largeFirstOrder: 150, // € – above this, first-time guests are asked to call
 };
 
-export type GuardCode = "blocked" | "busy" | "kitchen" | "large";
+type GuardCode = "blocked" | "busy" | "kitchen" | "large";
 
 /** Same number however it is typed: "0176 123", "+49 176-123" and "0049176123" all become "49176123". */
 export function phoneKey(phone: string) {

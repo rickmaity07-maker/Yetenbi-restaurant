@@ -13,7 +13,7 @@ export function signingKey() {
   return createHash("sha256").update(`yetenbi-dev:${process.env.ADMIN_PASSWORD ?? ""}`).digest("hex");
 }
 
-export const cancelSignature = (reference: string) => createHmac("sha256", signingKey()).update(`cancel:${reference}`).digest("base64url").slice(0, 32);
+const cancelSignature = (reference: string) => createHmac("sha256", signingKey()).update(`cancel:${reference}`).digest("base64url").slice(0, 32);
 
 export function checkCancelSignature(reference: string, signature: string) {
   const a = Buffer.from(cancelSignature(reference));

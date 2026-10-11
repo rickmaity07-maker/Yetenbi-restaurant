@@ -28,7 +28,7 @@ const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 
 /* ---------- passwords ---------- */
 
-export async function hashPassword(password: string) {
+async function hashPassword(password: string) {
   const salt = randomBytes(16);
   const key = await scryptAsync(password, salt, 64);
   return `scrypt$${salt.toString("base64")}$${key.toString("base64")}`;
@@ -139,7 +139,7 @@ export const requireOwner = () => requireRole(["owner"], "/admin");
 
 /* ---------- team ---------- */
 
-export type StaffMember = User & { googleOnly: boolean };
+type StaffMember = User & { googleOnly: boolean };
 
 export async function listStaff(): Promise<StaffMember[]> {
   const rows = (await db()`select * from users where role <> 'guest' order by role, lower(name)`) as UserRow[];

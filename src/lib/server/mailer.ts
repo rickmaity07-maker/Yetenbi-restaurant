@@ -245,7 +245,7 @@ export async function sendPasswordReset(to: string, name: string, locale: Locale
 /* ---------- online orders ---------- */
 
 /** Every step of an order is emailed to the guest (if they gave an email address). */
-export type OrderKind = "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
+type OrderKind = "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
 
 const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string; terms: string; termsLink: string }> = {
   de: {
@@ -397,7 +397,7 @@ const kitchenList = (o: Order) =>
     o.note ? `<p style="margin:12px 0 0;border-left:2px solid #c9a24a;padding-left:12px">${esc(o.note)}</p>` : ""
   }`;
 
-export type StaffKind = "kitchen" | "packed" | "driver" | "completed";
+type StaffKind = "kitchen" | "packed" | "driver" | "completed";
 
 /**
   Emails to the team as an order moves on:

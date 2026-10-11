@@ -3,7 +3,7 @@
   (public/img); an uploaded photo lives on Cloudinary and is shown instead, the built-in one is the fallback.
 */
 
-export type PhotoSlot = { key: string; label: string; where: string };
+type PhotoSlot = { key: string; label: string; where: string };
 
 export const PHOTO_SLOTS: PhotoSlot[] = [
   { key: "hero", label: "Titelbild", where: "Ganz oben, hinter dem Namen; auch Hintergrund bei „Die Platte“" },

@@ -7,7 +7,7 @@ import { db } from "./db";
   Entries older than one year are removed by the daily clean-up.
 */
 
-export type Area = "orders" | "reservations" | "menu" | "photos" | "settings" | "team" | "login" | "customers";
+type Area = "orders" | "reservations" | "menu" | "photos" | "settings" | "team" | "login" | "customers";
 
 export async function audit(user: Pick<User, "id" | "name" | "role"> | null, area: Area, action: string, target = "", details?: Record<string, unknown>) {
   try {
@@ -21,7 +21,7 @@ export async function audit(user: Pick<User, "id" | "name" | "role"> | null, are
   }
 }
 
-export type AuditEntry = { id: number; at: string; actor: string; role: string; area: Area; action: string; target: string; details: Record<string, unknown> | null };
+type AuditEntry = { id: number; at: string; actor: string; role: string; area: Area; action: string; target: string; details: Record<string, unknown> | null };
 
 export async function listAudit(filter: { area?: string; actor?: string; q?: string; limit?: number }) {
   const rows = (await db()`

@@ -35,7 +35,7 @@ export function authorizeUrl(origin: string, state: string, challenge: string) {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
-export type GoogleProfile = { sub: string; email: string; emailVerified: boolean; name: string };
+type GoogleProfile = { sub: string; email: string; emailVerified: boolean; name: string };
 
 export async function exchangeCode(origin: string, code: string, verifier: string): Promise<GoogleProfile | null> {
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {

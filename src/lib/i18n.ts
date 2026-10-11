@@ -1053,6 +1053,3 @@ const am: Dict = {
 };
 
 export const content: Record<Locale, Dict> = { de, en, am };
-
-/** Pick the current language's text from a trilingual value. */
-export const pick = (value: { de: string; en: string; am: string }, locale: Locale) => value[locale];

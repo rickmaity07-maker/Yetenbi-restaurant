@@ -46,7 +46,7 @@ export async function blockGuest(form: FormData) {
   revalidatePath("/admin/bestellungen");
 }
 
-export type BlockState = { ok?: string; error?: string } | null;
+type BlockState = { ok?: string; error?: string } | null;
 
 export async function addPhoneBlock(_: BlockState, form: FormData): Promise<BlockState> {
   const me = await requireOwner();
@@ -68,7 +68,7 @@ export async function unblock(form: FormData) {
   revalidatePath("/admin/bestellungen");
 }
 
-export type SettingsState = { ok?: string; error?: string } | null;
+type SettingsState = { ok?: string; error?: string } | null;
 
 export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
   const me = await requireOwner();

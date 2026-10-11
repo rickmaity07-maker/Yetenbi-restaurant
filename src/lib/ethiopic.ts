@@ -43,7 +43,7 @@ function gregorianToJdn(y: number, m: number, d: number) {
 }
 
 /** Ethiopian calendar date for a Gregorian year/month/day. */
-export function toEthiopian(y: number, m: number, d: number) {
+function toEthiopian(y: number, m: number, d: number) {
   const jdn = gregorianToJdn(y, m, d);
   const r = (jdn - EPOCH) % 1461;
   const n = (r % 365) + 365 * Math.floor(r / 1460);

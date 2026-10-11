@@ -6,7 +6,7 @@ import { db } from "./db";
   (food, deposit and delivery fee, as paid at the door); rejected and cancelled orders do not count.
 */
 
-export type Dashboard = {
+type Dashboard = {
   orders: { today: number; open: number; new: number; packed: number; onTheWay: number };
   revenue: { today: number; sameDayLastWeek: number; last14: { day: string; total: number; orders: number }[] };
   reservations: { todayCount: number; todayGuests: number; pending: number };

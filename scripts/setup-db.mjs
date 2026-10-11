@@ -19,7 +19,6 @@ const statements = schema
   .map((s) => s.trim())
   .filter(Boolean);
 for (const statement of statements) await sql.query(statement);
-console.log(`Schema applied (${statements.length} statements).`);
 
 // Menu: only when the menu tables are still empty, so edits made in /admin are never overwritten.
 const [{ n }] = await sql`select count(*)::int as n from menu_categories`;
@@ -27,7 +26,6 @@ if (n === 0) {
   // Details entered earlier in /admin (stored as settings 'menu_info' before the menu moved to the database).
   const [old] = await sql`select value from settings where key = 'menu_info'`;
   const info = old?.value ?? {};
-  let items = 0;
   for (const [c, category] of seedMenu.entries()) {
     const drinks = ["kaffee", "heiss", "kalt"].includes(category.id);
     await sql`insert into menu_categories (id, title, note, drinks, position)
@@ -42,8 +40,6 @@ if (n === 0) {
                 ${Number(item.price.replace(",", "."))}, ${(item.tags ?? []).filter((t) => t !== "glutenfree")}, ${gluten},
                 ${d.allergens ?? []}, ${d.additives ?? []}, ${d.volume ?? null}, ${d.deposit ?? 0},
                 ${item.name.de !== "Jebena Buna"}, ${i})`;
-      items++;
     }
   }
-  console.log(`Menu copied into the database (${seedMenu.length} categories, ${items} items).`);
 }

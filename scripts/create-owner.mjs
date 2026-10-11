@@ -17,4 +17,3 @@ await sql`
   insert into users (email, name, password_hash, role, email_verified) values (${email.toLowerCase()}, ${name}, ${hash}, 'owner', true)
   on conflict (email) do update set role = 'owner', password_hash = excluded.password_hash, email_verified = true
 `;
-console.log(`Owner account ready: ${email.toLowerCase()}`);

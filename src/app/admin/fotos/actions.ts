@@ -8,7 +8,7 @@ import { blurPreview, destroy, findResource, FOLDER, isCloudinaryConfigured, upl
 import { clearPhoto, setPhoto } from "@/lib/server/photos";
 import { audit } from "@/lib/server/audit";
 
-export type Ticket = ReturnType<typeof uploadTicket>;
+type Ticket = ReturnType<typeof uploadTicket>;
 
 /** A one-time signed upload for a slot. Only owners; the file goes straight from the browser to Cloudinary. */
 export async function startUpload(slot: string): Promise<{ ticket?: Ticket; error?: string }> {

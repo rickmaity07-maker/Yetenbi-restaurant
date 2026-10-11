@@ -13,7 +13,7 @@ export function PhotosProvider({ photos, children }: { photos: Photos; children:
 }
 
 /** The uploaded photo for a built-in picture (static import or "/img/…" path), if the owner replaced it. */
-export function useUploaded(img: StaticImageData | string): Uploaded | undefined {
+function useUploaded(img: StaticImageData | string): Uploaded | undefined {
   return useContext(PhotosContext)[slotOf(typeof img === "string" ? img : img.src)];
 }
 

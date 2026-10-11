@@ -39,7 +39,7 @@ export const DEFAULT_SETTINGS: OrderSettings = {
 };
 
 export const LAST_ORDER_BEFORE_CLOSE = 30; // minutes
-export const MAX_QTY = 20;
+const MAX_QTY = 20;
 
 export type Method = "delivery" | "pickup";
 export type Payment = "cash" | "card";
@@ -60,7 +60,7 @@ export type OrderInput = {
   wanted: string; // "asap" or HH:MM
 };
 
-export const round2 = (n: number) => Math.round(n * 100) / 100;
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Food and drink, deposit (Pfand), delivery fee, priced from the menu. Minimum order and free delivery count the food only. */
 export function totals(items: CartLine[], method: Method, s: OrderSettings, catalog: Catalog) {

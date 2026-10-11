@@ -14,7 +14,7 @@ const cloud = () => process.env.CLOUDINARY_CLOUD_NAME!;
 const api = (path: string) => `https://api.cloudinary.com/v1_1/${cloud()}/${path}`;
 
 export const FOLDER = "yetenbi";
-export const ALLOWED_FORMATS = "jpg,jpeg,png,webp,avif,heic";
+const ALLOWED_FORMATS = "jpg,jpeg,png,webp,avif,heic";
 
 /** Cloudinary's signature: SHA-1 of the sorted parameters followed by the secret. */
 function sign(params: Record<string, string | number>) {
@@ -31,7 +31,7 @@ export function uploadTicket(publicId: string) {
   return { url: api("image/upload"), cloudName: cloud(), apiKey: process.env.CLOUDINARY_API_KEY!, ...params, signature: sign(params) };
 }
 
-export type Resource = { public_id: string; secure_url: string; width: number; height: number; format: string; bytes: number };
+type Resource = { public_id: string; secure_url: string; width: number; height: number; format: string; bytes: number };
 
 /** Looks the uploaded file up in our own account (so nothing else can be saved as a photo). */
 export async function findResource(publicId: string): Promise<Resource | null> {

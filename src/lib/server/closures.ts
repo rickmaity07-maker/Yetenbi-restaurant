@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 
-export type Closure = { date: string; note: string };
+type Closure = { date: string; note: string };
 
 /** Closed days from today (Berlin) on. */
 export async function upcomingClosures(): Promise<Closure[]> {

@@ -8,7 +8,7 @@ import { audit } from "@/lib/server/audit";
 import { requireOwner } from "@/lib/server/auth";
 import { readBusiness, saveBusiness } from "@/lib/server/business";
 
-export type SettingsState = { ok?: string; error?: string } | null;
+type SettingsState = { ok?: string; error?: string } | null;
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 

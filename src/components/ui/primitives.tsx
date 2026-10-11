@@ -195,20 +195,6 @@ export function GoldButton({ href, children, external }: { href: string; childre
   );
 }
 
-export function GhostButton({ href, children, external }: { href: string; children: React.ReactNode; external?: boolean }) {
-  return (
-    <Magnetic>
-      <a
-        href={href}
-        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="inline-flex items-center gap-3 rounded-full border border-cream/30 px-8 py-4 font-semibold text-cream transition-colors duration-500 hover:border-gold hover:text-gold-soft active:scale-[0.98]"
-      >
-        {children}
-      </a>
-    </Magnetic>
-  );
-}
-
 /**
  * Candle-light backdrop: a section's own photograph as a soft wash of its colours.
  * Uses a tiny pre-blurred copy from /img/ambient (made once at build time), so the browser never

@@ -13,7 +13,7 @@ const PAGES = {
   team: { title: "Team & Zugänge", lead: "Logins für Verwaltung, Küche und Fahrer anlegen und verwalten." },
 } as const;
 
-export type AdminPage = keyof typeof PAGES;
+type AdminPage = keyof typeof PAGES;
 
 export default function AdminHeader({ active, children }: { active: AdminPage; children?: React.ReactNode }) {
   const p = PAGES[active];

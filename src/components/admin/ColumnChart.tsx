@@ -8,10 +8,10 @@ import { useState } from "react";
   the hovered bar lifts to the brand gold.
 */
 
-export type Column = { key: string; label: string; value: number; detail?: string };
+type Column = { key: string; label: string; value: number; detail?: string };
 
 /** How values read: whole euros or plain counts (a string, so server pages can pass it). */
-export type Unit = "euro" | "count";
+type Unit = "euro" | "count";
 const FORMAT: Record<Unit, (n: number) => string> = {
   euro: (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n),
   count: (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(n),
