@@ -23,9 +23,10 @@ import { ease, Heading, Rise } from "../ui/primitives";
 import { AksumFrame, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useHours } from "@/components/Business";
 
-const input =
+const inputClass =
   "w-full border-0 border-b bg-transparent px-0 pb-3 pt-1 font-display text-2xl text-cream placeholder:text-cream/35 transition-colors duration-500 focus:outline-none [color-scheme:dark] disabled:opacity-50";
-const line = (err?: string) => (err ? "border-[#f0a080]/70" : "border-gold/30 focus:border-gold");
+/** Underline colour: red when the field has an error. */
+const underline = (error?: string) => (error ? "border-[#f0a080]/70" : "border-gold/30 focus:border-gold");
 
 function Field({
   id,
@@ -75,10 +76,10 @@ function Ticket({ form }: { form: BookingRequest }) {
       })
     : "";
   const cells = [
-    { k: t.reserve.date, v: dateLabel },
-    { k: t.reserve.time, v: form.time ? t.clock(form.time) : "" },
-    { k: t.reserve.name, v: form.name.trim() },
-    { k: t.reserve.phone, v: form.phone.trim() },
+    { label: t.reserve.date, value: dateLabel },
+    { label: t.reserve.time, value: form.time ? t.clock(form.time) : "" },
+    { label: t.reserve.name, value: form.name.trim() },
+    { label: t.reserve.phone, value: form.phone.trim() },
   ];
   return (
     <AksumFrame>
@@ -114,11 +115,13 @@ function Ticket({ form }: { form: BookingRequest }) {
           <span className="absolute inset-x-5 top-1/2 border-t border-dashed border-gold/40" />
         </div>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-5 px-7 pb-8 pt-4" lang={locale}>
-          {cells.map((c) => (
-            <div key={c.k} className="min-w-0">
-              <dt className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-cream/55">{c.k}</dt>
-              <dd className={`mt-1 truncate font-display text-lg ${c.v ? "text-cream" : "italic text-cream/45"}`}>
-                {c.v || t.reserve.open}
+          {cells.map((cell) => (
+            <div key={cell.label} className="min-w-0">
+              <dt className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-cream/55">{cell.label}</dt>
+              <dd
+                className={`mt-1 truncate font-display text-lg ${cell.value ? "text-cream" : "italic text-cream/45"}`}
+              >
+                {cell.value || t.reserve.open}
               </dd>
             </div>
           ))}
@@ -135,7 +138,7 @@ function Ticket({ form }: { form: BookingRequest }) {
 const EMPTY: BookingRequest = { name: "", email: "", phone: "", date: "", time: "", guests: 2, note: "" };
 
 export default function Reservation() {
-  const reduce = useReducedMotion();
+  const reduceMotion = useReducedMotion();
   const { t, locale } = useLanguage();
   const [form, setForm] = useState<BookingRequest>(EMPTY);
   const [errors, setErrors] = useState<BookingErrors>({});
@@ -144,36 +147,41 @@ export default function Reservation() {
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [today, setToday] = useState<string>();
   const [honeypot, setHoneypot] = useState("");
-  const me = useAccount();
+  const account = useAccount();
   const closures = useClosures();
   const week = useHours();
-  const closedDates = useMemo(() => closures.map((c) => c.date), [closures]);
+  const closedDates = useMemo(() => closures.map((closure) => closure.date), [closures]);
 
   // Signed-in guests get their details filled in (only into empty fields).
   useEffect(() => {
-    if (!me) return;
+    if (!account) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setForm((f) => ({ ...f, name: f.name || me.name, email: f.email || me.email, phone: f.phone || me.phone }));
-  }, [me]);
+    setForm((current) => ({
+      ...current,
+      name: current.name || account.name,
+      email: current.email || account.email,
+      phone: current.phone || account.phone,
+    }));
+  }, [account]);
 
   // "Today" is only known in the browser; the static prerender must not depend on it.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setToday(todayISO()), []);
 
   const slots = useMemo(() => slotsFor(form.date, closedDates, week), [form.date, closedDates, week]);
-  const err = (code?: BookingErrorCode) => (code ? t.reserve.errors[code] : undefined);
+  const errorText = (code?: BookingErrorCode) => (code ? t.reserve.errors[code] : undefined);
 
-  const set = <K extends keyof BookingRequest>(key: K, value: BookingRequest[K]) => {
-    setForm((f) => {
-      const next = { ...f, [key]: value };
-      // keep the time valid for the newly chosen day
+  const updateField = <K extends keyof BookingRequest>(key: K, value: BookingRequest[K]) => {
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      // A new day may not offer the chosen time: switch to 19:00, or else the first free time.
       if (key === "date") {
-        const s = slotsFor(String(value), closedDates, week);
-        if (!s.includes(next.time)) next.time = s.includes("19:00") ? "19:00" : (s[0] ?? "");
+        const daySlots = slotsFor(String(value), closedDates, week);
+        if (!daySlots.includes(next.time)) next.time = daySlots.includes("19:00") ? "19:00" : (daySlots[0] ?? "");
       }
       return next;
     });
-    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+    if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
     setServerError(undefined);
   };
 
@@ -186,28 +194,33 @@ export default function Reservation() {
       timeZone: "UTC",
     });
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
     const found = validateBooking(form, undefined, closedDates, { week });
     setErrors(found);
     if (Object.keys(found).length) return;
     setSending(true);
     try {
-      const res = await fetch("/api/book", {
+      const response = await fetch("/api/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, locale, website: honeypot }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 201) setOutcome({ kind: "booked", reference: data.reference, email: form.email });
-      else if (res.status === 503) {
-        // no booking database: hand the request over as a WhatsApp message instead
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 201) {
+        setOutcome({ kind: "booked", reference: data.reference, email: form.email });
+      } else if (response.status === 503) {
+        // No booking database: hand the request over as a WhatsApp message instead.
         const link = whatsappLink(form, dateLabel(form.date));
         window.open(link, "_blank", "noopener,noreferrer");
         setOutcome({ kind: "whatsapp", link });
-      } else if (res.status === 422 && data.errors) setErrors(data.errors);
-      else if (res.status === 429) setServerError(t.reserve.errors.busy);
-      else setServerError(t.reserve.errors.server);
+      } else if (response.status === 422 && data.errors) {
+        setErrors(data.errors);
+      } else if (response.status === 429) {
+        setServerError(t.reserve.errors.busy);
+      } else {
+        setServerError(t.reserve.errors.server);
+      }
     } catch {
       setServerError(t.reserve.errors.server);
     } finally {
@@ -217,7 +230,7 @@ export default function Reservation() {
 
   const reset = () => {
     setOutcome(null);
-    setForm((f) => ({ ...EMPTY, name: f.name, email: f.email, phone: f.phone }));
+    setForm((current) => ({ ...EMPTY, name: current.name, email: current.email, phone: current.phone }));
   };
 
   return (
@@ -237,7 +250,7 @@ export default function Reservation() {
               {outcome ? (
                 <motion.div
                   key="done"
-                  initial={reduce ? false : { opacity: 0, y: 20 }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.7, ease }}
@@ -291,84 +304,84 @@ export default function Reservation() {
                   exit={{ opacity: 0, y: -12 }}
                   className="grid gap-x-10 gap-y-10 md:grid-cols-2"
                 >
-                  <Field id="res-name" label={t.reserve.name} error={err(errors.name)}>
+                  <Field id="res-name" label={t.reserve.name} error={errorText(errors.name)}>
                     <input
                       id="res-name"
                       autoComplete="name"
                       value={form.name}
-                      onChange={(e) => set("name", e.target.value)}
+                      onChange={(event) => updateField("name", event.target.value)}
                       aria-invalid={!!errors.name}
                       aria-describedby={errors.name ? "res-name-error" : undefined}
-                      className={`${input} ${line(errors.name)}`}
+                      className={`${inputClass} ${underline(errors.name)}`}
                       placeholder={t.reserve.namePh}
                     />
                   </Field>
-                  <Field id="res-email" label={t.reserve.email} error={err(errors.email)}>
+                  <Field id="res-email" label={t.reserve.email} error={errorText(errors.email)}>
                     <input
                       id="res-email"
                       type="email"
                       autoComplete="email"
                       inputMode="email"
                       value={form.email}
-                      onChange={(e) => set("email", e.target.value)}
+                      onChange={(event) => updateField("email", event.target.value)}
                       aria-invalid={!!errors.email}
                       aria-describedby={errors.email ? "res-email-error" : undefined}
-                      className={`${input} ${line(errors.email)}`}
+                      className={`${inputClass} ${underline(errors.email)}`}
                       placeholder={t.reserve.emailPh}
                     />
                   </Field>
-                  <Field id="res-phone" label={t.reserve.phone} error={err(errors.phone)}>
+                  <Field id="res-phone" label={t.reserve.phone} error={errorText(errors.phone)}>
                     <input
                       id="res-phone"
                       type="tel"
                       autoComplete="tel"
                       value={form.phone}
-                      onChange={(e) => set("phone", e.target.value)}
+                      onChange={(event) => updateField("phone", event.target.value)}
                       aria-invalid={!!errors.phone}
                       aria-describedby={errors.phone ? "res-phone-error" : undefined}
-                      className={`${input} ${line(errors.phone)}`}
+                      className={`${inputClass} ${underline(errors.phone)}`}
                       placeholder="0176 1234567"
                     />
                   </Field>
-                  <Field id="res-date" label={t.reserve.date} error={err(errors.date)}>
+                  <Field id="res-date" label={t.reserve.date} error={errorText(errors.date)}>
                     <input
                       id="res-date"
                       type="date"
                       min={today}
                       max={today ? addDays(today, BOOKING.maxDaysAhead) : undefined}
                       value={form.date}
-                      onChange={(e) => set("date", e.target.value)}
+                      onChange={(event) => updateField("date", event.target.value)}
                       aria-invalid={!!errors.date}
                       aria-describedby={errors.date ? "res-date-error" : undefined}
-                      className={`${input} ${line(errors.date)}`}
+                      className={`${inputClass} ${underline(errors.date)}`}
                     />
                   </Field>
-                  <Field id="res-time" label={t.reserve.time} error={err(errors.time)}>
+                  <Field id="res-time" label={t.reserve.time} error={errorText(errors.time)}>
                     <select
                       id="res-time"
                       value={form.time}
                       disabled={!slots.length}
-                      onChange={(e) => set("time", e.target.value)}
+                      onChange={(event) => updateField("time", event.target.value)}
                       aria-invalid={!!errors.time}
                       aria-describedby={errors.time ? "res-time-error" : undefined}
-                      className={`${input} ${line(errors.time)} cursor-pointer appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%3E%3Cpath%20d=%22M2%204l4%204%204-4%22%20fill=%22none%22%20stroke=%22%23c9a24a%22%20stroke-width=%221.5%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat`}
+                      className={`${inputClass} ${underline(errors.time)} cursor-pointer appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%3E%3Cpath%20d=%22M2%204l4%204%204-4%22%20fill=%22none%22%20stroke=%22%23c9a24a%22%20stroke-width=%221.5%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat`}
                     >
                       {!slots.length && (
                         <option value="">{form.date ? t.reserve.errors.closed : t.reserve.chooseDate}</option>
                       )}
-                      {slots.map((s) => (
-                        <option key={s} value={s} className="bg-coal text-base">
-                          {t.clock(s)}
+                      {slots.map((slot) => (
+                        <option key={slot} value={slot} className="bg-coal text-base">
+                          {t.clock(slot)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field id="res-guests" label={t.reserve.guests} error={err(errors.guests)}>
+                  <Field id="res-guests" label={t.reserve.guests} error={errorText(errors.guests)}>
                     <div className="flex items-center justify-between border-b border-gold/30 pb-2">
                       <button
                         type="button"
                         aria-label={t.reserve.less}
-                        onClick={() => set("guests", Math.max(1, form.guests - 1))}
+                        onClick={() => updateField("guests", Math.max(1, form.guests - 1))}
                         className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 text-gold-soft transition-colors hover:bg-gold hover:text-ink active:scale-95"
                       >
                         <Minus size={16} />
@@ -383,7 +396,7 @@ export default function Reservation() {
                       <button
                         type="button"
                         aria-label={t.reserve.more}
-                        onClick={() => set("guests", Math.min(BOOKING.maxGuests + 1, form.guests + 1))}
+                        onClick={() => updateField("guests", Math.min(BOOKING.maxGuests + 1, form.guests + 1))}
                         className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 text-gold-soft transition-colors hover:bg-gold hover:text-ink active:scale-95"
                       >
                         <Plus size={16} />
@@ -391,13 +404,13 @@ export default function Reservation() {
                     </div>
                   </Field>
                   <div className="md:col-span-2">
-                    <Field id="res-note" label={t.reserve.note} error={err(errors.note)}>
+                    <Field id="res-note" label={t.reserve.note} error={errorText(errors.note)}>
                       <input
                         id="res-note"
                         value={form.note}
                         maxLength={280}
-                        onChange={(e) => set("note", e.target.value)}
-                        className={`${input} ${line(errors.note)}`}
+                        onChange={(event) => updateField("note", event.target.value)}
+                        className={`${inputClass} ${underline(errors.note)}`}
                         placeholder={t.reserve.notePh}
                       />
                     </Field>
@@ -410,7 +423,7 @@ export default function Reservation() {
                     autoComplete="off"
                     aria-hidden
                     value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
+                    onChange={(event) => setHoneypot(event.target.value)}
                     className="absolute -left-[9999px] h-0 w-0 opacity-0"
                   />
                   <div className="flex flex-col items-start gap-4 md:col-span-2">
