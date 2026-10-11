@@ -23,7 +23,7 @@ import {
 import { hasDatabase } from "@/lib/server/db";
 import { homeFor } from "@/lib/roles";
 import { isEmail, safeNext } from "@/lib/validate";
-import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/mailer";
+import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/email";
 import { cancelForUser } from "@/lib/server/reservations";
 import { audit } from "@/lib/server/audit";
 import { forgetEmail } from "@/lib/server/customers";

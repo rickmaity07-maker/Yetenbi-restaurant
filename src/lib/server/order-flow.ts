@@ -1,7 +1,7 @@
 import "server-only";
 import { canMove, type OrderStatus, type StaffRole } from "@/lib/ordering";
 import { findUserById, staffEmails, type User } from "./auth";
-import { notifyStaffOrder, sendOrderEmail } from "./mailer";
+import { notifyStaffOrder, sendOrderEmail } from "./email";
 import { advanceOrder, findOrderById } from "./orders";
 import { audit } from "./audit";
 

@@ -8,7 +8,7 @@ import { requireOwner } from "@/lib/server/auth";
 import { isCloudinaryConfigured } from "@/lib/server/cloudinary";
 import { getDashboard } from "@/lib/server/dashboard";
 import { hasDatabase } from "@/lib/server/db";
-import { isMailerConfigured } from "@/lib/server/mailer";
+import { isMailerConfigured } from "@/lib/server/email";
 import { readMenu } from "@/lib/server/menu";
 import { readBusiness } from "@/lib/server/business";
 import { impressumMissing } from "@/lib/business";

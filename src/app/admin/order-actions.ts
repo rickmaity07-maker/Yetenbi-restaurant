@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { OPEN_STATUSES, type OrderSettings, type OrderStatus } from "@/lib/ordering";
 import { requireOwner } from "@/lib/server/auth";
-import { sendOrderEmail } from "@/lib/server/mailer";
+import { sendOrderEmail } from "@/lib/server/email";
 import { blockOrderGuest, blockPhone, removeBlock } from "@/lib/server/order-guard";
 import { moveOrder } from "@/lib/server/order-flow";
 import { findOrderById, getOrderSettings, saveOrderSettings, setOrderStatus } from "@/lib/server/orders";

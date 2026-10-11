@@ -5,7 +5,7 @@ import { totals, validateOrder, type OrderInput } from "@/lib/ordering";
 import { getCurrentUser } from "@/lib/server/auth";
 import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
-import { notifyRestaurantOrder, orderStatusUrl, sendOrderEmail } from "@/lib/server/mailer";
+import { notifyRestaurantOrder, orderStatusUrl, sendOrderEmail } from "@/lib/server/email";
 import { checkOrder, clientHash, phoneKey } from "@/lib/server/order-guard";
 import { createOrder, getOrderSettings } from "@/lib/server/orders";
 import { getMenu } from "@/lib/server/menu";

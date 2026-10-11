@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { validateBooking, type BookingRequest } from "@/lib/booking";
 import { LOCALES, type Locale } from "@/lib/i18n";
 import { hasDatabase } from "@/lib/server/db";
-import { notifyRestaurant, sendGuestEmail } from "@/lib/server/mailer";
+import { notifyRestaurant, sendGuestEmail } from "@/lib/server/email";
 import { createReservation, recentCount } from "@/lib/server/reservations";
 import { upcomingClosures } from "@/lib/server/closures";
 import { getCurrentUser } from "@/lib/server/auth";

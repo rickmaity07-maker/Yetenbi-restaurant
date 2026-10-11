@@ -6,7 +6,7 @@ import { LalibelaCross } from "@/components/heritage/Ornaments";
 import LegalLinks from "@/components/LegalLinks";
 import type { Locale } from "@/lib/i18n";
 import { checkCancelSignature } from "@/lib/server/cancel-token";
-import { notifyRestaurantCancelled } from "@/lib/server/mailer";
+import { notifyRestaurantCancelled } from "@/lib/server/email";
 import { cancelByReference, findByReference } from "@/lib/server/reservations";
 
 export const metadata: Metadata = { title: "Reservierung stornieren", robots: { index: false } };

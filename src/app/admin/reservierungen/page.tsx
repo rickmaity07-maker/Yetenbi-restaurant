@@ -5,7 +5,7 @@ import { addDays, todayISO } from "@/lib/booking";
 import { requireOwner } from "@/lib/server/auth";
 import { upcomingClosures } from "@/lib/server/closures";
 import { hasDatabase } from "@/lib/server/db";
-import { isMailerConfigured } from "@/lib/server/mailer";
+import { isMailerConfigured } from "@/lib/server/email";
 import { listBetween, listReservations, type Reservation, type Status } from "@/lib/server/reservations";
 import { decide, removeClosedDay } from "../actions";
 import { ClosedDayForm, PhoneBookingForm } from "../AdminForms";

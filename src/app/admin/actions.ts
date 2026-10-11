@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { validateBooking, type BookingRequest } from "@/lib/booking";
 import { requireOwner } from "@/lib/server/auth";
 import { addClosure, removeClosure, upcomingClosures } from "@/lib/server/closures";
-import { sendGuestEmail } from "@/lib/server/mailer";
+import { sendGuestEmail } from "@/lib/server/email";
 import { createReservation, setStatus, type Status } from "@/lib/server/reservations";
 import { audit } from "@/lib/server/audit";
 import { readBusiness } from "@/lib/server/business";
