@@ -38,6 +38,7 @@ type UserRow = {
   locale: Locale;
   created_at: string;
   password_hash?: string;
+  email_verified?: boolean;
 };
 const toUser = (r: UserRow): User => ({
   id: Number(r.id),

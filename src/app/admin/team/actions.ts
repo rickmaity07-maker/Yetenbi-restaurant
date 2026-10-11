@@ -29,10 +29,22 @@ export async function addStaff(_: TeamState, form: FormData): Promise<TeamState>
   const existing = await findUserByEmail(email);
   if (existing) {
     if (existing.role !== "guest") return { error: "Diese Person ist schon im Team. Rolle unten ändern." };
+    // Anyone can sign up with any email address. If this guest account never proved it owns the address,
+    // whoever registered it must not get team rights with their own password: it gets the starting password instead.
+    if (!existing.email_verified) {
+      if (password.length < 10 || password.length > 200) {
+        return {
+          error:
+            "Zu dieser E-Mail gibt es ein unbestätigtes Gastkonto. Bitte ein Startpasswort (mind. 10 Zeichen) vergeben – es ersetzt das bisherige Passwort.",
+        };
+      }
+      await setPassword(Number(existing.id), password);
+    }
     await setRole(Number(existing.id), role);
     await audit(me, "team", `Rolle vergeben: ${role}`, email);
     revalidatePath("/admin/team");
-    return { ok: `${existing.name} ist jetzt im Team. Anmeldung mit dem eigenen Passwort.` };
+    const login = existing.email_verified ? "mit dem eigenen Passwort" : "mit dem Startpasswort";
+    return { ok: `${existing.name} ist jetzt im Team. Anmeldung ${login}.` };
   }
   if (name.length < 2 || name.length > 80) return { error: "Bitte einen Namen eingeben." };
   if (phone && !/^[+\d][\d\s()/-]{5,24}$/.test(phone)) return { error: "Die Telefonnummer ist ungültig." };
