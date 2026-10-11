@@ -13,7 +13,7 @@ import LiveAlerts, { type Pulse } from "./LiveAlerts";
   "Bestellungen" and "Reservierungen", who is signed in and the way out. Pages bring only their own content.
 */
 
-type Item = { href: string; label: string; badge?: (p: Pulse) => number; external?: boolean };
+type Item = { href: string; label: string; badge?: (counts: Pulse) => number; external?: boolean };
 type Group = { title: string; items: Item[] };
 
 const NAV: Group[] = [
@@ -21,8 +21,8 @@ const NAV: Group[] = [
   {
     title: "Betrieb",
     items: [
-      { href: "/admin/bestellungen", label: "Bestellungen", badge: (p) => p.newOrders },
-      { href: "/admin/reservierungen", label: "Reservierungen", badge: (p) => p.pendingReservations },
+      { href: "/admin/bestellungen", label: "Bestellungen", badge: (counts) => counts.newOrders },
+      { href: "/admin/reservierungen", label: "Reservierungen", badge: (counts) => counts.pendingReservations },
       { href: "/kueche", label: "Küchenbildschirm", external: true },
       { href: "/lieferung", label: "Lieferungen (Fahrer)", external: true },
     ],
@@ -57,17 +57,17 @@ const isActive = (path: string, href: string) =>
 function Nav({ path, pulse, onNavigate }: { path: string; pulse: Pulse | null; onNavigate?: () => void }) {
   return (
     <nav aria-label="Verwaltung" className="space-y-6">
-      {NAV.map((g) => (
-        <div key={g.title}>
-          <p className="px-3 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-cream/40">{g.title}</p>
+      {NAV.map((group) => (
+        <div key={group.title}>
+          <p className="px-3 text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-cream/40">{group.title}</p>
           <ul className="mt-2 space-y-0.5">
-            {g.items.map((it) => {
-              const on = isActive(path, it.href);
-              const n = pulse && it.badge ? it.badge(pulse) : 0;
+            {group.items.map((item) => {
+              const on = isActive(path, item.href);
+              const count = pulse && item.badge ? item.badge(pulse) : 0;
               return (
-                <li key={it.href}>
+                <li key={item.href}>
                   <Link
-                    href={it.href}
+                    href={item.href}
                     onClick={onNavigate}
                     aria-current={on ? "page" : undefined}
                     className={`flex items-center justify-between rounded-md px-3 py-2 text-[0.92rem] transition-colors ${
@@ -77,12 +77,12 @@ function Nav({ path, pulse, onNavigate }: { path: string; pulse: Pulse | null; o
                     }`}
                   >
                     <span>
-                      {it.label}
-                      {it.external && <span className="ml-1.5 text-xs text-cream/35">↗</span>}
+                      {item.label}
+                      {item.external && <span className="ml-1.5 text-xs text-cream/35">↗</span>}
                     </span>
-                    {n > 0 && (
+                    {count > 0 && (
                       <span className="min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-semibold tabular-nums text-ink">
-                        {n}
+                        {count}
                       </span>
                     )}
                   </Link>
@@ -163,7 +163,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         {brand}
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setOpen((wasOpen) => !wasOpen)}
           aria-expanded={open}
           aria-controls="admin-menu"
           className="mr-2 flex items-center gap-2 rounded-full border border-cream/20 px-4 py-2 text-sm font-semibold text-cream"

@@ -36,7 +36,7 @@ async function Team() {
       </section>
 
       {(["owner", "kitchen", "driver"] as const).map((role) => {
-        const people = staff.filter((s) => s.role === role);
+        const people = staff.filter((member) => member.role === role);
         return (
           <section key={role} className="mt-12">
             <h2 className="font-display text-2xl font-semibold text-gold-soft">
@@ -47,30 +47,30 @@ async function Team() {
               <p className="mt-4 text-cream/55">Noch niemand.</p>
             ) : (
               <ul className="mt-4 divide-y divide-gold/10 border-y border-gold/10">
-                {people.map((p) => (
-                  <li key={p.id} className="py-4">
+                {people.map((person) => (
+                  <li key={person.id} className="py-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-cream">
-                        <strong className="font-semibold">{p.name}</strong>{" "}
-                        <span className="text-cream/60">· {p.email}</span>
-                        {p.phone && <span className="text-cream/60"> · {p.phone}</span>}
-                        {p.id === me.id && (
+                        <strong className="font-semibold">{person.name}</strong>{" "}
+                        <span className="text-cream/60">· {person.email}</span>
+                        {person.phone && <span className="text-cream/60"> · {person.phone}</span>}
+                        {person.id === me.id && (
                           <span className="ml-2 text-xs uppercase tracking-[0.2em] text-gold">Du</span>
                         )}
                       </p>
-                      {p.id !== me.id && (
+                      {person.id !== me.id && (
                         <form action={changeRole} className="flex flex-wrap items-center gap-2">
-                          <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="id" value={person.id} />
                           {(["owner", "kitchen", "driver"] as const)
-                            .filter((r) => r !== role)
-                            .map((r) => (
+                            .filter((option) => option !== role)
+                            .map((option) => (
                               <button
-                                key={r}
+                                key={option}
                                 name="role"
-                                value={r}
+                                value={option}
                                 className="rounded-full border border-cream/30 px-3 py-1 text-xs font-semibold text-cream hover:border-gold"
                               >
-                                → {ROLE_LABEL[r]}
+                                → {ROLE_LABEL[option]}
                               </button>
                             ))}
                           <button
@@ -83,10 +83,10 @@ async function Team() {
                         </form>
                       )}
                     </div>
-                    {p.id !== me.id && (
+                    {person.id !== me.id && (
                       <details className="mt-2 text-sm">
                         <summary className="cursor-pointer text-cream/55 hover:text-cream">Passwort neu setzen</summary>
-                        <ResetPasswordForm id={p.id} />
+                        <ResetPasswordForm id={person.id} />
                       </details>
                     )}
                   </li>

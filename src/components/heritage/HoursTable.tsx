@@ -22,7 +22,7 @@ export default function HoursTable() {
   const closures = useClosures().slice(0, 3);
   const rows = groupedHours(week);
   const label = (days: number[]) => {
-    const names = days.map((d) => t.daysShort[d]);
+    const names = days.map((day) => t.daysShort[day]);
     // three or more consecutive days read as a range
     return names.length >= 3 ? `${names[0]}-${names[names.length - 1]}` : names.join(", ");
   };
@@ -30,15 +30,17 @@ export default function HoursTable() {
   return (
     <div>
       <dl className="space-y-1">
-        {rows.map((r) => {
-          const today = now && r.days.includes(now.day);
+        {rows.map((row) => {
+          const today = now && row.days.includes(now.day);
           return (
             <div
-              key={r.days.join()}
+              key={row.days.join()}
               className={`flex justify-between gap-6 font-display text-lg md:text-xl ${today ? "text-gold-soft" : "text-cream/85"}`}
             >
-              <dt>{label(r.days)}</dt>
-              <dd className="tabular-nums">{r.hours ? `${t.clock(r.hours.open)} - ${t.clock(r.hours.close)}` : "-"}</dd>
+              <dt>{label(row.days)}</dt>
+              <dd className="tabular-nums">
+                {row.hours ? `${t.clock(row.hours.open)} - ${t.clock(row.hours.close)}` : "-"}
+              </dd>
             </div>
           );
         })}
@@ -56,16 +58,16 @@ export default function HoursTable() {
           </>
         )}
       </p>
-      {closures.map((c) => (
-        <p key={c.date} className="mt-1 text-sm text-[#f0a080]">
+      {closures.map((closure) => (
+        <p key={closure.date} className="mt-1 text-sm text-[#f0a080]">
           {t.visit.closedOn(
-            new Date(`${c.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
+            new Date(`${closure.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
               weekday: "short",
               day: "numeric",
               month: "long",
               timeZone: "UTC",
             }),
-            c.note,
+            closure.note,
           )}
         </p>
       ))}

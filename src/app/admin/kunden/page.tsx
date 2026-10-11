@@ -21,9 +21,9 @@ async function List({ searchParams }: { searchParams: Params }) {
   await connection();
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const p = await searchParams;
-  const q = typeof p.q === "string" ? p.q.slice(0, 80) : "";
-  const all = await listCustomers(q);
+  const params = await searchParams;
+  const search = typeof params.q === "string" ? params.q.slice(0, 80) : "";
+  const all = await listCustomers(search);
   const shown = all.slice(0, 200);
 
   return (
@@ -33,7 +33,7 @@ async function List({ searchParams }: { searchParams: Params }) {
           Suche nach Name, E-Mail oder Telefon
           <input
             name="q"
-            defaultValue={q}
+            defaultValue={search}
             placeholder="z. B. Müller, 0176…"
             className="w-72 border-0 border-b border-gold/30 bg-transparent pb-1 text-base text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none"
           />
@@ -41,7 +41,7 @@ async function List({ searchParams }: { searchParams: Params }) {
         <button className="rounded-full border border-cream/25 px-4 py-1.5 text-sm text-cream hover:border-gold">
           Suchen
         </button>
-        {q && (
+        {search && (
           <Link href="/admin/kunden" className="text-sm text-cream/55 underline underline-offset-4">
             Alle zeigen
           </Link>
@@ -69,32 +69,32 @@ async function List({ searchParams }: { searchParams: Params }) {
               </tr>
             </thead>
             <tbody>
-              {shown.map((c) => (
-                <tr key={c.key} className="border-b border-cream/[0.07] hover:bg-gold/[0.04]">
+              {shown.map((customer) => (
+                <tr key={customer.key} className="border-b border-cream/[0.07] hover:bg-gold/[0.04]">
                   <td className="py-2.5 pr-4">
                     <Link
-                      href={`/admin/kunden/${encodeKey(c.key)}`}
+                      href={`/admin/kunden/${encodeKey(customer.key)}`}
                       className="font-semibold text-cream underline decoration-gold/30 underline-offset-4 hover:decoration-gold"
                     >
-                      {c.name || "Ohne Namen"}
+                      {customer.name || "Ohne Namen"}
                     </Link>
                     <span className="ml-2 inline-flex gap-1.5 align-middle">
-                      {c.hasAccount && (
+                      {customer.hasAccount && (
                         <span className="rounded-full border border-cream/20 px-2 text-[0.65rem] text-cream/60">
                           Konto
                         </span>
                       )}
-                      {c.blocked && (
+                      {customer.blocked && (
                         <span className="rounded-full border border-[#f0a080]/70 px-2 text-[0.65rem] text-[#f0a080]">
                           gesperrt
                         </span>
                       )}
-                      {c.rejected > 0 && (
+                      {customer.rejected > 0 && (
                         <span className="rounded-full border border-[#f0a080]/40 px-2 text-[0.65rem] text-[#f0a080]/90">
-                          {c.rejected}× abgelehnt
+                          {customer.rejected}× abgelehnt
                         </span>
                       )}
-                      {c.note && (
+                      {customer.note && (
                         <span className="rounded-full border border-gold/40 px-2 text-[0.65rem] text-gold-soft">
                           Notiz
                         </span>
@@ -102,15 +102,15 @@ async function List({ searchParams }: { searchParams: Params }) {
                     </span>
                   </td>
                   <td className="py-2.5 pr-4 text-cream/65">
-                    {c.email || "–"}
-                    {c.phone && <span className="block text-xs text-cream/45">{c.phone}</span>}
+                    {customer.email || "–"}
+                    {customer.phone && <span className="block text-xs text-cream/45">{customer.phone}</span>}
                   </td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-cream">{c.completed}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-cream">{customer.completed}</td>
                   <td className="py-2.5 pr-4 text-right tabular-nums text-cream">
-                    {c.revenue ? euro(c.revenue) : "–"}
+                    {customer.revenue ? euro(customer.revenue) : "–"}
                   </td>
-                  <td className="py-2.5 pr-4 text-right tabular-nums text-cream">{c.bookings.length || "–"}</td>
-                  <td className="py-2.5 text-right tabular-nums text-cream/60">{day(c.lastSeen)}</td>
+                  <td className="py-2.5 pr-4 text-right tabular-nums text-cream">{customer.bookings.length || "–"}</td>
+                  <td className="py-2.5 text-right tabular-nums text-cream/60">{day(customer.lastSeen)}</td>
                 </tr>
               ))}
             </tbody>

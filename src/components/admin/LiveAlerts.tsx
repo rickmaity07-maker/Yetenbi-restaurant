@@ -58,7 +58,13 @@ function chime(ctx: AudioContext) {
   });
 }
 
-export default function LiveAlerts({ mode, onPulse }: { mode: "owner" | "kitchen"; onPulse?: (p: Pulse) => void }) {
+export default function LiveAlerts({
+  mode,
+  onPulse,
+}: {
+  mode: "owner" | "kitchen";
+  onPulse?: (latest: Pulse) => void;
+}) {
   const router = useRouter();
   const [allowed, setAllowed] = useState(true);
   const [sound, setSound] = useState(false);
@@ -111,32 +117,32 @@ export default function LiveAlerts({ mode, onPulse }: { mode: "owner" | "kitchen
           setAllowed(false);
           return;
         }
-        const p = (await res.json()) as Pulse;
+        const latest = (await res.json()) as Pulse;
         if (stop) return;
         const was = prev.current;
         if (was) {
           let changed = false;
-          if (mode === "owner" && p.lastOrderId > was.lastOrderId && p.newOrders > 0) {
-            alert("Neue Bestellung", `${p.newOrders} warten auf Annahme`);
+          if (mode === "owner" && latest.lastOrderId > was.lastOrderId && latest.newOrders > 0) {
+            alert("Neue Bestellung", `${latest.newOrders} warten auf Annahme`);
             changed = true;
           }
           if (
             mode === "owner" &&
-            p.lastReservationId > was.lastReservationId &&
-            p.pendingReservations > was.pendingReservations
+            latest.lastReservationId > was.lastReservationId &&
+            latest.pendingReservations > was.pendingReservations
           ) {
-            alert("Neue Reservierungsanfrage", `${p.pendingReservations} offen`);
+            alert("Neue Reservierungsanfrage", `${latest.pendingReservations} offen`);
             changed = true;
           }
-          if (mode === "kitchen" && p.lastAccepted > was.lastAccepted) {
-            alert("Neue Bestellung für die Küche", `${p.kitchenQueue} in Arbeit`);
+          if (mode === "kitchen" && latest.lastAccepted > was.lastAccepted) {
+            alert("Neue Bestellung für die Küche", `${latest.kitchenQueue} in Arbeit`);
             changed = true;
           }
           if (changed) router.refresh();
         }
-        prev.current = p;
-        onPulse?.(p);
-        count.current = mode === "owner" ? p.newOrders + p.pendingReservations : p.kitchenQueue;
+        prev.current = latest;
+        onPulse?.(latest);
+        count.current = mode === "owner" ? latest.newOrders + latest.pendingReservations : latest.kitchenQueue;
         applyTitle(count.current);
       } catch {
         // offline for a moment: try again on the next tick

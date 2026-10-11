@@ -31,7 +31,7 @@ async function Editor() {
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
   const menu = await readMenu();
-  const categories = menu.map((c) => ({ id: c.id, title: c.title.de, drinks: c.drinks }));
+  const categories = menu.map((category) => ({ id: category.id, title: category.title.de, drinks: category.drinks }));
   return (
     <>
       <div className="mt-8 max-w-3xl space-y-3 text-sm leading-relaxed text-cream/70">
@@ -53,26 +53,26 @@ async function Editor() {
       </div>
 
       <div className="mt-10 space-y-10">
-        {menu.map((c, ci) => (
-          <section key={c.id} className="border border-gold/20 bg-ink/40 p-5 md:p-7">
+        {menu.map((category, ci) => (
+          <section key={category.id} className="border border-gold/20 bg-ink/40 p-5 md:p-7">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-2xl font-semibold text-gold-soft">
-                {c.title.de} <span className="text-base text-cream/45">({c.items.length})</span>
-                {c.drinks && (
+                {category.title.de} <span className="text-base text-cream/45">({category.items.length})</span>
+                {category.drinks && (
                   <span className="ml-3 align-middle text-xs uppercase tracking-[0.2em] text-cream/50">Getränke</span>
                 )}
               </h2>
-              <Move kind="category" id={c.id} first={ci === 0} last={ci === menu.length - 1} />
+              <Move kind="category" id={category.id} first={ci === 0} last={ci === menu.length - 1} />
             </div>
             <details className="mt-3">
               <summary className="cursor-pointer text-sm text-cream/60 hover:text-cream">Kategorie bearbeiten</summary>
               <div className="mt-4">
-                <CategoryForm category={c} />
+                <CategoryForm category={category} />
               </div>
             </details>
 
             <ul className="mt-5 divide-y divide-gold/10 border-y border-gold/10">
-              {c.items.map((d, di) => (
+              {category.items.map((d, di) => (
                 <li key={d.id} className="py-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className={d.available ? "text-cream" : "text-cream/45 line-through"}>
@@ -97,13 +97,13 @@ async function Editor() {
                           {d.available ? "Ausverkauft" : "Wieder verfügbar"}
                         </button>
                       </form>
-                      <Move kind="item" id={d.id} first={di === 0} last={di === c.items.length - 1} />
+                      <Move kind="item" id={d.id} first={di === 0} last={di === category.items.length - 1} />
                     </div>
                   </div>
                   <details className="mt-2">
                     <summary className="cursor-pointer text-xs text-cream/55 hover:text-cream">Bearbeiten</summary>
                     <div className="mt-4">
-                      <DishForm dish={d} categories={categories} categoryId={c.id} />
+                      <DishForm dish={d} categories={categories} categoryId={category.id} />
                     </div>
                   </details>
                 </li>
@@ -112,10 +112,10 @@ async function Editor() {
 
             <details className="mt-4">
               <summary className="cursor-pointer text-sm font-semibold text-gold-soft hover:text-gold">
-                + Gericht in „{c.title.de}“ hinzufügen
+                + Gericht in „{category.title.de}“ hinzufügen
               </summary>
               <div className="mt-4">
-                <DishForm categories={categories} categoryId={c.id} />
+                <DishForm categories={categories} categoryId={category.id} />
               </div>
             </details>
           </section>

@@ -34,8 +34,8 @@ export function DrinkFacts({ dish }: { dish: Dish }) {
 export function AllergenFacts({ dish, className = "" }: { dish: Dish; className?: string }) {
   const { t, locale } = useLanguage();
   if (!dish.allergens.length && !dish.additives.length) return null;
-  const name = (code: string) => ALLERGENS.find((a) => a.code === code)?.label[locale] ?? code;
-  const add = (code: number) => ADDITIVES.find((a) => a.code === code)?.label[locale] ?? String(code);
+  const name = (code: string) => ALLERGENS.find((entry) => entry.code === code)?.label[locale] ?? code;
+  const add = (code: number) => ADDITIVES.find((entry) => entry.code === code)?.label[locale] ?? String(code);
   return (
     <p className={`text-xs text-cream/55 ${className}`}>
       {dish.allergens.length > 0 && (
@@ -58,7 +58,7 @@ export function AllergenFacts({ dish, className = "" }: { dish: Dish; className?
 /** The dish's tags in the visitor's language, including the gluten wording. */
 export function useTagLabels(dish: Dish) {
   const { t } = useLanguage();
-  return tagsOf(dish).map((g) => t.tags[g]);
+  return tagsOf(dish).map((tag) => t.tags[tag]);
 }
 
 /** What the letters and numbers mean. */
@@ -71,18 +71,18 @@ export function FactsLegend({ className = "" }: { className?: string }) {
       </summary>
       <div className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
         <ul className="space-y-0.5">
-          {ALLERGENS.map((a) => (
-            <li key={a.code}>
-              <span className="mr-2 font-semibold text-gold-soft">{a.code}</span>
-              {a.label[locale]}
+          {ALLERGENS.map((entry) => (
+            <li key={entry.code}>
+              <span className="mr-2 font-semibold text-gold-soft">{entry.code}</span>
+              {entry.label[locale]}
             </li>
           ))}
         </ul>
         <ul className="space-y-0.5">
-          {ADDITIVES.map((a) => (
-            <li key={a.code}>
-              <span className="mr-2 font-semibold text-gold-soft">{a.code}</span>
-              {a.label[locale]}
+          {ADDITIVES.map((entry) => (
+            <li key={entry.code}>
+              <span className="mr-2 font-semibold text-gold-soft">{entry.code}</span>
+              {entry.label[locale]}
             </li>
           ))}
         </ul>

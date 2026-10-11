@@ -115,7 +115,7 @@ export function CategoryForm({ category }: { category?: MenuCategory }) {
         <form
           action={delAction}
           className="flex flex-wrap items-center gap-4"
-          onSubmit={(e) => !confirm(`Kategorie „${category.title.de}“ löschen?`) && e.preventDefault()}
+          onSubmit={(event) => !confirm(`Kategorie „${category.title.de}“ löschen?`) && event.preventDefault()}
         >
           <input type="hidden" name="id" value={category.id} />
           <button
@@ -144,7 +144,7 @@ export function DishForm({
 }) {
   const [state, action, pending] = useActionState(saveDish, null);
   const [delState, delAction, deleting] = useActionState(removeDish, null);
-  const drinks = categories.find((c) => c.id === (dish?.categoryId ?? categoryId))?.drinks ?? false;
+  const drinks = categories.find((category) => category.id === (dish?.categoryId ?? categoryId))?.drinks ?? false;
   return (
     <div className="space-y-4">
       <form action={action} className="space-y-5">
@@ -169,9 +169,9 @@ export function DishForm({
           <label className="flex flex-col gap-1">
             <span className={label}>Kategorie</span>
             <select name="categoryId" defaultValue={dish?.categoryId ?? categoryId} className={field}>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id} className="bg-coal">
-                  {c.title}
+              {categories.map((category) => (
+                <option key={category.id} value={category.id} className="bg-coal">
+                  {category.title}
                 </option>
               ))}
             </select>
@@ -203,16 +203,16 @@ export function DishForm({
         <fieldset>
           <legend className={`${label} mb-1.5`}>Merkmale</legend>
           <div className="flex flex-wrap gap-1.5">
-            {DISH_TAGS.map((t) => (
-              <label key={t} className={chip}>
+            {DISH_TAGS.map((tag) => (
+              <label key={tag} className={chip}>
                 <input
                   type="checkbox"
                   name="tags"
-                  value={t}
-                  defaultChecked={dish?.tags.includes(t)}
+                  value={tag}
+                  defaultChecked={dish?.tags.includes(tag)}
                   className="accent-[#c9a24a]"
                 />{" "}
-                {TAG_LABEL[t]}
+                {TAG_LABEL[tag]}
               </label>
             ))}
           </div>
@@ -238,16 +238,16 @@ export function DishForm({
         <fieldset>
           <legend className={`${label} mb-1.5`}>Allergene</legend>
           <div className="flex flex-wrap gap-1.5">
-            {ALLERGENS.map((a) => (
-              <label key={a.code} className={chip}>
+            {ALLERGENS.map((entry) => (
+              <label key={entry.code} className={chip}>
                 <input
                   type="checkbox"
                   name="allergens"
-                  value={a.code}
-                  defaultChecked={dish?.allergens.includes(a.code)}
+                  value={entry.code}
+                  defaultChecked={dish?.allergens.includes(entry.code)}
                   className="accent-[#c9a24a]"
                 />
-                <span className="font-semibold">{a.code}</span> {a.label.de}
+                <span className="font-semibold">{entry.code}</span> {entry.label.de}
               </label>
             ))}
           </div>
@@ -255,16 +255,16 @@ export function DishForm({
         <fieldset>
           <legend className={`${label} mb-1.5`}>Zusatzstoffe</legend>
           <div className="flex flex-wrap gap-1.5">
-            {ADDITIVES.map((a) => (
-              <label key={a.code} className={chip}>
+            {ADDITIVES.map((entry) => (
+              <label key={entry.code} className={chip}>
                 <input
                   type="checkbox"
                   name="additives"
-                  value={a.code}
-                  defaultChecked={dish?.additives.includes(a.code)}
+                  value={entry.code}
+                  defaultChecked={dish?.additives.includes(entry.code)}
                   className="accent-[#c9a24a]"
                 />
-                <span className="font-semibold">{a.code}</span> {a.label.de}
+                <span className="font-semibold">{entry.code}</span> {entry.label.de}
               </label>
             ))}
           </div>
@@ -303,7 +303,7 @@ export function DishForm({
         <form
           action={delAction}
           className="flex flex-wrap items-center gap-4"
-          onSubmit={(e) => !confirm(`„${dish.name.de}“ von der Speisekarte löschen?`) && e.preventDefault()}
+          onSubmit={(event) => !confirm(`„${dish.name.de}“ von der Speisekarte löschen?`) && event.preventDefault()}
         >
           <input type="hidden" name="id" value={dish.id} />
           <button

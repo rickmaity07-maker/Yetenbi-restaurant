@@ -35,8 +35,8 @@ async function Log({ searchParams }: { searchParams: Params }) {
   await connection();
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const p = await searchParams;
-  const one = (k: string) => (typeof p[k] === "string" ? (p[k] as string).slice(0, 80) : "");
+  const params = await searchParams;
+  const one = (k: string) => (typeof params[k] === "string" ? (params[k] as string).slice(0, 80) : "");
   const filter = { area: AREAS[one("bereich")] ? one("bereich") : "", actor: one("wer"), q: one("q") };
   const [entries, actors] = await Promise.all([listAudit({ ...filter, limit: 300 }), auditActors()]);
 
@@ -62,9 +62,9 @@ async function Log({ searchParams }: { searchParams: Params }) {
             <option value="" className="bg-coal">
               Alle
             </option>
-            {actors.map((a) => (
-              <option key={a} value={a} className="bg-coal">
-                {a}
+            {actors.map((actor) => (
+              <option key={actor} value={actor} className="bg-coal">
+                {actor}
               </option>
             ))}
           </select>
@@ -101,18 +101,20 @@ async function Log({ searchParams }: { searchParams: Params }) {
               </tr>
             </thead>
             <tbody>
-              {entries.map((e) => (
-                <tr key={e.id} className="border-b border-cream/[0.07] align-top">
-                  <td className="whitespace-nowrap py-2 pr-4 tabular-nums text-cream/60">{when(e.at)}</td>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="border-b border-cream/[0.07] align-top">
+                  <td className="whitespace-nowrap py-2 pr-4 tabular-nums text-cream/60">{when(entry.at)}</td>
                   <td className="py-2 pr-4 text-cream">
-                    {e.actor}
-                    {e.role && (
-                      <span className="block text-xs text-cream/45">{ROLE_LABEL[e.role as Role] ?? e.role}</span>
+                    {entry.actor}
+                    {entry.role && (
+                      <span className="block text-xs text-cream/45">
+                        {ROLE_LABEL[entry.role as Role] ?? entry.role}
+                      </span>
                     )}
                   </td>
-                  <td className="py-2 pr-4 text-cream/70">{AREAS[e.area] ?? e.area}</td>
-                  <td className="py-2 pr-4 text-cream">{e.action}</td>
-                  <td className="py-2 text-cream/70">{e.target}</td>
+                  <td className="py-2 pr-4 text-cream/70">{AREAS[entry.area] ?? entry.area}</td>
+                  <td className="py-2 pr-4 text-cream">{entry.action}</td>
+                  <td className="py-2 text-cream/70">{entry.target}</td>
                 </tr>
               ))}
             </tbody>

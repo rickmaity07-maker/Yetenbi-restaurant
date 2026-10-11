@@ -35,9 +35,10 @@ export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
 
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const prev = scrollY.getPrevious() ?? 0;
-    setHidden(y > prev && y > 500 && !open);
+  // Hide the bar while scrolling down (past the first screen), show it again when scrolling up.
+  useMotionValueEvent(scrollY, "change", (current) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    setHidden(current > previous && current > 500 && !open);
   });
 
   return (
@@ -58,13 +59,13 @@ export default function Header() {
           </a>
 
           <ul className="hidden items-center gap-1 lg:flex">
-            {links.map((l) => (
-              <li key={l.href}>
+            {links.map((link) => (
+              <li key={link.href}>
                 <a
-                  href={l.href}
+                  href={link.href}
                   className="rounded-full px-4 py-2 text-[0.85rem] text-cream/80 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-cream/[0.06] hover:text-cream"
                 >
-                  {l.label}
+                  {link.label}
                 </a>
               </li>
             ))}
@@ -108,7 +109,7 @@ export default function Header() {
             className="relative h-10 w-10 shrink-0 rounded-full bg-cream/[0.06] lg:hidden"
             aria-label={open ? t.nav.close : t.nav.open}
             aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen((wasOpen) => !wasOpen)}
           >
             <span
               className={`absolute left-3 right-3 h-px bg-cream transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
@@ -134,18 +135,18 @@ export default function Header() {
             transition={{ duration: 0.5, ease: spring }}
           >
             <ul className="space-y-1">
-              {links.map((l, i) => (
-                <li key={l.href} className="overflow-hidden">
+              {links.map((link, index) => (
+                <li key={link.href} className="overflow-hidden">
                   <motion.a
-                    href={l.href}
+                    href={link.href}
                     onClick={() => setOpen(false)}
                     className="block py-2 font-display text-5xl text-cream"
                     initial={{ y: "100%" }}
                     animate={{ y: "0%" }}
                     exit={{ y: "100%" }}
-                    transition={{ duration: 0.7, ease: spring, delay: 0.08 + i * 0.05 }}
+                    transition={{ duration: 0.7, ease: spring, delay: 0.08 + index * 0.05 }}
                   >
-                    {l.label}
+                    {link.label}
                   </motion.a>
                 </li>
               ))}

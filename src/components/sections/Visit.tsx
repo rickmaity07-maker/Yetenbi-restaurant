@@ -54,16 +54,16 @@ export default function Visit() {
                     <HoursTable />
                   </dd>
                 </Rise>
-                {rows.map((r, i) => (
-                  <Rise key={r.term} delay={i * 0.08}>
-                    <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{r.term}</dt>
+                {rows.map((row, index) => (
+                  <Rise key={row.term} delay={index * 0.08}>
+                    <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{row.term}</dt>
                     <dd className="mt-1 font-display text-xl text-cream md:text-2xl">
-                      {r.href ? (
-                        <a href={r.href} className="transition-colors duration-500 hover:text-gold-soft">
-                          {r.value}
+                      {row.href ? (
+                        <a href={row.href} className="transition-colors duration-500 hover:text-gold-soft">
+                          {row.value}
                         </a>
                       ) : (
-                        r.value
+                        row.value
                       )}
                     </dd>
                   </Rise>

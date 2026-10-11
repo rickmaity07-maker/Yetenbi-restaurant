@@ -22,23 +22,23 @@ async function ProfileData() {
   return (
     <ProfileView
       user={{ name: user.name, email: user.email, phone: user.phone, role: user.role, locale: user.locale }}
-      bookings={bookings.map((b) => ({
-        id: b.id,
-        reference: b.reference,
-        date: b.date,
-        time: b.time,
-        guests: b.guests,
-        status: b.status,
+      bookings={bookings.map((booking) => ({
+        id: booking.id,
+        reference: booking.reference,
+        date: booking.date,
+        time: booking.time,
+        guests: booking.guests,
+        status: booking.status,
       }))}
       today={todayISO()}
       hasPassword={hash !== "none"}
-      orders={orders.map((o) => ({
-        reference: o.reference,
-        status: o.status,
-        total: o.total,
-        createdAt: o.createdAt,
-        method: o.method,
-        url: `/bestellung?r=${o.reference}&t=${o.statusToken}`,
+      orders={orders.map((order) => ({
+        reference: order.reference,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        method: order.method,
+        url: `/bestellung?r=${order.reference}&t=${order.statusToken}`,
       }))}
     />
   );
