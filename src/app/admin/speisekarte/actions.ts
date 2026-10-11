@@ -22,28 +22,40 @@ import {
 
 export type MenuState = { ok?: string; error?: string } | null;
 
-const CODES = new Set(ALLERGENS.map((a) => a.code));
-const NUMBERS = new Set(ADDITIVES.map((a) => a.code));
-const CLAIMS: GlutenClaim[] = ["free", "noGluten", "none"];
+const ALLERGEN_CODES = new Set(ALLERGENS.map((allergen) => allergen.code));
+const ADDITIVE_NUMBERS = new Set(ADDITIVES.map((additive) => additive.code));
+const GLUTEN_CLAIMS: GlutenClaim[] = ["free", "noGluten", "none"];
 
-const str = (form: FormData, key: string, max: number) =>
-  String(form.get(key) ?? "")
+function readText(form: FormData, key: string, maxLength: number) {
+  return String(form.get(key) ?? "")
     .trim()
-    .slice(0, max);
-const num = (form: FormData, key: string) => {
+    .slice(0, maxLength);
+}
+
+/** A number typed with a comma or a dot. Empty → null, invalid or negative → NaN. */
+function readNumber(form: FormData, key: string) {
   const raw = String(form.get(key) ?? "")
     .replace(",", ".")
     .trim();
   if (!raw) return null;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : NaN;
-};
-/** German is required; English and Amharic fall back to it when left empty. */
-const text = (form: FormData, key: string, max: number): L | null => {
-  const de = str(form, `${key}_de`, max);
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : NaN;
+}
+
+/** A text in three languages. German is required; English and Amharic fall back to it when left empty. */
+function readTranslated(form: FormData, key: string, maxLength: number): L | null {
+  const de = readText(form, `${key}_de`, maxLength);
   if (!de) return null;
-  return { de, en: str(form, `${key}_en`, max) || de, am: str(form, `${key}_am`, max) || de };
-};
+  return {
+    de,
+    en: readText(form, `${key}_en`, maxLength) || de,
+    am: readText(form, `${key}_am`, maxLength) || de,
+  };
+}
+
+async function findDish(id: string) {
+  return (await readMenu()).flatMap((category) => category.items).find((dish) => dish.id === id);
+}
 
 function refresh() {
   updateTag("menu");
@@ -54,10 +66,10 @@ function refresh() {
 
 export async function saveCategory(_: MenuState, form: FormData): Promise<MenuState> {
   const me = await requireOwner();
-  const id = str(form, "id", 60);
-  const title = text(form, "title", 60);
+  const id = readText(form, "id", 60);
+  const title = readTranslated(form, "title", 60);
   if (!title || title.de.length < 2) return { error: "Bitte einen Namen (Deutsch) eingeben." };
-  const data = { title, note: text(form, "note", 400), drinks: form.get("drinks") === "on" };
+  const data = { title, note: readTranslated(form, "note", 400), drinks: form.get("drinks") === "on" };
   if (id) await updateCategory(id, data);
   else await createCategory(data);
   await audit(me, "menu", id ? "Kategorie geändert" : "Kategorie angelegt", title.de);
@@ -67,7 +79,7 @@ export async function saveCategory(_: MenuState, form: FormData): Promise<MenuSt
 
 export async function removeCategory(_: MenuState, form: FormData): Promise<MenuState> {
   const me = await requireOwner();
-  const catId = str(form, "id", 60);
+  const catId = readText(form, "id", 60);
   if (!(await deleteCategory(catId)))
     return { error: "Nur leere Kategorien können gelöscht werden. Erst die Gerichte löschen oder verschieben." };
   await audit(me, "menu", "Kategorie gelöscht", catId);
@@ -79,67 +91,63 @@ export async function removeCategory(_: MenuState, form: FormData): Promise<Menu
 
 export async function saveDish(_: MenuState, form: FormData): Promise<MenuState> {
   const me = await requireOwner();
-  const id = str(form, "id", 60);
-  const categoryId = str(form, "categoryId", 60);
-  const category = (await readMenu()).find((c) => c.id === categoryId);
+  const id = readText(form, "id", 60);
+  const categoryId = readText(form, "categoryId", 60);
+  const category = (await readMenu()).find((candidate) => candidate.id === categoryId);
   if (!category) return { error: "Bitte eine Kategorie wählen." };
-  const name = text(form, "name", 80);
+  const name = readTranslated(form, "name", 80);
   if (!name || name.de.length < 2) return { error: "Bitte einen Namen (Deutsch) eingeben." };
-  const price = num(form, "price");
+  const price = readNumber(form, "price");
   if (price === null || Number.isNaN(price) || price > 999)
     return { error: "Bitte einen Preis in Euro eingeben, z. B. 12,50." };
-  const volume = num(form, "volume");
-  const deposit = num(form, "deposit");
+  const volume = readNumber(form, "volume");
+  const deposit = readNumber(form, "deposit");
   if (Number.isNaN(volume) || (volume !== null && volume > 5)) return { error: "Menge bitte in Litern, z. B. 0,33." };
   if (Number.isNaN(deposit) || (deposit !== null && deposit > 5)) return { error: "Pfand bitte in Euro, z. B. 0,25." };
 
   const dish: DishInput = {
     categoryId,
     name,
-    amharic: str(form, "amharic", 80),
-    description: text(form, "description", 400),
+    amharic: readText(form, "amharic", 80),
+    description: readTranslated(form, "description", 400),
     price: Math.round(price * 100) / 100,
     tags: form
       .getAll("tags")
       .map(String)
-      .filter((t): t is DishInput["tags"][number] => (DISH_TAGS as string[]).includes(t)),
-    gluten: CLAIMS.find((c) => c === form.get("gluten")) ?? "none",
+      .filter((tag): tag is DishInput["tags"][number] => (DISH_TAGS as string[]).includes(tag)),
+    gluten: GLUTEN_CLAIMS.find((claim) => claim === form.get("gluten")) ?? "none",
     allergens: form
       .getAll("allergens")
       .map(String)
-      .filter((c) => CODES.has(c))
+      .filter((code) => ALLERGEN_CODES.has(code))
       .sort(),
     additives: form
       .getAll("additives")
       .map(Number)
-      .filter((n) => NUMBERS.has(n))
+      .filter((number) => ADDITIVE_NUMBERS.has(number))
       .sort((a, b) => a - b),
     volume: category.drinks && volume ? Math.round(volume * 1000) / 1000 : null,
     deposit: category.drinks && deposit ? Math.round(deposit * 100) / 100 : 0,
     orderable: form.get("orderable") === "on",
     available: form.get("available") === "on",
   };
-  const before = id ? (await readMenu()).flatMap((c) => c.items).find((i) => i.id === id) : undefined;
+  const before = id ? await findDish(id) : undefined;
   if (id) await updateDish(id, dish);
   else await createDish(dish);
-  await audit(
-    me,
-    "menu",
-    id
-      ? before && before.price !== dish.price
-        ? `Preis geändert: ${before.price.toFixed(2)} → ${dish.price.toFixed(2)} €`
-        : "Gericht geändert"
-      : "Gericht angelegt",
-    dish.name.de,
-  );
+
+  let action = id ? "Gericht geändert" : "Gericht angelegt";
+  if (before && before.price !== dish.price) {
+    action = `Preis geändert: ${before.price.toFixed(2)} → ${dish.price.toFixed(2)} €`;
+  }
+  await audit(me, "menu", action, dish.name.de);
   refresh();
   return { ok: id ? "Gespeichert, auf der Website sichtbar." : "Gericht angelegt, auf der Website sichtbar." };
 }
 
 export async function removeDish(_: MenuState, form: FormData): Promise<MenuState> {
   const me = await requireOwner();
-  const dishId = str(form, "id", 60);
-  const gone = (await readMenu()).flatMap((c) => c.items).find((i) => i.id === dishId);
+  const dishId = readText(form, "id", 60);
+  const gone = await findDish(dishId);
   await deleteDish(dishId);
   await audit(me, "menu", "Gericht gelöscht", gone?.name.de ?? dishId);
   refresh();
@@ -149,17 +157,17 @@ export async function removeDish(_: MenuState, form: FormData): Promise<MenuStat
 /** Quick switch: sold out today / available again. */
 export async function toggleAvailable(form: FormData) {
   const me = await requireOwner();
-  const dishId = str(form, "id", 60);
+  const dishId = readText(form, "id", 60);
   const available = form.get("available") === "true";
   await setAvailable(dishId, available);
-  const d = (await readMenu()).flatMap((c) => c.items).find((i) => i.id === dishId);
-  await audit(me, "menu", available ? "Wieder verfügbar" : "Ausverkauft gemeldet", d?.name.de ?? dishId);
+  const dish = await findDish(dishId);
+  await audit(me, "menu", available ? "Wieder verfügbar" : "Ausverkauft gemeldet", dish?.name.de ?? dishId);
   refresh();
 }
 
 export async function moveEntry(form: FormData) {
   await requireOwner();
   const kind = form.get("kind") === "category" ? "category" : "item";
-  await move(kind, str(form, "id", 60), form.get("dir") === "up" ? -1 : 1);
+  await move(kind, readText(form, "id", 60), form.get("dir") === "up" ? -1 : 1);
   refresh();
 }

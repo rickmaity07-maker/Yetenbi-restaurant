@@ -12,9 +12,9 @@ type Row = Record<string, unknown>;
 const customerKey = (email: string, phone: string) =>
   email.trim() ? email.trim().toLowerCase() : `tel:${phoneKey(phone)}`;
 export const encodeKey = (key: string) => Buffer.from(key).toString("base64url");
-export const decodeKey = (v: string) => {
+export const decodeKey = (encoded: string) => {
   try {
-    return Buffer.from(v, "base64url").toString("utf8");
+    return Buffer.from(encoded, "base64url").toString("utf8");
   } catch {
     return "";
   }
@@ -46,8 +46,9 @@ type Customer = {
   note: string;
 };
 
+/** Builds the guest list from everything stored: orders, bookings, guest accounts, team notes and blocks. */
 async function load() {
-  const [orders, bookings, users, notes, blocks] = (await Promise.all([
+  const [orderRows, bookingRows, accountRows, noteRows, blockRows] = (await Promise.all([
     db()`select reference, created_at, status, method, total, name, email, phone, phone_key from orders order by created_at desc`,
     db()`select reference, date::text, time, guests, status, source, name, email, phone, created_at from reservations order by date desc, time desc`,
     db()`select email, name, phone, created_at from users where role = 'guest'`,
@@ -55,13 +56,17 @@ async function load() {
     db()`select kind, value from order_blocks`,
   ])) as Row[][];
 
-  const map = new Map<string, Customer>();
-  const get = (key: string, name: string, email: string, phone: string, seen: string) => {
-    let c = map.get(key);
-    if (!c) {
-      c = {
+  const customers = new Map<string, Customer>();
+
+  /** The customer for this email (or phone), created on first sight. Keeps the latest activity date. */
+  function customerFor(row: Row, seenAt: string, phone = String(row.phone ?? "")) {
+    const email = String(row.email ?? "");
+    const key = customerKey(email, phone);
+    let customer = customers.get(key);
+    if (!customer) {
+      customer = {
         key,
-        name,
+        name: String(row.name),
         email,
         phone,
         hasAccount: false,
@@ -70,85 +75,82 @@ async function load() {
         revenue: 0,
         completed: 0,
         rejected: 0,
-        lastSeen: seen,
+        lastSeen: seenAt,
         blocked: false,
         note: "",
       };
-      map.set(key, c);
+      customers.set(key, customer);
     }
-    if (seen > c.lastSeen) c.lastSeen = seen;
-    if (!c.email && email) c.email = email;
-    if (!c.phone && phone) c.phone = phone;
-    return c;
-  };
+    if (seenAt > customer.lastSeen) customer.lastSeen = seenAt;
+    if (!customer.email && email) customer.email = email;
+    if (!customer.phone && phone) customer.phone = phone;
+    return customer;
+  }
 
-  for (const o of orders) {
-    const at = new Date(String(o.created_at)).toISOString();
-    const c = get(customerKey(String(o.email), String(o.phone)), String(o.name), String(o.email), String(o.phone), at);
-    c.orders.push({
-      reference: String(o.reference),
-      createdAt: at,
-      status: String(o.status),
-      method: String(o.method),
-      total: Number(o.total),
+  for (const order of orderRows) {
+    const createdAt = new Date(String(order.created_at)).toISOString();
+    const customer = customerFor(order, createdAt);
+    customer.orders.push({
+      reference: String(order.reference),
+      createdAt,
+      status: String(order.status),
+      method: String(order.method),
+      total: Number(order.total),
     });
-    if (o.status === "completed") {
-      c.completed++;
-      c.revenue += Number(o.total);
+    if (order.status === "completed") {
+      customer.completed++;
+      customer.revenue += Number(order.total);
     }
-    if (o.status === "rejected" || o.status === "cancelled") c.rejected++;
+    if (order.status === "rejected" || order.status === "cancelled") customer.rejected++;
   }
-  for (const b of bookings) {
-    const at = new Date(String(b.created_at)).toISOString();
-    const c = get(customerKey(String(b.email), String(b.phone)), String(b.name), String(b.email), String(b.phone), at);
-    c.bookings.push({
-      reference: String(b.reference),
-      date: String(b.date),
-      time: String(b.time),
-      guests: Number(b.guests),
-      status: String(b.status),
-      source: String(b.source),
+
+  for (const booking of bookingRows) {
+    const customer = customerFor(booking, new Date(String(booking.created_at)).toISOString());
+    customer.bookings.push({
+      reference: String(booking.reference),
+      date: String(booking.date),
+      time: String(booking.time),
+      guests: Number(booking.guests),
+      status: String(booking.status),
+      source: String(booking.source),
     });
   }
-  for (const u of users) {
-    const c = get(
-      customerKey(String(u.email), ""),
-      String(u.name),
-      String(u.email),
-      String(u.phone),
-      new Date(String(u.created_at)).toISOString(),
-    );
-    c.hasAccount = true;
-    if (u.name) c.name = String(u.name);
+
+  // Accounts are matched by email only; the phone number on the account is just shown.
+  for (const account of accountRows) {
+    const customer = customerFor(account, new Date(String(account.created_at)).toISOString(), "");
+    customer.hasAccount = true;
+    if (!customer.phone && account.phone) customer.phone = String(account.phone);
+    if (account.name) customer.name = String(account.name);
   }
-  const noteBy = new Map(notes.map((n) => [String(n.key), String(n.note)]));
-  const blocked = new Set(blocks.map((b) => `${b.kind}:${b.value}`));
-  for (const c of map.values()) {
-    c.note = noteBy.get(c.key) ?? "";
-    c.blocked =
-      (c.email !== "" && blocked.has(`email:${c.email.toLowerCase()}`)) ||
-      (c.phone !== "" && blocked.has(`phone:${phoneKey(c.phone)}`));
+
+  const notes = new Map(noteRows.map((note) => [String(note.key), String(note.note)]));
+  const blocked = new Set(blockRows.map((block) => `${block.kind}:${block.value}`));
+  for (const customer of customers.values()) {
+    customer.note = notes.get(customer.key) ?? "";
+    const emailBlocked = customer.email !== "" && blocked.has(`email:${customer.email.toLowerCase()}`);
+    const phoneBlocked = customer.phone !== "" && blocked.has(`phone:${phoneKey(customer.phone)}`);
+    customer.blocked = emailBlocked || phoneBlocked;
   }
-  return [...map.values()];
+
+  return [...customers.values()];
 }
 
-export async function listCustomers(q: string) {
-  const all = await load();
-  const needle = q.trim().toLowerCase();
+/** All guests, most recent first, optionally filtered by name, email or (4+ digits of the) phone number. */
+export async function listCustomers(search: string) {
+  const needle = search.trim().toLowerCase();
   const digits = needle.replace(/\D/g, "");
-  return all
-    .filter(
-      (c) =>
-        !needle ||
-        c.name.toLowerCase().includes(needle) ||
-        c.email.includes(needle) ||
-        (digits.length >= 4 && c.phone.replace(/\D/g, "").includes(digits)),
-    )
-    .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
+  const matches = (customer: Customer) =>
+    !needle ||
+    customer.name.toLowerCase().includes(needle) ||
+    customer.email.includes(needle) ||
+    (digits.length >= 4 && customer.phone.replace(/\D/g, "").includes(digits));
+
+  return (await load()).filter(matches).sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
 }
 
 export async function getCustomer(key: string) {
-  return (await load()).find((c) => c.key === key) ?? null;
+  return (await load()).find((customer) => customer.key === key) ?? null;
 }
 
 export async function saveNote(key: string, note: string, by: string) {
