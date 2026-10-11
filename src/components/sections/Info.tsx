@@ -18,18 +18,18 @@ export default function Info() {
         <Heading key={locale} title={t.info.title} em={t.info.em} size="md" />
 
         <div className="mt-14 border-t border-gold/20">
-          {facts.map((f, i) => {
-            const isOpen = open === i;
+          {facts.map((fact, index) => {
+            const isOpen = open === index;
             return (
-              <Rise key={f.term} delay={i * 0.06}>
+              <Rise key={fact.term} delay={index * 0.06}>
                 <div
                   className="group border-b border-gold/20"
-                  onMouseEnter={() => setOpen(i)}
+                  onMouseEnter={() => setOpen(index)}
                   onMouseLeave={() => setOpen(null)}
                 >
                   <button
                     type="button"
-                    onClick={() => setOpen(isOpen ? null : i)}
+                    onClick={() => setOpen(isOpen ? null : index)}
                     aria-expanded={isOpen}
                     className="grid w-full grid-cols-[1fr_auto] items-baseline gap-x-6 gap-y-1 py-7 text-left md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] md:py-9"
                   >
@@ -38,10 +38,10 @@ export default function Info() {
                         isOpen ? "text-gold-soft" : "text-cream/45"
                       }`}
                     >
-                      {f.term}
+                      {fact.term}
                     </span>
                     <span className="order-3 col-span-2 font-display text-xl italic text-cream/85 md:order-none md:col-span-1 md:text-2xl">
-                      {f.value}
+                      {fact.value}
                     </span>
                     <span
                       aria-hidden
@@ -61,7 +61,7 @@ export default function Info() {
                         transition={{ duration: 0.5, ease }}
                         className="overflow-hidden text-base leading-relaxed text-cream/72 md:ml-[calc(45%+0.75rem)] md:max-w-xl"
                       >
-                        <span className="block pb-8">{f.detail}</span>
+                        <span className="block pb-8">{fact.detail}</span>
                       </motion.p>
                     )}
                   </AnimatePresence>

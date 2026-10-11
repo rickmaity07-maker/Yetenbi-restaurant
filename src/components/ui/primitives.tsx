@@ -79,8 +79,8 @@ export function Title({
     >
       {/* read once as a sentence; the animated words are decoration (aria-label is not allowed on a plain p) */}
       <span className="sr-only">{text}</span>
-      {words.map((w, i) => (
-        <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.14em] align-bottom">
+      {words.map((word, index) => (
+        <span key={index} aria-hidden className="inline-block overflow-hidden pb-[0.14em] align-bottom">
           <motion.span
             className="inline-block"
             variants={{
@@ -88,8 +88,8 @@ export function Title({
               show: { y: "0%", rotate: 0, transition: { duration: 1.2, ease } },
             }}
           >
-            {w}
-            {i < words.length - 1 ? " " : ""}
+            {word}
+            {index < words.length - 1 ? " " : ""}
           </motion.span>
         </span>
       ))}
@@ -117,8 +117,8 @@ export function Heading({
 }) {
   const reduce = useReducedMotion();
   const words = [
-    ...title.split(" ").map((w) => ({ w, em: false })),
-    ...(em ? em.split(" ").map((w) => ({ w, em: true })) : []),
+    ...title.split(" ").map((word) => ({ word, italic: false })),
+    ...(em ? em.split(" ").map((word) => ({ word, italic: true })) : []),
   ];
   return (
     <div className={`${align === "center" ? "flex flex-col items-center text-center" : ""} ${className}`}>
@@ -133,8 +133,8 @@ export function Heading({
           align === "center" ? "justify-center" : ""
         } ${size === "lg" ? "text-[clamp(2.75rem,6vw,5.75rem)]" : "text-[clamp(2.4rem,4.6vw,4.4rem)]"}`}
       >
-        {words.map(({ w, em: italic }, i) => (
-          <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.14em]">
+        {words.map(({ word, italic }, index) => (
+          <span key={index} aria-hidden className="inline-block overflow-hidden pb-[0.14em]">
             <motion.span
               className={`inline-block ${italic ? "pr-[0.06em] font-medium italic text-gold-soft" : ""}`}
               variants={{
@@ -142,7 +142,7 @@ export function Heading({
                 show: { y: "0%", rotate: 0, transition: { duration: 1.1, ease } },
               }}
             >
-              {w}
+              {word}
             </motion.span>
           </span>
         ))}

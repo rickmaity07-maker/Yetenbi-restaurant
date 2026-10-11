@@ -24,10 +24,10 @@ function parse(text: string): Token[] {
   return text
     .split(" ")
     .filter(Boolean)
-    .map((w) => {
-      const m = w.match(/^\[(\d)\]$/);
-      if (m) return photos[Number(m[1])];
-      return w.startsWith("*") ? { word: w.slice(1), gold: true } : { word: w };
+    .map((word) => {
+      const match = word.match(/^\[(\d)\]$/);
+      if (match) return photos[Number(match[1])];
+      return word.startsWith("*") ? { word: word.slice(1), gold: true } : { word };
     });
 }
 
@@ -96,12 +96,13 @@ export default function Manifesto() {
         >
           <span className="sr-only">{plain}</span>
           <span aria-hidden>
-            {tokens.map((t, i) => {
-              const range: [number, number] = [i / tokens.length, Math.min(1, (i + 1.5) / tokens.length)];
-              return "img" in t ? (
-                <Pill key={i} token={t} range={range} progress={progress} />
+            {tokens.map((token, index) => {
+              // Each word lights up during its own stretch of the scroll.
+              const range: [number, number] = [index / tokens.length, Math.min(1, (index + 1.5) / tokens.length)];
+              return "img" in token ? (
+                <Pill key={index} token={token} range={range} progress={progress} />
               ) : (
-                <Word key={i} token={t} range={range} progress={progress} />
+                <Word key={index} token={token} range={range} progress={progress} />
               );
             })}
           </span>

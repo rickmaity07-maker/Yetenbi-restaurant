@@ -53,7 +53,7 @@ export default function Uploader({ slot, replace }: { slot: string; replace: boo
         accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif,.heic,.heif"
         className="sr-only"
         id={`file-${slot}`}
-        onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
+        onChange={(event) => event.target.files?.[0] && upload(event.target.files[0])}
         disabled={Boolean(state.busy)}
       />
       <label

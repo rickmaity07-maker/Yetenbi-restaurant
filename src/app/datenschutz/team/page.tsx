@@ -14,7 +14,7 @@ const H = ({ children }: { children: React.ReactNode }) => (
   (owners, kitchen, drivers). Linked from the kitchen and delivery screens and /admin/team.
 */
 export default async function TeamDatenschutz() {
-  const b = await getBusiness();
+  const business = await getBusiness();
   return (
     <LegalPage title="Datenschutz für das Team">
       <p>
@@ -25,9 +25,9 @@ export default async function TeamDatenschutz() {
 
       <H>1. Verantwortlich</H>
       <p>
-        Yetenbi Äthiopisches Restaurant & Café, Inhaber/in: <strong>{b.ownerName || "[wird ergänzt]"}</strong>,{" "}
+        Yetenbi Äthiopisches Restaurant & Café, Inhaber/in: <strong>{business.ownerName || "[wird ergänzt]"}</strong>,{" "}
         {restaurant.street}, {restaurant.city}, Telefon {restaurant.phone}
-        {b.contactEmail && <>, E-Mail {b.contactEmail}</>}
+        {business.contactEmail && <>, E-Mail {business.contactEmail}</>}
       </p>
 
       <H>2. Welche Daten gespeichert werden</H>
@@ -62,8 +62,8 @@ export default async function TeamDatenschutz() {
       <H>3. Zweck und Rechtsgrundlage</H>
       <p>
         Der Zugang und die Arbeitsschritte sind nötig, damit Sie Bestellungen und Reservierungen bearbeiten können (Art.
-        6 Abs. 1 lit. b DSGVO, Durchführung des Beschäftigungsverhältnisses). Das Protokoll dient dazu, Fehler und
-        Missbrauch nachvollziehen zu können (Art. 6 Abs. 1 lit. f DSGVO); es wird nicht zur Leistungs- oder
+        6 Abs. 1 lit. business DSGVO, Durchführung des Beschäftigungsverhältnisses). Das Protokoll dient dazu, Fehler
+        und Missbrauch nachvollziehen zu können (Art. 6 Abs. 1 lit. f DSGVO); es wird nicht zur Leistungs- oder
         Verhaltenskontrolle verwendet. Sehen können es nur die Inhaber/innen.
       </p>
 

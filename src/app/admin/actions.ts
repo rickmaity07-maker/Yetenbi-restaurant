@@ -54,7 +54,7 @@ export async function addPhoneBooking(_: AdminState, form: FormData): Promise<Ad
     phone: String(form.get("phone") ?? "").trim(),
     note: String(form.get("note") ?? "").trim(),
   };
-  const closures = (await upcomingClosures()).map((c) => c.date);
+  const closures = (await upcomingClosures()).map((closure) => closure.date);
   const errors = validateBooking(input, undefined, closures, {
     emailOptional: true,
     week: (await readBusiness()).hours,

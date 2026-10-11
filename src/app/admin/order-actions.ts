@@ -87,18 +87,18 @@ type SettingsState = { ok?: string; error?: string } | null;
 export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
   const me = await requireOwner();
   const current = await getOrderSettings();
-  const num = (k: string, fallback: number) => {
-    const v = Number(String(form.get(k) ?? "").replace(",", "."));
-    return Number.isFinite(v) && v >= 0 ? Math.round(v * 100) / 100 : fallback;
+  const num = (field: string, fallback: number) => {
+    const value = Number(String(form.get(field) ?? "").replace(",", "."));
+    return Number.isFinite(value) && value >= 0 ? Math.round(value * 100) / 100 : fallback;
   };
   const postcodes = String(form.get("postcodes") ?? "")
     .split(/[\s,;]+/)
-    .map((p) => p.trim())
-    .filter((p) => /^\d{5}$/.test(p));
+    .map((postcode) => postcode.trim())
+    .filter((postcode) => /^\d{5}$/.test(postcode));
   const next: OrderSettings = {
     paused: form.get("paused") === "on",
     ignoreHours: form.get("ignoreHours") === "on",
-    reusable: (["offer", "own"] as const).find((v) => v === form.get("reusable")) ?? "none",
+    reusable: (["offer", "own"] as const).find((value) => value === form.get("reusable")) ?? "none",
     delivery: form.get("delivery") === "on",
     pickup: form.get("pickup") === "on",
     minOrder: num("minOrder", current.minOrder),
@@ -110,7 +110,7 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   };
   await saveOrderSettings(next);
   const changed = (Object.keys(next) as (keyof OrderSettings)[]).filter(
-    (k) => JSON.stringify(next[k]) !== JSON.stringify(current[k]),
+    (field) => JSON.stringify(next[field]) !== JSON.stringify(current[field]),
   );
   if (changed.length)
     await audit(
@@ -118,7 +118,7 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
       "settings",
       "Bestell-Einstellungen geändert",
       changed.join(", "),
-      Object.fromEntries(changed.map((k) => [k, next[k]])),
+      Object.fromEntries(changed.map((field) => [field, next[field]])),
     );
   revalidatePath("/admin/bestellungen");
   return { ok: "Gespeichert." };

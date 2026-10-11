@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
   const [closureList, business] = await Promise.all([upcomingClosures(), getBusiness()]);
-  const closures = closureList.map((c) => c.date);
+  const closures = closureList.map((closure) => closure.date);
   const errors = validateBooking(clean, undefined, closures, { week: business.hours });
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 

@@ -77,11 +77,11 @@ async function CancelContent({
   const signature = String(params.s ?? "");
   const valid = reference && signature && checkCancelSignature(reference, signature);
   const reservation = valid ? await findByReference(reference) : null;
-  const c = copy[reservation?.locale ?? "de"];
+  const text = copy[reservation?.locale ?? "de"];
 
   if (!reservation) return <p className="mt-6 font-display text-2xl italic text-cream/80">{copy.de.invalid}</p>;
 
-  const when = new Date(`${reservation.date}T12:00:00Z`).toLocaleDateString(c.dateLocale, {
+  const when = new Date(`${reservation.date}T12:00:00Z`).toLocaleDateString(text.dateLocale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -92,7 +92,7 @@ async function CancelContent({
 
   return (
     <div lang={reservation.locale}>
-      <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{c.title}</h1>
+      <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{text.title}</h1>
       <div className="mt-8 border border-gold/25 bg-ink/40 p-5">
         <p className="font-display text-2xl text-cream">
           {when}, {reservation.time}
@@ -102,21 +102,21 @@ async function CancelContent({
         </p>
       </div>
       {params.done || reservation.status === "cancelled" ? (
-        <p className="mt-8 font-display text-2xl italic text-cream/85">{c.done}</p>
+        <p className="mt-8 font-display text-2xl italic text-cream/85">{text.done}</p>
       ) : cancellable ? (
         <form action={cancelViaLink} className="mt-8">
-          <p className="font-display text-xl italic text-cream/80">{c.lead}</p>
+          <p className="font-display text-xl italic text-cream/80">{text.lead}</p>
           <input type="hidden" name="r" value={reference} />
           <input type="hidden" name="s" value={signature} />
           <button className="mt-6 rounded-full border border-[#f0a080]/60 px-7 py-3 font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink">
-            {c.button}
+            {text.button}
           </button>
         </form>
       ) : (
-        <p className="mt-8 font-display text-xl italic text-cream/80">{c.closed}</p>
+        <p className="mt-8 font-display text-xl italic text-cream/80">{text.closed}</p>
       )}
       <Link href="/" className="mt-10 inline-block text-sm text-gold-soft underline underline-offset-4">
-        {c.home}
+        {text.home}
       </Link>
     </div>
   );

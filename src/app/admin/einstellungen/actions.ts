@@ -10,25 +10,26 @@ import { readBusiness, saveBusiness } from "@/lib/server/business";
 
 type SettingsState = { ok?: string; error?: string } | null;
 
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const TIME = /^([01]\day|2[0-3]):[0-5]\d$/;
 
 /** Opening hours and legal details. Hours apply at once to the website, reservations, ordering and search engines. */
 export async function saveBusinessSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
   const me = await requireOwner();
   const hours: DayHours[] = [];
-  for (let d = 0; d < 7; d++) {
-    if (form.get(`open-${d}`) !== "on") {
+  for (let day = 0; day < 7; day++) {
+    if (form.get(`open-${day}`) !== "on") {
       hours.push(null);
       continue;
     }
-    const open = String(form.get(`from-${d}`) ?? "");
-    const close = String(form.get(`to-${d}`) ?? "");
-    if (!TIME.test(open) || !TIME.test(close)) return { error: `${DAY_NAMES[d]}: bitte Uhrzeiten wie 11:00 eingeben.` };
+    const open = String(form.get(`from-${day}`) ?? "");
+    const close = String(form.get(`to-${day}`) ?? "");
+    if (!TIME.test(open) || !TIME.test(close))
+      return { error: `${DAY_NAMES[day]}: bitte Uhrzeiten wie 11:00 eingeben.` };
     if (open >= close)
-      return { error: `${DAY_NAMES[d]}: Schluss muss nach der Öffnung liegen (über Mitternacht geht nicht).` };
+      return { error: `${DAY_NAMES[day]}: Schluss muss nach der Öffnung liegen (über Mitternacht geht nicht).` };
     hours.push({ open, close });
   }
-  if (hours.every((h) => !h)) return { error: "Mindestens ein Tag muss geöffnet sein." };
+  if (hours.every((dayHours) => !dayHours)) return { error: "Mindestens ein Tag muss geöffnet sein." };
 
   const contactEmail = String(form.get("contactEmail") ?? "")
     .trim()

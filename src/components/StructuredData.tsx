@@ -25,18 +25,20 @@ export default function StructuredData({ menu, hours }: { menu: Menu; hours: Day
       addressCountry: "DE",
     },
     geo: { "@type": "GeoCoordinates", latitude: restaurant.geo.lat, longitude: restaurant.geo.lng },
-    openingHoursSpecification: hours.flatMap((h, i) =>
-      h ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: SCHEMA_DAYS[i], opens: h.open, closes: h.close }] : [],
+    openingHoursSpecification: hours.flatMap((day, index) =>
+      day
+        ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: SCHEMA_DAYS[index], opens: day.open, closes: day.close }]
+        : [],
     ),
     hasMenu: {
       "@type": "Menu",
       inLanguage: "de",
       hasMenuSection: menu
-        .filter((c) => c.items.length)
-        .map((c) => ({
+        .filter((category) => category.items.length)
+        .map((category) => ({
           "@type": "MenuSection",
-          name: c.title.de,
-          hasMenuItem: c.items.map((item) => ({
+          name: category.title.de,
+          hasMenuItem: category.items.map((item) => ({
             "@type": "MenuItem",
             name: item.name.de,
             ...(item.description ? { description: item.description.de } : {}),

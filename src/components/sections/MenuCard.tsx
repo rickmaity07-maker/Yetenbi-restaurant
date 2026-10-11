@@ -110,11 +110,11 @@ function Item({ item, compact, drink }: { item: Dish; compact: boolean; drink: b
 
 /** The menu as a framed card, modelled on Yetenbi's printed black-and-gold menu. */
 export default function MenuCard() {
-  const menu = useMenu().filter((c) => c.items.length > 0);
+  const menu = useMenu().filter((category) => category.items.length > 0);
   const [active, setActive] = useState(menu[0]?.id ?? "");
   const reduce = useReducedMotion();
-  const category = menu.find((c) => c.id === active) ?? menu[0];
-  const compact = category?.items.every((i) => !i.description || i.description.de.length < 40) ?? true;
+  const category = menu.find((category) => category.id === active) ?? menu[0];
+  const compact = category?.items.every((dish) => !dish.description || dish.description.de.length < 40) ?? true;
   const { t, locale } = useLanguage();
 
   return (
@@ -157,18 +157,18 @@ export default function MenuCard() {
                 aria-label={t.menu.categories}
                 className="-mx-5 flex gap-6 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:justify-center md:gap-x-7 md:gap-y-3 md:overflow-visible md:px-0"
               >
-                {menu.map((c) => (
+                {menu.map((category) => (
                   <button
-                    key={c.id}
+                    key={category.id}
                     role="tab"
-                    aria-selected={active === c.id}
-                    onClick={() => setActive(c.id)}
+                    aria-selected={active === category.id}
+                    onClick={() => setActive(category.id)}
                     className={`relative shrink-0 pb-3 text-[0.68rem] font-semibold uppercase tracking-[0.24em] transition-colors duration-500 ${
-                      active === c.id ? "text-gold-soft" : "text-cream/50 hover:text-cream/85"
+                      active === category.id ? "text-gold-soft" : "text-cream/50 hover:text-cream/85"
                     }`}
                   >
-                    {c.title[locale]}
-                    {active === c.id && (
+                    {category.title[locale]}
+                    {active === category.id && (
                       <motion.span
                         layoutId="menu-underline"
                         className="absolute inset-x-0 bottom-0 h-px bg-gold"

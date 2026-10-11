@@ -17,7 +17,7 @@ export async function GET() {
     getMenu(),
     getBusiness(),
   ]);
-  const closedToday = closures.some((c) => c.date === todayISO());
+  const closedToday = closures.some((closure) => closure.date === todayISO());
   return Response.json(
     {
       available: true,

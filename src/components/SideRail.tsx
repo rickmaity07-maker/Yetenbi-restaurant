@@ -21,27 +21,27 @@ export default function SideRail() {
   const [lit, setLit] = useState(0);
   const { scrollY, scrollYProgress } = useScroll();
   // Stay out of the hero, which has its own stelae; fade in once it has scrolled away.
-  const show = useTransform(scrollY, (y) =>
+  const show = useTransform(scrollY, (offset) =>
     typeof window === "undefined"
       ? 0
-      : Math.min(1, Math.max(0, (y - window.innerHeight * 0.55) / (window.innerHeight * 0.3))),
+      : Math.min(1, Math.max(0, (offset - window.innerHeight * 0.55) / (window.innerHeight * 0.3))),
   );
 
   // One storey per sixth of the page, so the stela is fully lit when you reach the bottom.
-  useMotionValueEvent(scrollYProgress, "change", (v) =>
-    setLit(Math.min(STELA_FLOORS, Math.ceil(v * STELA_FLOORS - 0.02))),
+  useMotionValueEvent(scrollYProgress, "change", (progress) =>
+    setLit(Math.min(STELA_FLOORS, Math.ceil(progress * STELA_FLOORS - 0.02))),
   );
 
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) =>
-        entries.forEach((e) => {
-          if (e.isIntersecting) setCurrent(chapters.findIndex((c) => c.id === e.target.id));
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setCurrent(chapters.findIndex((chapter) => chapter.id === entry.target.id));
         }),
       { rootMargin: "-45% 0px -45% 0px" },
     );
-    chapters.forEach((c) => {
-      const el = document.getElementById(c.id);
+    chapters.forEach((chapter) => {
+      const el = document.getElementById(chapter.id);
       if (el) io.observe(el);
     });
     return () => io.disconnect();
@@ -61,9 +61,9 @@ export default function SideRail() {
           {label && (
             <motion.p
               key={label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, offset: 8 }}
+              animate={{ opacity: 1, offset: 0 }}
+              exit={{ opacity: 0, offset: -8 }}
               className="whitespace-nowrap text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-cream/68 [writing-mode:vertical-rl]"
             >
               {label}

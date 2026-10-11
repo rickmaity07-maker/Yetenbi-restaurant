@@ -6,7 +6,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const order = await findOrder(url.searchParams.get("r") ?? "", url.searchParams.get("t") ?? "");
   if (!order) return Response.json({ code: "notFound" }, { status: 404 });
-  const names = new Map((await getMenu()).flatMap((c) => c.items.map((i) => [i.id, i.name] as const)));
+  const names = new Map(
+    (await getMenu()).flatMap((category) => category.items.map((dish) => [dish.id, dish.name] as const)),
+  );
   return Response.json(
     {
       reference: order.reference,
@@ -16,7 +18,7 @@ export async function GET(request: Request) {
       updatedAt: order.updatedAt,
       staffNote: order.staffNote,
       // names in every language from the current menu (the order itself stores the German name)
-      items: order.items.map((l) => ({ ...l, names: names.get(l.id) ?? null })),
+      items: order.items.map((line) => ({ ...line, names: names.get(line.id) ?? null })),
       subtotal: order.subtotal,
       deposit: order.deposit,
       deliveryFee: order.deliveryFee,

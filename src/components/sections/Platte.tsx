@@ -102,8 +102,8 @@ export default function Platte() {
   });
   const bar = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setActive(Math.min(N - 1, Math.max(0, Math.round(((v - 0.06) / 0.88) * (N - 1)))));
+  useMotionValueEvent(scrollYProgress, "change", (progress) => {
+    setActive(Math.min(N - 1, Math.max(0, Math.round(((progress - 0.06) / 0.88) * (N - 1)))));
   });
 
   const dish = dishes[active];
@@ -199,7 +199,7 @@ export default function Platte() {
                   {dish.name
                     .toUpperCase()
                     .split("")
-                    .map((l, i) => (
+                    .map((line, i) => (
                       <motion.span
                         key={i}
                         className="inline-block whitespace-pre bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text text-transparent"
@@ -207,7 +207,7 @@ export default function Platte() {
                         animate={{ y: "0%", rotate: 0 }}
                         transition={{ duration: 0.9, ease, delay: i * 0.035 }}
                       >
-                        {l}
+                        {line}
                       </motion.span>
                     ))}
                 </h3>
@@ -217,7 +217,7 @@ export default function Platte() {
                 <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
                   <span className="font-display text-3xl text-gold-soft md:text-4xl">{dish.price} €</span>
                   <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-cream/68">
-                    {dish.tags.map((g) => t.tags[g]).join(" / ")}
+                    {dish.tags.map((tag) => t.tags[tag]).join(" / ")}
                   </span>
                 </div>
               </motion.div>

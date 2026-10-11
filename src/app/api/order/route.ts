@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     getBusiness(),
   ]);
   const catalog = catalogOf(menu);
-  const closedToday = closures.some((c) => c.date === todayISO());
+  const closedToday = closures.some((closure) => closure.date === todayISO());
   const errors = validateOrder(input, settings, catalog, closedToday, new Date(), business.hours);
   if (Object.keys(errors).length) return Response.json({ code: "errors", errors }, { status: 422 });
 

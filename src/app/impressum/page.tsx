@@ -7,14 +7,14 @@ export const metadata: Metadata = { title: "Impressum" };
 
 // Owner, email and VAT ID come from /admin → Betrieb & Rechtliches (§ 5 DDG requires the name and an email address).
 export default async function Impressum() {
-  const b = await getBusiness();
+  const business = await getBusiness();
   return (
     <LegalPage title="Impressum">
       <p className="font-display text-lg text-cream/80">Angaben gemäß § 5 DDG</p>
       <p>
         Yetenbi Äthiopisches Restaurant & Café
         <br />
-        Inhaber/in: <strong>{b.ownerName || "[Name wird ergänzt]"}</strong>
+        Inhaber/in: <strong>{business.ownerName || "[Name wird ergänzt]"}</strong>
         <br />
         {restaurant.street}
         <br />
@@ -27,15 +27,15 @@ export default async function Impressum() {
         </a>
         <br />
         E-Mail:{" "}
-        {b.contactEmail ? (
-          <a href={`mailto:${b.contactEmail}`} className="text-gold-soft underline underline-offset-4">
-            {b.contactEmail}
+        {business.contactEmail ? (
+          <a href={`mailto:${business.contactEmail}`} className="text-gold-soft underline underline-offset-4">
+            {business.contactEmail}
           </a>
         ) : (
           "[wird ergänzt]"
         )}
       </p>
-      {b.vatId && <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG: {b.vatId}</p>}
+      {business.vatId && <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a UStG: {business.vatId}</p>}
       <p>
         Verbraucherstreitbeilegung: Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer
         Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).

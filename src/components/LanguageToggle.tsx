@@ -19,19 +19,19 @@ export default function LanguageToggle({
       aria-label={t.nav.language}
       className={`flex items-center rounded-full border border-cream/15 p-0.5 ${className}`}
     >
-      {LOCALES.map((l) => {
-        const on = l === locale;
+      {LOCALES.map((option) => {
+        const on = option === locale;
         return (
           <button
-            key={l}
+            key={option}
             type="button"
-            lang={l}
+            lang={option}
             aria-pressed={on}
-            title={content[l].langName}
-            onClick={() => setLocale(l)}
+            title={content[option].langName}
+            onClick={() => setLocale(option)}
             className={`relative rounded-full px-2.5 py-1 text-[0.72rem] font-semibold transition-colors duration-300 ${
               on ? "text-ink" : "text-cream/70 hover:text-cream"
-            } ${l === "am" ? "font-ethiopic" : "tracking-wider"}`}
+            } ${option === "am" ? "font-ethiopic" : "tracking-wider"}`}
           >
             {on && (
               <motion.span
@@ -40,7 +40,7 @@ export default function LanguageToggle({
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
-            <span className="relative">{content[l].langShort}</span>
+            <span className="relative">{content[option].langShort}</span>
           </button>
         );
       })}

@@ -14,9 +14,9 @@ export default function FooterWordmark() {
       transition={{ staggerChildren: 0.07 }}
     >
       <span className="sr-only">Yetenbi</span>
-      {"YETENBI".split("").map((l, i) => (
+      {"YETENBI".split("").map((letter, index) => (
         <motion.span
-          key={i}
+          key={index}
           aria-hidden
           className="inline-block bg-gradient-to-b from-[#f6e2a8]/90 via-gold-soft/70 to-gold/10 bg-clip-text text-transparent"
           variants={{
@@ -24,7 +24,7 @@ export default function FooterWordmark() {
             show: { y: "0%", rotate: 0, transition: { duration: 1.3, ease: [0.22, 1, 0.36, 1] } },
           }}
         >
-          {l}
+          {letter}
         </motion.span>
       ))}
     </motion.p>

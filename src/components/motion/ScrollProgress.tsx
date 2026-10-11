@@ -13,7 +13,7 @@ export default function ScrollProgress() {
   const lenis = useLenis();
   const { t } = useLanguage();
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => setVisible(v > 0.08));
+  useMotionValueEvent(scrollYProgress, "change", (progress) => setVisible(progress > 0.08));
 
   return (
     <>

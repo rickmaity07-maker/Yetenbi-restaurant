@@ -53,7 +53,7 @@ const asLocale = (v: string): Locale => ((LOCALES as readonly string[]).includes
 const emailOk = isEmail;
 const phoneOk = (v: string) => !v || /^[+\d][\d\s()/-]{5,24}$/.test(v);
 const passwordOk = (v: string) => v.length >= 8 && v.length <= 200;
-const slowDown = () => new Promise((r) => setTimeout(r, 700));
+const slowDown = () => new Promise((resolve) => setTimeout(resolve, 700));
 
 export async function login(_: AccountState, form: FormData): Promise<AccountState> {
   if (!hasDatabase()) return { error: "unavailable" };

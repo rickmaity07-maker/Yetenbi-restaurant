@@ -31,8 +31,8 @@ export default function Hero() {
   // Once the lines are drawn, the windows light up one storey at a time.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => setLit(STELA_FLOORS), 1900);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setLit(STELA_FLOORS), 1900);
+    return () => clearTimeout(timer);
   }, [done]);
 
   return (
@@ -87,16 +87,16 @@ export default function Hero() {
           className="mt-3 flex overflow-hidden font-display text-[clamp(4.5rem,15vw,12rem)] font-bold leading-[0.9] tracking-[0.04em]"
           aria-label="Yetenbi"
         >
-          {title.map((l, i) => (
+          {title.map((word, index) => (
             <motion.span
-              key={i}
+              key={index}
               aria-hidden
               className="inline-block bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text text-transparent"
               initial={{ y: "105%", rotate: 8 }}
               animate={done ? { y: "0%", rotate: 0 } : undefined}
-              transition={{ duration: 1.3, ease, delay: intro + 0.1 + i * 0.06 }}
+              transition={{ duration: 1.3, ease, delay: intro + 0.1 + index * 0.06 }}
             >
-              {l}
+              {word}
             </motion.span>
           ))}
         </h1>

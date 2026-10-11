@@ -20,8 +20,8 @@ export default function BusinessForm({ business }: { business: Business }) {
           Reservierungen → Schließtage ein.
         </p>
         <div className="mt-6 divide-y divide-cream/10">
-          {DAY_NAMES.map((name, d) => {
-            const h = business.hours[d];
+          {DAY_NAMES.map((name, day) => {
+            const hours = business.hours[day];
             return (
               <fieldset
                 key={name}
@@ -32,8 +32,8 @@ export default function BusinessForm({ business }: { business: Business }) {
                 <label className="flex items-center gap-2 text-sm text-cream/80">
                   <input
                     type="checkbox"
-                    name={`open-${d}`}
-                    defaultChecked={Boolean(h)}
+                    name={`open-${day}`}
+                    defaultChecked={Boolean(hours)}
                     className="peer h-4 w-4 accent-[#c9a24a]"
                   />{" "}
                   geöffnet
@@ -41,8 +41,8 @@ export default function BusinessForm({ business }: { business: Business }) {
                 <div className="col-span-2 flex items-center gap-3 sm:col-span-1">
                   <input
                     type="time"
-                    name={`from-${d}`}
-                    defaultValue={h?.open ?? "11:00"}
+                    name={`from-${day}`}
+                    defaultValue={hours?.open ?? "11:00"}
                     step={900}
                     aria-label={`${name} öffnet`}
                     className={`${field} w-28`}
@@ -50,8 +50,8 @@ export default function BusinessForm({ business }: { business: Business }) {
                   <span className="text-cream/50">bis</span>
                   <input
                     type="time"
-                    name={`to-${d}`}
-                    defaultValue={h?.close ?? "22:00"}
+                    name={`to-${day}`}
+                    defaultValue={hours?.close ?? "22:00"}
                     step={900}
                     aria-label={`${name} schließt`}
                     className={`${field} w-28`}

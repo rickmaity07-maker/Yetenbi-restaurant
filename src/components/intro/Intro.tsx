@@ -112,8 +112,8 @@ export default function Intro() {
             className="pointer-events-none absolute inset-0 bg-gold-soft mix-blend-overlay"
           />
 
-          {captions.map((c, i) => (
-            <Caption key={c.text} progress={progress} {...c} text={t.intro.captions[i]} />
+          {captions.map((caption, index) => (
+            <Caption key={caption.text} progress={progress} {...caption} text={t.intro.captions[index]} />
           ))}
 
           <div className="absolute inset-x-0 top-0 h-[2px] bg-cream/5">

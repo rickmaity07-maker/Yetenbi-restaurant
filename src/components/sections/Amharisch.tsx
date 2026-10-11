@@ -28,8 +28,8 @@ const phrases = [
 export default function Amharisch() {
   const [active, setActive] = useState(0);
   const { t, locale } = useLanguage();
-  const letters = useMemo(() => new Set([...phrases[active].am].filter((c) => c.trim())), [active]);
-  const p = phrases[active];
+  const letters = useMemo(() => new Set([...phrases[active].am].filter((char) => char.trim())), [active]);
+  const phrase = phrases[active];
 
   return (
     <section
@@ -102,7 +102,7 @@ export default function Amharisch() {
               <div className="mt-6 border-t border-gold/20 pt-5">
                 <AnimatePresence mode="wait">
                   <motion.p
-                    key={`${locale}-${p.latin}`}
+                    key={`${locale}-${phrase.latin}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}

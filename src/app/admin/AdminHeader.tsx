@@ -31,12 +31,12 @@ const PAGES = {
 type AdminPage = keyof typeof PAGES;
 
 export default function AdminHeader({ active, children }: { active: AdminPage; children?: React.ReactNode }) {
-  const p = PAGES[active];
+  const page = PAGES[active];
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 border-b border-cream/10 pb-6">
       <div>
-        <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{p.title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-cream/60">{p.lead}</p>
+        <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{page.title}</h1>
+        <p className="mt-2 max-w-2xl text-sm text-cream/60">{page.lead}</p>
       </div>
       {children}
     </div>

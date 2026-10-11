@@ -16,10 +16,10 @@ export default function Embers({ count = 34, className = "" }: { count?: number;
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const n = window.innerWidth < 768 ? Math.ceil(count / 2) : count;
+    const amount = window.innerWidth < 768 ? Math.ceil(count / 2) : count;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setEmbers(
-      Array.from({ length: n }, () => ({
+      Array.from({ length: amount }, () => ({
         left: Math.random() * 100,
         size: 2 + Math.random() * 4,
         delay: Math.random() * 12,
@@ -30,7 +30,7 @@ export default function Embers({ count = 34, className = "" }: { count?: number;
     );
     const el = ref.current?.parentElement;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: "100px" });
+    const io = new IntersectionObserver(([ember]) => setVisible(ember.isIntersecting), { rootMargin: "100px" });
     io.observe(el);
     return () => io.disconnect();
   }, [count]);
@@ -38,19 +38,19 @@ export default function Embers({ count = 34, className = "" }: { count?: number;
   return (
     <div ref={ref} className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`} aria-hidden>
       {visible &&
-        embers.map((e, i) => (
+        embers.map((ember, index) => (
           <span
-            key={i}
+            key={index}
             className="ember absolute bottom-[-10px] rounded-full"
             style={
               {
-                left: `${e.left}%`,
-                width: e.size * 2,
-                height: e.size * 2,
-                animationDelay: `${e.delay}s`,
-                animationDuration: `${e.duration}s`,
-                "--drift": `${e.drift}px`,
-                "--o": e.opacity,
+                left: `${ember.left}%`,
+                width: ember.size * 2,
+                height: ember.size * 2,
+                animationDelay: `${ember.delay}s`,
+                animationDuration: `${ember.duration}s`,
+                "--drift": `${ember.drift}px`,
+                "--o": ember.opacity,
               } as React.CSSProperties
             }
           />

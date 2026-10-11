@@ -26,9 +26,9 @@ export async function saveCustomerNote(_: NoteState, form: FormData): Promise<No
 export async function blockCustomer(form: FormData) {
   const me = await requireOwner();
   const key = decodeKey(String(form.get("key") ?? ""));
-  const c = key ? await getCustomer(key) : null;
-  if (!c?.phone) return;
-  await blockPhone(c.phone, `Gesperrt in Kunden (${me.name})`);
-  await audit(me, "customers", "Gast gesperrt", c.phone);
+  const customer = key ? await getCustomer(key) : null;
+  if (!customer?.phone) return;
+  await blockPhone(customer.phone, `Gesperrt in Kunden (${me.name})`);
+  await audit(me, "customers", "Gast gesperrt", customer.phone);
   revalidatePath(`/admin/kunden/${encodeKey(key)}`);
 }
