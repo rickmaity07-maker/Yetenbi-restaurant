@@ -115,8 +115,6 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 
 ## Still to do
 
-- **Switch off "Bestellungen auch außerhalb der Öffnungszeiten"** in /admin → Bestellungen → Einstellungen once testing is
-  done (turned on 2026-10-10 so orders work while the restaurant is closed).
 - Create the team's logins in /admin → Team (kitchen staff and drivers), then run one test order through every step
   (accept → Küche: Essen fertig, Verpackt → hand to a driver → Lieferung: Zugestellt) and check the emails arrive.
 - Google sign-in: if the OAuth consent screen in Google Cloud is still in "Testing", publish it so every guest can use it.
