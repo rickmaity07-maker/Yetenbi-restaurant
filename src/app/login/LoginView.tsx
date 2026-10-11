@@ -107,16 +107,13 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
               <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
               <AuthField id="phone" label={a.phone} type="tel" autoComplete="tel" />
               <AuthField id="password" label={a.password} type="password" autoComplete="new-password" minLength={8} required hint={a.passwordHint} />
-              <label className="flex items-start gap-3 text-sm text-cream/80">
-                <input type="checkbox" name="consent" required className="mt-1 h-4 w-4 accent-[#c9a24a]" />
-                <span>
-                  {a.consentPre}{" "}
-                  <Link href="/datenschutz" target="_blank" className="text-gold-soft underline underline-offset-4">
-                    {a.consentLink}
-                  </Link>{" "}
-                  {a.consentPost}
-                </span>
-              </label>
+              <p className="text-sm text-cream/75">
+                {a.consentPre}{" "}
+                <Link href="/datenschutz" target="_blank" className="text-gold-soft underline underline-offset-4">
+                  {a.consentLink}
+                </Link>
+                {a.consentPost}
+              </p>
               <FormMessage error={registerState?.error && a.errors[registerState.error]} />
               <SubmitButton pending={registerPending}>{a.signUp}</SubmitButton>
             </form>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LalibelaCross } from "@/components/heritage/Ornaments";
+import LegalLinks from "@/components/LegalLinks";
 import type { Locale } from "@/lib/i18n";
 import { checkCancelSignature } from "@/lib/server/cancel-token";
 import { notifyRestaurantCancelled } from "@/lib/server/mailer";
@@ -112,6 +113,7 @@ export default function CancelPage({ searchParams }: { searchParams: Promise<Rec
       <Suspense fallback={<div className="h-72" />}>
         <CancelContent searchParams={searchParams} />
       </Suspense>
+      <LegalLinks className="mt-16 justify-start" />
     </main>
   );
 }

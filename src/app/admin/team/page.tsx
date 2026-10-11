@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
@@ -24,7 +25,12 @@ async function Team() {
         <h2 className="font-display text-2xl font-semibold text-gold-soft">Konto anlegen</h2>
         <p className="mb-6 mt-2 text-sm text-cream/65">
           Jede Person meldet sich unter <span className="text-cream">/login</span> mit ihrer E-Mail an und landet direkt auf ihrem Bildschirm. Das
-          Passwort kann sie danach im Profil ändern; vergessen geht über „Passwort vergessen“ oder hier.
+          Passwort kann sie danach im Profil ändern; vergessen geht über „Passwort vergessen“ oder hier. Gebt neuen
+          Teammitgliedern die{" "}
+          <Link href="/datenschutz/team" className="text-gold-soft underline underline-offset-4">
+            Datenschutzhinweise für das Team
+          </Link>
+          .
         </p>
         <AddStaffForm />
       </section>

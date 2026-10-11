@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LalibelaCross } from "@/components/heritage/Ornaments";
+import LegalLinks from "@/components/LegalLinks";
 
 export default function NotFound() {
   return (
@@ -13,6 +14,7 @@ export default function NotFound() {
       <Link href="/" className="mt-10 rounded-full bg-gold px-8 py-4 font-semibold text-ink">
         Zur Startseite
       </Link>
+      <LegalLinks className="mt-16" />
     </main>
   );
 }

@@ -8,7 +8,7 @@ import { blockPhone } from "@/lib/server/order-guard";
 
 type NoteState = { ok?: string; error?: string } | null;
 
-/** The team's note about a guest (e.g. "allergic to nuts", "always call before delivery"). */
+/** The team's note about a guest (e.g. "always call before delivery"; no health data, see NoteForm). */
 export async function saveCustomerNote(_: NoteState, form: FormData): Promise<NoteState> {
   const me = await requireOwner();
   const key = decodeKey(String(form.get("key") ?? ""));

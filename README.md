@@ -148,5 +148,16 @@ for a manual deploy.
 - Have the legal pages (Impressum, Datenschutz, Bestellbedingungen) checked by a lawyer or a service such as the
   IHK / Händlerbund before relying on them.
 - Confirm the ordering settings (minimum order, delivery fee, postcodes, times) in /admin → Bestellungen → Einstellungen.
+- **Datenschutz (DSGVO):**
+  - Move email off the personal `@gmail.com` account (no data processing agreement is possible for it): Google
+    Workspace, or an EU provider via `SMTP_HOST`/`SMTP_PORT`, plus `MAIL_PROVIDER` (the provider's name, which
+    /datenschutz then shows instead of Gmail; redeploy afterwards).
+  - Sign the data processing agreements (AVV) with Vercel, Neon and Cloudinary. Check that Vercel and Google are still
+    listed at dataprivacyframework.gov, as the policy says.
+  - The policy promises that order and booking emails are deleted from the team's mailboxes (restaurant, kitchen,
+    drivers) within 180 days. Set up a routine for that and tell the team.
+  - Complete and keep up to date the record of processing activities (Art. 30), drafted in
+    `docs/verarbeitungsverzeichnis.md` (fill in the marked places). Give new staff the notice at /datenschutz/team.
+  - Fill in the owner's name and contact email in /admin; the privacy policy shows them too.
 - Photos are Unsplash stock: set the Cloudinary variables in Vercel, then upload Yetenbi's own in /admin → Fotos.
 - Amharic text should be checked by a native speaker (including the new order-step emails and status labels).

@@ -26,6 +26,7 @@ import { isEmail, safeNext } from "@/lib/validate";
 import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/mailer";
 import { cancelForUser } from "@/lib/server/reservations";
 import { audit } from "@/lib/server/audit";
+import { forgetEmail } from "@/lib/server/customers";
 
 /*
   Account actions. They return codes (not sentences) so the forms can word them in the visitor's language
@@ -40,7 +41,6 @@ type AccountError =
   | "email"
   | "phone"
   | "password"
-  | "consent"
   | "token"
   | "current"
   | "unavailable"
@@ -85,7 +85,6 @@ export async function register(_: AccountState, form: FormData): Promise<Account
   if (!emailOk(email)) return { error: "email" };
   if (!phoneOk(phone)) return { error: "phone" };
   if (!passwordOk(password)) return { error: "password" };
-  if (form.get("consent") !== "on") return { error: "consent" };
   const ip = await visitorKey();
   if (await isLimited("register-ip", ip, RATE.registerPerIp)) return { error: "throttled" };
   await recordHit("register-ip", ip);
@@ -171,6 +170,7 @@ export async function deleteAccount(_: AccountState, form: FormData): Promise<Ac
     return { error: "current" };
   }
   await deleteUser(me.id);
+  await forgetEmail(me.email);
   await endSession();
   redirect("/");
 }

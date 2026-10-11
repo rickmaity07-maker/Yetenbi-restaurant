@@ -23,6 +23,9 @@ export default function StaffHeader({ title, me }: { title: string; me: User }) 
             Verwaltung
           </Link>
         )}
+        <Link href="/datenschutz/team" className="text-cream/70 underline underline-offset-4 hover:text-cream">
+          Datenschutz
+        </Link>
         <form action={logout}>
           <button className="text-cream/70 underline underline-offset-4 hover:text-cream">Abmelden</button>
         </form>

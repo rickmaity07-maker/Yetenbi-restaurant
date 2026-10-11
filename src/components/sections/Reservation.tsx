@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CheckCircle, Minus, Plus, WhatsappLogo } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
@@ -362,6 +363,12 @@ export default function Reservation() {
                     </button>
                     <p className="text-xs text-cream/60">
                       {t.reserve.viaEmail} {t.reserve.orCall(restaurant.phone)}
+                    </p>
+                    <p className="text-xs text-cream/60">
+                      {t.reserve.privacyNote}{" "}
+                      <Link href="/datenschutz" className="text-gold-soft underline underline-offset-4">
+                        {t.footer.privacy}
+                      </Link>
                     </p>
                   </div>
                 </motion.form>

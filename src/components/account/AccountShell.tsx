@@ -5,6 +5,7 @@ import Jebena from "../Jebena";
 import LanguageToggle from "../LanguageToggle";
 import { AksumFrame, Tibeb } from "../heritage/Ornaments";
 import { useHtmlLang } from "@/lib/language";
+import LegalLinks from "../LegalLinks";
 
 /** Frame for the account pages: brand link home, language switch, and the gold-framed card. */
 export default function AccountShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
@@ -25,6 +26,7 @@ export default function AccountShell({ children, wide = false }: { children: Rea
             {children}
           </div>
         </AksumFrame>
+        <LegalLinks className="mt-10" />
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import LegalLinks from "./LegalLinks";
 
 /** Shared shell for the legal pages. The restaurant owner still has to supply the actual legal text. */
 export default function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {
@@ -11,6 +12,7 @@ export default function LegalPage({ title, children }: { title: string; children
       </Link>
       <h1 className="mt-10 font-display text-5xl font-semibold text-cream md:text-6xl">{title}</h1>
       <div className="mt-8 space-y-4 leading-relaxed text-cream/80">{children}</div>
+      <LegalLinks className="mt-16 justify-start border-t border-gold/20 pt-6" />
     </main>
   );
 }

@@ -112,3 +112,63 @@ export async function saveNote(key: string, note: string, by: string) {
     on conflict (key) do update set note = excluded.note, updated_by = excluded.updated_by, updated_at = now()
   `;
 }
+
+/**
+  Everything stored about a signed-in guest (DSGVO Art. 15/20): the account, orders and bookings, the team's note,
+  order blocks, attempt counters and audit entries about them. Records matched only by email address (made while
+  signed out) are included once the account has proved it owns that address, so nobody can register someone else's
+  email and read their data.
+*/
+export async function personalData(user: { id: number; email: string }) {
+  const email = user.email.toLowerCase();
+  const [account] = (await db()`select id, email, name, phone, role, locale, email_verified, google_sub is not null as google, created_at from users where id = ${user.id}`) as Row[];
+  const verified = Boolean(account?.email_verified);
+  const [orders, reservations] = (await Promise.all([
+    db()`
+      select reference, created_at, status, method, name, phone, email, street, postcode, city, address_note, note, items,
+             subtotal, deposit, delivery_fee, total, payment, wanted, eta_minutes, staff_note, locale,
+             accepted_at, cooked_at, packed_at, out_at, completed_at, updated_at, client_hash is not null as device_hash_stored
+      from orders where user_id = ${user.id} or (${verified} and lower(email) = ${email}) order by created_at desc`,
+    db()`
+      select reference, date::text, time, guests, name, email, phone, note, locale, status, staff_note, source, created_at, updated_at
+      from reservations where user_id = ${user.id} or (${verified} and lower(email) = ${email}) order by date desc, time desc`,
+  ])) as Row[][];
+  const phoneKeys = [...new Set(orders.map((o) => phoneKey(String(o.phone))).filter(Boolean))];
+  const references = [...orders, ...reservations].map((r) => String(r.reference));
+  const [notes, blocks, attempts, audit] = (await Promise.all([
+    verified ? db()`select note, updated_at, updated_by from customer_notes where key = ${email}` : Promise.resolve([]),
+    db()`select kind, label, reason, created_at from order_blocks
+         where (kind = 'email' and ${verified} and value = ${email}) or (kind = 'phone' and value = any(${phoneKeys}))`,
+    verified ? db()`select bucket, created_at from rate_hits where key = ${email} order by created_at desc` : Promise.resolve([]),
+    db()`select at, actor, role, area, action, target from audit_log
+         where target = any(${references}) or (${verified} and lower(target) = ${email}) order by at desc`,
+  ])) as Row[][];
+  return {
+    exportedAt: new Date().toISOString(),
+    account,
+    orders,
+    reservations,
+    teamNote: notes[0] ?? null,
+    orderBlocks: blocks,
+    signInAndResetAttempts: attempts,
+    auditLog: audit,
+    note: verified
+      ? undefined
+      : "Bestellungen und Reservierungen ohne Anmeldung sind nur enthalten, wenn das Konto seine E-Mail-Adresse bestätigt hat (z. B. über „Passwort vergessen“). Sonst schreibt uns bitte.",
+  };
+}
+
+/** Removes what the team keeps about a guest under their email when they delete their account. */
+export async function forgetEmail(email: string) {
+  const key = email.toLowerCase();
+  await db()`delete from customer_notes where key = ${key}`;
+  await db()`delete from rate_hits where key = ${key}`;
+}
+
+/** Data retention: notes about guests of whom nothing else is stored any more (no account, order or booking left). */
+export async function purgeOrphanNotes() {
+  const live = new Set((await load()).map((c) => c.key));
+  const notes = (await db()`select key from customer_notes`) as { key: string }[];
+  const orphans = notes.map((n) => n.key).filter((k) => !live.has(k));
+  if (orphans.length) await db()`delete from customer_notes where key = any(${orphans})`;
+}

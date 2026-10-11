@@ -80,7 +80,8 @@ export default function OrderView() {
   useEffect(() => setCart(readCart()), []);
   useEffect(() => {
     try {
-      window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      if (cart.length) window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      else window.localStorage.removeItem(CART_KEY);
     } catch {
       // storage blocked: the cart still works for this visit
     }
@@ -389,8 +390,9 @@ export default function OrderView() {
                 </Field>
                 {me && <p className="text-sm text-cream/65">{o.accountEmail(me.email)}</p>}
                 <Field id="note" label={o.note} error={err(errors.note)}>
-                  <input id="note" maxLength={400} value={form.note} onChange={(e) => set("note", e.target.value)} className={`${fieldClass} text-lg`} />
+                  <input id="note" maxLength={400} value={form.note} onChange={(e) => set("note", e.target.value)} aria-describedby="note-hint" className={`${fieldClass} text-lg`} />
                 </Field>
+                <p id="note-hint" className="-mt-2 text-xs text-cream/55">{o.noteHint}</p>
               </fieldset>
 
               {s?.reusable === "offer" && <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOffer}</p>}

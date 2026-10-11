@@ -13,7 +13,7 @@ export default function NoteForm({ customer, note }: { customer: string; note: s
         defaultValue={note}
         rows={4}
         maxLength={1000}
-        placeholder="z. B. Nussallergie · vor Lieferung kurz anrufen · Stammgast, liebt Kitfo"
+        placeholder="z. B. vor Lieferung kurz anrufen · Stammgast, liebt Kitfo · bevorzugt Fensterplatz"
         className="w-full resize-y border border-gold/25 bg-transparent p-3 text-sm text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none"
       />
       <div className="flex items-center gap-4">
@@ -23,7 +23,10 @@ export default function NoteForm({ customer, note }: { customer: string; note: s
         {state?.ok && <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>}
         {state?.error && <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>}
       </div>
-      <p className="text-xs text-cream/45">Nur für das Team sichtbar. Bitte nur Sachliches notieren; Gäste können Auskunft über ihre Daten verlangen.</p>
+      <p className="text-xs text-cream/45">
+        Nur für das Team sichtbar. Bitte nur Sachliches notieren: keine Allergien, Krankheiten, Religion oder andere
+        Gesundheitsangaben (Art. 9 DSGVO) und keine Wertungen. Der Gast sieht diese Notiz in seinem Datenexport.
+</p>
     </form>
   );
 }

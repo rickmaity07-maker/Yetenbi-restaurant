@@ -6,8 +6,10 @@ import { purgeExpiredAuth } from "@/lib/server/auth";
 import { purgeOldOrders } from "@/lib/server/orders";
 import { purgeGuardData } from "@/lib/server/order-guard";
 import { purgeAudit } from "@/lib/server/audit";
+import { purgeOrphanNotes } from "@/lib/server/customers";
 
-/* Daily data-retention job (Vercel Cron, see vercel.json): removes reservations older than 180 days. */
+/* Daily data-retention job (Vercel Cron, see vercel.json): removes reservations and orders after 180 days,
+   expired sessions, device hashes, blocks, attempt counters, old audit entries and notes about guests no longer stored. */
 export async function GET(request: Request) {
   const expected = Buffer.from(`Bearer ${process.env.CRON_SECRET ?? ""}`);
   const given = Buffer.from(request.headers.get("authorization") ?? "");
@@ -21,5 +23,6 @@ export async function GET(request: Request) {
   await purgeGuardData();
   await purgeRateHits();
   await purgeAudit();
+  await purgeOrphanNotes();
   return Response.json({ removed });
 }

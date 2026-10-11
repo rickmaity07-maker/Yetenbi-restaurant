@@ -53,7 +53,7 @@ export function ClosedDayForm() {
         <Input name="date" title="Datum" type="date" required />
       </div>
       <div className="min-w-48 flex-1">
-        <Input name="note" title="Grund (optional)" placeholder="z. B. Feiertag, geschlossene Gesellschaft" />
+        <Input name="note" title="Grund (optional, auf der Website sichtbar – keine Namen)" placeholder="z. B. Feiertag, geschlossene Gesellschaft" />
       </div>
       <button disabled={pending} className="rounded-full border border-gold/60 px-5 py-2.5 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink disabled:opacity-60">
         Schließen
