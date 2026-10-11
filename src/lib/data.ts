@@ -10,7 +10,6 @@ export const restaurant = {
   geo: { lat: 49.7965532, lng: 9.9340858 },
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=YETENBI+%C3%84thiopisches+Restaurant+Theaterstra%C3%9Fe+6+97070+W%C3%BCrzburg",
-  mapsEmbed: "https://www.google.com/maps?q=Theaterstra%C3%9Fe+6,+97070+W%C3%BCrzburg&z=16&output=embed",
 };
 
 /** A piece of text in the three site languages. */

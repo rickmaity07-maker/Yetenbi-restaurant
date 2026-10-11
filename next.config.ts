@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 /*
-  Content-Security-Policy: what the browser may load. Scripts, styles and fonts only from this site; images also
-  from Cloudinary (the owner's photos); connections also to Cloudinary's upload API; frames only the Google map.
+  Content-Security-Policy: what the browser may load. Scripts, styles, fonts and map tiles only from this site;
+  images also from Cloudinary (the owner's photos); connections also to Cloudinary's upload API; no frames.
   Inline scripts stay allowed because Next.js streams the page with them; a nonce would force every page to be
   rendered per request (see the "Content Security Policy" guide in node_modules/next/dist/docs).
   Previews also allow the Vercel toolbar; development also allows eval (React's dev tools need it).
@@ -17,7 +17,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self'",
   `connect-src 'self' https://api.cloudinary.com${vercelToolbar}`,
-  `frame-src https://www.google.com${vercelToolbar}`,
+  vercelToolbar ? `frame-src${vercelToolbar}` : "frame-src 'none'",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

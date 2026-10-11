@@ -39,7 +39,7 @@ sign-in or Cloudinary (those variables exist for Production only), so nothing re
 ## Security headers
 
 `next.config.ts` sends a Content-Security-Policy on every page: scripts, styles and fonts only from the site itself,
-images also from Cloudinary, uploads to Cloudinary's API, and the Google map as the only frame. If you add a service
+images also from Cloudinary, uploads to Cloudinary's API, and no frames at all. If you add a service
 that loads anything in the browser (analytics, a booking widget, another map), add its address there or it is blocked.
 
 ## Errors
@@ -145,6 +145,8 @@ diagonal rhythm. A small Aksum stela on the right edge lights up as you move dow
 - `src/components/heritage/` – Aksum stela, Lalibela cross, Aksumite frame, tibeb/harag bands.
 - `src/components/three/` – intro particles, 3D jebena, background clay lamps.
 - `src/components/sections/` – the page sections.
+- `public/map-tiles/` – the map in "Anfahrt", served from our own server (no consent needed). The area is in
+  `src/lib/map-area.mjs`; `node scripts/build-map.mjs` downloads the tiles from OpenStreetMap again after a change.
 - `public/img/` – photos; `ambient/` and `dish/` are small pre-blurred / pre-cropped copies.
 
 ## Testing

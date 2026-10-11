@@ -135,8 +135,6 @@ export const en: Dict = {
     serviceValue: "Dine in, pick up, delivery",
     route: "Get directions",
     near: "Near the Mainfranken Theater",
-    mapLoad: "Load map",
-    mapNote: "Loading the map sends data to Google.",
     photoAlt: "Jebena and cups for the coffee ceremony",
     openNow: (until: string) => `Open now, until ${until}`,
     opensAt: (day: string, at: string) => `Closed, opens ${day} at ${at}`,

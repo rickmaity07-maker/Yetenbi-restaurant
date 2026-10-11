@@ -248,13 +248,13 @@ function German({ owner }: { owner: Owner }) {
         unserem eigenen Server aus.
       </p>
 
-      <H>11. Karte (Google Maps)</H>
+      <H>11. Karte</H>
       <p>
-        Die Karte im Bereich „Anfahrt“ wird erst geladen, wenn Sie auf „Karte laden“ klicken. Erst dann werden Daten (u.
-        a. Ihre IP-Adresse) an Google Ireland Ltd. und ggf. Google LLC (USA, DPF-zertifiziert) übertragen und Google
-        kann Cookies setzen (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG; Einwilligung durch den Klick). Sie gilt nur
-        für diesen Seitenaufruf; beim nächsten Besuch bleibt die Karte wieder aus. Der Link „Route planen“ öffnet Google
-        Maps in einem neuen Fenster.
+        Die Karte im Bereich „Anfahrt“ wird vollständig von unserem eigenen Server geladen. Sie beruht auf Kartendaten
+        von OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL), die wir einmalig heruntergeladen haben. Beim Anzeigen
+        der Karte werden daher keine Daten an Google, OpenStreetMap oder andere Dritte übertragen und keine Cookies
+        gesetzt. Erst der Link „Route planen“ öffnet Google Maps in einem neuen Fenster; dort gelten die
+        Datenschutzbestimmungen von Google.
       </p>
 
       <H>12. Schriften, Cookies und lokale Speicherung</H>
@@ -455,12 +455,12 @@ function English({ owner }: { owner: Owner }) {
         contractual clauses. All other images come from our own server.
       </p>
 
-      <H>11. Map (Google Maps)</H>
+      <H>11. Map</H>
       <p>
-        The map under &quot;Getting here&quot; loads only when you click &quot;Load map&quot;. Only then is data
-        (including your IP address) sent to Google Ireland Ltd. and possibly Google LLC (USA, DPF-certified), and Google
-        may set cookies (Art. 6(1)(a) GDPR, § 25(1) TDDDG; consent by the click). It applies to that page view only. The
-        &quot;Plan route&quot; link opens Google Maps in a new window.
+        The map under &quot;Getting here&quot; is loaded entirely from our own server. It is based on map data from
+        OpenStreetMap (© OpenStreetMap contributors, ODbL) that we downloaded once. Showing it therefore sends no data
+        to Google, OpenStreetMap or anyone else and sets no cookies. Only the &quot;Plan route&quot; link opens Google
+        Maps in a new window, where Google&apos;s privacy policy applies.
       </p>
 
       <H>12. Fonts, cookies and local storage</H>

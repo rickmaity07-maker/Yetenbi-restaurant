@@ -207,3 +207,40 @@ body:has([data-admin-shell]) .bg-flames,
 body:has([data-admin-shell]) .grain {
   display: none;
 }
+
+/* Self-hosted map in "Anfahrt" (components/SiteMap). The tiles are tinted to match the dark site. */
+.site-map {
+  /* The average colour of the tinted map, so tile edges blend in on phones with fractional pixel ratios. */
+  background: #403c35;
+  z-index: 0; /* keeps Leaflet's layers below the header and menus */
+}
+/* Tinted tile by tile: tinting the whole layer would turn the soft tile edges into dark lines on some phones. */
+.site-map-tiles .leaflet-tile {
+  filter: invert(0.92) hue-rotate(180deg) saturate(0.3) sepia(0.35);
+}
+.site-map-pin {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--color-gold);
+  border: 3px solid var(--color-ink);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.site-map .leaflet-control-zoom a {
+  background: var(--color-ink);
+  color: var(--color-gold-soft);
+  border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+.site-map .leaflet-control-zoom a:hover {
+  background: var(--color-gold);
+  color: var(--color-ink);
+}
+.site-map.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-ink) 85%, transparent);
+  color: color-mix(in srgb, var(--color-cream) 70%, transparent);
+}
+.site-map.leaflet-container .leaflet-control-attribution a {
+  color: var(--color-gold-soft);
+}

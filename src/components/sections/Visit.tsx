@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowUpRight, MapPin } from "@phosphor-icons/react";
-import { useState } from "react";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import jebenaSet from "../../../public/img/jebena-set.jpg";
 import cups from "../../../public/img/cups.jpg";
 import { restaurant } from "@/lib/data";
@@ -12,10 +11,10 @@ import { Ambient, CinematicImage, GoldButton, Heading, Rise } from "../ui/primit
 import { AksumFrame } from "../heritage/Ornaments";
 import EthiopianNow from "../heritage/EthiopianNow";
 import { Photo } from "@/components/Photos";
+import SiteMap from "@/components/SiteMap";
 
 export default function Visit() {
   const { t, locale } = useLanguage();
-  const [mapOn, setMapOn] = useState(false);
   const rows = [
     { term: t.visit.phone, value: restaurant.phone, href: restaurant.phoneHref },
     { term: t.visit.service, value: t.visit.serviceValue },
@@ -84,33 +83,15 @@ export default function Visit() {
           <Rise className="lg:col-span-7" delay={0.15}>
             <AksumFrame className="h-full shadow-[0_60px_140px_-40px_rgba(201,162,74,0.28)]" inner="h-full">
               <div className="relative h-full">
-                {mapOn ? (
-                  <iframe
-                    title="Karte: Yetenbi, Theaterstraße 6, Würzburg"
-                    src={restaurant.mapsEmbed}
-                    className="block h-[420px] w-full [filter:invert(0.92)_hue-rotate(180deg)_saturate(0.3)_sepia(0.35)] lg:h-full lg:min-h-[600px]"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                ) : (
-                  // Two-click map: nothing is requested from Google until the visitor asks for it (DSGVO).
-                  <div className="site-bg flex h-[420px] w-full flex-col items-center justify-center gap-4 px-6 text-center lg:h-full lg:min-h-[600px]">
-                    <MapPin size={40} weight="light" className="text-gold-soft" />
-                    <button
-                      type="button"
-                      onClick={() => setMapOn(true)}
-                      className="rounded-full border border-gold/60 px-6 py-3 text-sm font-semibold text-gold-soft transition-colors hover:bg-gold hover:text-ink"
-                    >
-                      {t.visit.mapLoad}
-                    </button>
-                    <p className="max-w-xs text-xs text-cream/60">{t.visit.mapNote}</p>
-                  </div>
-                )}
+                <SiteMap
+                  label="Karte: Yetenbi, Theaterstraße 6, Würzburg"
+                  className="h-[420px] w-full lg:h-full lg:min-h-[600px]"
+                />
                 <a
                   href={restaurant.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group absolute bottom-4 left-4 flex items-center gap-3 border border-gold/40 bg-ink/90 py-2 pl-2 pr-4"
+                  className="group absolute bottom-4 left-4 z-10 flex items-center gap-3 border border-gold/40 bg-ink/90 py-2 pl-2 pr-4"
                 >
                   <span className="relative h-12 w-12 overflow-hidden">
                     <Photo src={cups} alt="" fill sizes="48px" className="object-cover" />

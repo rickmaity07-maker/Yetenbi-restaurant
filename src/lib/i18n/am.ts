@@ -122,8 +122,6 @@ export const am: Dict = {
     serviceValue: "እዚሁ መመገብ፣ መውሰድ፣ ማድረስ",
     route: "መንገዱን ይፈልጉ",
     near: "ከMainfranken ቴአትር አጠገብ",
-    mapLoad: "ካርታውን ጫን",
-    mapNote: "ካርታው ሲጫን መረጃ ወደ Google ይላካል።",
     photoAlt: "ለቡና ሥነ ሥርዓት ጀበናና ስኒዎች",
     openNow: (until: string) => `አሁን ክፍት ነው፣ እስከ ${until}`,
     opensAt: (day: string, at: string) => `ዝግ ነው፣ ${day} ${at} ላይ ይከፈታል`,

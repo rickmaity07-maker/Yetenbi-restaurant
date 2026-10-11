@@ -141,8 +141,6 @@ export const de = {
     serviceValue: "Vor Ort, Abholung, Lieferung",
     route: "Route planen",
     near: "Nahe Mainfranken Theater",
-    mapLoad: "Karte laden",
-    mapNote: "Beim Laden der Karte werden Daten an Google übertragen.",
     photoAlt: "Jebena und Tassen für die Kaffeezeremonie",
     openNow: (until: string) => `Jetzt geöffnet, bis ${until} Uhr`,
     opensAt: (day: string, at: string) => `Geschlossen, öffnet ${day} um ${at} Uhr`,
