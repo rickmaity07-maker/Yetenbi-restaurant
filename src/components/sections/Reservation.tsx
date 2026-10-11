@@ -22,6 +22,7 @@ import Embers from "../motion/Embers";
 import { ease, Heading, Rise } from "../ui/primitives";
 import { AksumFrame, LalibelaCross, Tibeb } from "../heritage/Ornaments";
 import { useHours } from "@/components/Business";
+import BackHomeLink from "@/components/BackHomeLink";
 
 const inputClass =
   "w-full border-0 border-b bg-transparent px-0 pb-3 pt-1 font-display text-2xl text-cream placeholder:text-cream/35 transition-colors duration-500 focus:outline-none [color-scheme:dark] disabled:opacity-50";
@@ -287,6 +288,7 @@ export default function Reservation() {
                       </a>
                     </>
                   )}
+                  <BackHomeLink className="mt-8 w-max" />
                   <button
                     type="button"
                     onClick={reset}

@@ -96,6 +96,31 @@ export const passwordResetTexts: Record<Locale, { subject: string; intro: string
   },
 };
 
+export const verificationTexts: Record<Locale, { subject: string; intro: string; button: string; outro: string }> = {
+  de: {
+    subject: "Bitte bestätigt eure E-Mail-Adresse – Yetenbi",
+    intro:
+      "willkommen bei Yetenbi! Bitte bestätigt mit dem Knopf unten, dass diese E-Mail-Adresse euch gehört. Erst dann könnt ihr online bestellen. Der Link ist 24 Stunden gültig.",
+    button: "E-Mail-Adresse bestätigen",
+    outro:
+      "Habt ihr kein Konto angelegt? Dann ignoriert diese E-Mail einfach; ohne Bestätigung kann niemand mit dieser Adresse bestellen.",
+  },
+  en: {
+    subject: "Please confirm your email address – Yetenbi",
+    intro:
+      "welcome to Yetenbi! Please use the button below to confirm that this email address is yours. You can order online once it is confirmed. The link is valid for 24 hours.",
+    button: "Confirm email address",
+    outro: "Didn't create an account? Just ignore this email; without confirmation nobody can order with this address.",
+  },
+  am: {
+    subject: "እባክዎ የኢሜይል አድራሻዎን ያረጋግጡ – Yetenbi",
+    intro:
+      "ወደ Yetenbi እንኳን በደህና መጡ! ይህ ኢሜይል የእርስዎ መሆኑን ከታች ባለው ቁልፍ ያረጋግጡ። ከዚያ በኋላ በመስመር ላይ ማዘዝ ይችላሉ። ሊንኩ ለ24 ሰዓት ያገለግላል።",
+    button: "ኢሜይል አረጋግጥ",
+    outro: "መለያ ካልከፈቱ ይህን ኢሜይል ችላ ይበሉ።",
+  },
+};
+
 /** Every step of an order is emailed to the guest (if they gave an email address). */
 export type OrderEmailKind =
   | "received"

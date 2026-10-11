@@ -1,4 +1,5 @@
--- Yetenbi table reservations. Applied by scripts/setup-db.mjs (safe to run repeatedly).
+-- 0001: everything up to October 2026 (reservations, accounts, orders, menu, audit log, notes).
+-- Written to be safe on a database that already has these tables.
 
 create table if not exists reservations (
   id          bigserial primary key,

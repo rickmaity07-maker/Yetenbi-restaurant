@@ -256,6 +256,16 @@ export const de = {
     google: "Mit Google fortfahren",
     or: "oder",
     noPassword: "Ihr meldet euch mit Google an. Hier könnt ihr zusätzlich ein Passwort festlegen.",
+    verifyNotice: (email: string) =>
+      `Bitte bestätigt eure E-Mail-Adresse: Wir haben einen Link an ${email} geschickt. Erst danach könnt ihr online bestellen.`,
+    verifyResend: "Link erneut senden",
+    verifySent: "Ein neuer Link ist unterwegs.",
+    verifyTitle: "E-Mail-Adresse bestätigen",
+    verifyLead: "Ein Klick noch, dann ist eure Adresse bestätigt und ihr könnt online bestellen.",
+    verifyButton: "Jetzt bestätigen",
+    verifyDone: "Danke, eure E-Mail-Adresse ist bestätigt.",
+    verifyInvalid: "Dieser Link ist abgelaufen oder wurde schon benutzt. Im Profil könnt ihr einen neuen anfordern.",
+    toProfile: "Zum Profil",
     errors: {
       credentials: "E-Mail oder Passwort stimmen nicht.",
       exists: "Mit dieser E-Mail gibt es schon ein Konto.",
@@ -351,6 +361,7 @@ export const de = {
       blocked:
         "Eine Online-Bestellung ist gerade nicht möglich. Ruft uns bitte an, dann nehmen wir eure Bestellung telefonisch auf.",
       login: "Bitte meldet euch erneut an, um zu bestellen.",
+      verify: "Bitte bestätigt zuerst eure E-Mail-Adresse (Link in eurer E-Mail, neuer Link im Profil).",
     },
     statusTitle: "Eure Bestellung",
     reference: "Bestellnummer",
@@ -386,6 +397,7 @@ export const de = {
     terms: "Bestellbedingungen",
   },
   toTop: "Nach oben",
+  backHome: "Zurück zur Startseite",
 };
 
 export type Dict = typeof de;

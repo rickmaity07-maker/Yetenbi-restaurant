@@ -8,7 +8,9 @@ import { LOCALES, type Locale } from "@/lib/i18n";
 import {
   authenticate,
   consumeResetToken,
+  consumeVerificationToken,
   createResetToken,
+  createVerificationToken,
   createUser,
   deleteUser,
   endSession,
@@ -23,7 +25,7 @@ import {
 import { hasDatabase } from "@/lib/server/db";
 import { homeFor } from "@/lib/roles";
 import { isEmail, safeNext } from "@/lib/validate";
-import { notifyRestaurantCancelled, sendPasswordReset } from "@/lib/server/email";
+import { notifyRestaurantCancelled, sendEmailVerification, sendPasswordReset } from "@/lib/server/email";
 import { cancelForUser } from "@/lib/server/reservations";
 import { audit } from "@/lib/server/audit";
 import { forgetEmail } from "@/lib/server/customers";
@@ -96,8 +98,32 @@ export async function register(_: AccountState, form: FormData): Promise<Account
     return { error: "exists" };
   }
   const user = await createUser({ name, email, phone, password, locale: asLocale(str(form, "locale")) });
+  await sendVerificationLink(user);
   await startSession(user.id);
   redirect(safeNext(str(form, "next")) || "/profil");
+}
+
+/** Emails the link that proves the guest owns the address. A failed email doesn't stop the sign-up. */
+async function sendVerificationLink(user: { id: number; email: string; name: string; locale: Locale }) {
+  await recordHit("verify-email", user.email);
+  const token = await createVerificationToken(user.id);
+  return sendEmailVerification(user.email, user.name, user.locale, `${siteUrl()}/bestaetigen?token=${token}`);
+}
+
+/** "Send the link again" (profile and order page). */
+export async function resendVerification(): Promise<AccountState> {
+  const me = await requireUser();
+  if (me.emailVerified) return { ok: true };
+  if (await isLimited("verify-email", me.email, RATE.verifyPerEmail)) return { error: "throttled" };
+  return (await sendVerificationLink(me)) ? { ok: true } : { error: "mail" };
+}
+
+/** The button on /bestaetigen. A button (not just opening the link) so email scanners can't confirm it. */
+export async function confirmEmail(_: AccountState, form: FormData): Promise<AccountState> {
+  const userId = await consumeVerificationToken(str(form, "token"));
+  if (!userId) return { error: "token" };
+  revalidatePath("/profil");
+  return { ok: true };
 }
 
 export async function logout() {

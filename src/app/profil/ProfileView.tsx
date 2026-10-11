@@ -1,5 +1,6 @@
 "use client";
 
+import VerifyNotice from "@/components/account/VerifyNotice";
 import Link from "next/link";
 import { useActionState } from "react";
 import { cancelMyBooking, changePassword, deleteAccount, logout, updateProfile } from "@/app/account-actions";
@@ -19,7 +20,7 @@ type ProfileBooking = {
 };
 
 type Props = {
-  user: { name: string; email: string; phone: string; role: Role; locale: Locale };
+  user: { name: string; email: string; phone: string; role: Role; locale: Locale; emailVerified: boolean };
   bookings: ProfileBooking[];
   today: string;
   /** false for accounts that only sign in with Google */
@@ -108,6 +109,7 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
 
   return (
     <div className="space-y-12">
+      {!user.emailVerified && <VerifyNotice email={user.email} />}
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div>
           <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{text.hello(user.name)}</h1>

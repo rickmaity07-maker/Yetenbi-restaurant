@@ -49,6 +49,11 @@ export async function sendEmail(email: Email, description: string): Promise<bool
     return true;
   } catch (error) {
     console.error(`Email failed: ${description}`, error);
+    // A failed alert would only fail again, so alerts are not reported about themselves.
+    if (description !== "error alert") {
+      const { reportError } = await import("../alerts");
+      await reportError(`Email (${description})`, error);
+    }
     return false;
   }
 }

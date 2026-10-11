@@ -202,10 +202,12 @@ function German({ owner }: { owner: Owner }) {
       <H>7. Kundenkonto und Anmeldung mit Google</H>
       <p>
         Wenn Sie ein Konto anlegen, speichern wir Name, E-Mail-Adresse, optional Telefonnummer und Ihre bevorzugte
-        Sprache (Art. 6 Abs. 1 lit. business DSGVO). Ihr Passwort wird ausschließlich als sicherer Hash gespeichert. Das
-        Konto bleibt bestehen, bis Sie es löschen. Im Profil können Sie Ihre Daten jederzeit ändern, herunterladen oder
-        das Konto löschen. Beim Löschen entfernen wir auch unsere Notizen zu Ihnen (Abschnitt 8); Ihre Bestellungen und
-        Reservierungen bleiben ohne Verknüpfung zum Konto bis zum Ablauf ihrer Frist (180 Tage) gespeichert.
+        Sprache (Art. 6 Abs. 1 lit. business DSGVO). Ihr Passwort wird ausschließlich als sicherer Hash gespeichert.
+        Damit niemand mit fremder Adresse bestellt, senden wir nach der Anmeldung einen Bestätigungslink (24 Stunden
+        gültig); erst danach ist das Bestellen möglich. Das Konto bleibt bestehen, bis Sie es löschen. Im Profil können
+        Sie Ihre Daten jederzeit ändern, herunterladen oder das Konto löschen. Beim Löschen entfernen wir auch unsere
+        Notizen zu Ihnen (Abschnitt 8); Ihre Bestellungen und Reservierungen bleiben ohne Verknüpfung zum Konto bis zum
+        Ablauf ihrer Frist (180 Tage) gespeichert.
       </p>
       <p>
         Bei der „Anmeldung mit Google“ erhalten wir von Google Ihren Namen, Ihre E-Mail-Adresse und eine Kennung Ihres
@@ -278,6 +280,7 @@ function German({ owner }: { owner: Owner }) {
           ["Team-Protokoll", "1 Jahr"],
           ["E-Mail-Kopien in unseren Postfächern", "höchstens 180 Tage"],
           ["Sitzungs-Cookie / Link „Passwort vergessen“", "30 Tage / 1 Stunde"],
+          ["Bestätigungslink für die E-Mail-Adresse", "24 Stunden"],
           ["Server-Protokolle bei Vercel", "wenige Tage"],
         ]}
       />
@@ -411,10 +414,11 @@ function English({ owner }: { owner: Owner }) {
       <H>7. Customer account and Google sign-in</H>
       <p>
         When you create an account we store your name, email, optional phone number and preferred language (Art.
-        6(1)(business) GDPR). Your password is stored only as a secure hash. The account exists until you delete it. In
-        your profile you can change, download or delete your data at any time. Deleting the account also removes our
-        notes about you (section 8); your orders and reservations remain, unlinked from the account, until their period
-        (180 days) ends.
+        6(1)(business) GDPR). Your password is stored only as a secure hash. So that nobody orders with someone
+        else&apos;s address, we send a confirmation link after sign-up (valid 24 hours); ordering is possible once it is
+        confirmed. The account exists until you delete it. In your profile you can change, download or delete your data
+        at any time. Deleting the account also removes our notes about you (section 8); your orders and reservations
+        remain, unlinked from the account, until their period (180 days) ends.
       </p>
       <p>
         With &quot;Sign in with Google&quot; we receive your name, email and an identifier of your Google account from
@@ -481,6 +485,7 @@ function English({ owner }: { owner: Owner }) {
           ["Team log", "1 year"],
           ["Email copies in our mailboxes", "180 days at most"],
           ["Session cookie / password reset link", "30 days / 1 hour"],
+          ["Email confirmation link", "24 hours"],
           ["Server logs at Vercel", "a few days"],
         ]}
       />

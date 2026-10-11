@@ -249,6 +249,16 @@ export const en: Dict = {
     google: "Continue with Google",
     or: "or",
     noPassword: "You sign in with Google. You can also set a password here.",
+    verifyNotice: (email: string) =>
+      `Please confirm your email address: we sent a link to ${email}. You can order online once it is confirmed.`,
+    verifyResend: "Send the link again",
+    verifySent: "A new link is on its way.",
+    verifyTitle: "Confirm your email address",
+    verifyLead: "One more click and your address is confirmed, so you can order online.",
+    verifyButton: "Confirm now",
+    verifyDone: "Thank you, your email address is confirmed.",
+    verifyInvalid: "This link has expired or was already used. You can request a new one in your profile.",
+    toProfile: "Go to your profile",
     errors: {
       credentials: "Email or password is incorrect.",
       exists: "There is already an account with this email.",
@@ -341,6 +351,7 @@ export const en: Dict = {
       large: "For a first order this large, please give us a quick call so we can prepare everything properly.",
       blocked: "Online ordering isn't possible right now. Please call us and we'll take your order by phone.",
       login: "Please sign in again to order.",
+      verify: "Please confirm your email address first (link in your email, or request a new one in your profile).",
     },
     statusTitle: "Your order",
     reference: "Order number",
@@ -376,4 +387,5 @@ export const en: Dict = {
     terms: "Ordering terms",
   },
   toTop: "Back to top",
+  backHome: "Back to the home page",
 };

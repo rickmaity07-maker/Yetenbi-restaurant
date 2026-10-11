@@ -1,5 +1,6 @@
 "use client";
 
+import BackHomeLink from "@/components/BackHomeLink";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
@@ -61,7 +62,14 @@ export default function StatusView() {
     };
   }, [reference, tok]);
 
-  if (missing) return <p className="font-display text-2xl italic text-cream/80">{text.notFound}</p>;
+  if (missing) {
+    return (
+      <div>
+        <BackHomeLink className="mb-8" />
+        <p className="font-display text-2xl italic text-cream/80">{text.notFound}</p>
+      </div>
+    );
+  }
   if (!data) return <div className="h-80" aria-busy />;
 
   const steps: OrderStatus[] = [
@@ -90,6 +98,7 @@ export default function StatusView() {
 
   return (
     <div>
+      <BackHomeLink className="mb-8" />
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
         {text.reference} {data.reference}
       </p>

@@ -24,6 +24,7 @@ import Basket from "./Basket";
 import { Field } from "./FormParts";
 import MenuPicker from "./MenuPicker";
 import { useStoredCart } from "./useStoredCart";
+import VerifyNotice from "@/components/account/VerifyNotice";
 
 /** When delivery or pickup is possible today: open at all, "as soon as possible", and the later time slots. */
 type TimeWindow = { open: boolean; asap: boolean; slots: string[] };
@@ -69,7 +70,7 @@ function validTime(chosen: string, window: TimeWindow) {
 }
 
 /** Server error codes that have their own message. */
-const SPECIAL_ERRORS = ["kitchen", "large", "blocked", "login"] as const;
+const SPECIAL_ERRORS = ["kitchen", "large", "blocked", "login", "verify"] as const;
 type SpecialError = (typeof SPECIAL_ERRORS)[number];
 
 export default function OrderView() {
@@ -415,6 +416,7 @@ export default function OrderView() {
                   className="absolute -left-[9999px] h-0 w-0 opacity-0"
                 />
 
+                {account && !account.emailVerified && <VerifyNotice email={account.email} />}
                 {serverError && (
                   <p role="alert" className="text-sm text-[#f0a080]">
                     {serverError}
@@ -422,7 +424,7 @@ export default function OrderView() {
                 )}
                 <button
                   type="submit"
-                  disabled={!account || !canOrder || sending || cart.length === 0}
+                  disabled={!account || !account.emailVerified || !canOrder || sending || cart.length === 0}
                   className="group relative w-full overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink active:scale-[0.99] disabled:opacity-50"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />

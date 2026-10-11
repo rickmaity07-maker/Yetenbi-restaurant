@@ -10,13 +10,43 @@ Live: https://yetenbi-restaurant.vercel.app (every push to `main` deploys automa
 ```bash
 npm install
 cp .env.example .env.local   # fill in at least DATABASE_URL and ADMIN_SESSION_SECRET
-npm run db:setup             # creates the tables (safe to repeat)
+npm run db:setup             # creates or updates the tables and copies the menu in once (safe to repeat)
 npm run owner:create -- owner@example.com "long password" "Name"   # first /admin login
 npm run dev                  # development, http://localhost:3000
 npm run build && npm run start   # production build (use this to judge performance)
 npm test                     # unit tests (ordering, booking, opening hours, validation)
 npm run format               # format the code with Prettier
 ```
+
+## Database changes
+
+The tables are defined by numbered files in `db/migrations/` (`0001_initial.sql`, `0002_email_verification.sql`, …).
+`npm run db:migrate` applies the ones a database has not had yet (each in one transaction; the table
+`schema_migrations` records what ran). For a change, add the next numbered file, run it against staging first, then
+against production **before** pushing the code that needs it. Never edit a migration that has already run.
+
+## Staging
+
+Preview deployments (every branch except `main`, and `vercel deploy` without `--prod`) use their own database,
+`yetenbi_staging`, in the same Neon project, and their own session secret. They send no emails and have no Google
+sign-in or Cloudinary (those variables exist for Production only), so nothing reaches real guests.
+
+- Update the staging database: `DATABASE_URL=<staging url> npm run db:setup`
+- Create the test logins there: `DATABASE_URL=<staging url> npm run test:accounts`
+- Test a preview: `SITE=https://<preview-url> npm run test:devices` (with Vercel's deployment protection on, add a
+  protection-bypass token or test while signed in to Vercel).
+
+## Security headers
+
+`next.config.ts` sends a Content-Security-Policy on every page: scripts, styles and fonts only from the site itself,
+images also from Cloudinary, uploads to Cloudinary's API, and the Google map as the only frame. If you add a service
+that loads anything in the browser (analytics, a booking widget, another map), add its address there or it is blocked.
+
+## Errors
+
+Server errors (pages, actions, API routes) and failed emails are logged and emailed to `ERROR_ALERT_EMAIL` (or the
+restaurant inbox), at most once an hour per place (`src/instrumentation.ts`, `src/lib/server/alerts.ts`). The email
+holds the place and the message, never guest data, tokens or cookies. Details stay in the Vercel logs.
 
 ## Reservations
 
@@ -58,7 +88,7 @@ npm run format               # format the code with Prettier
 
 ## Accounts
 
-- Guests can create an account (email + password, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
+- Guests can create an account (email + password; the address must be confirmed with a link before they can order, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
   `GOOGLE_CLIENT_SECRET` are set). The profile shows bookings and orders, lets them cancel, change details,
   export their data and delete the account. Password reset works by email.
 - **Speisekarte** (/admin/speisekarte): the whole menu lives in the database (tables `menu_categories`, `menu_items`).

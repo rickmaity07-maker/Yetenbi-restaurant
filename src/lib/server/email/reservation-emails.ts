@@ -1,12 +1,11 @@
 import "server-only";
-import type { Locale } from "@/lib/i18n";
 import { siteUrl } from "@/lib/site-url";
 import { cancelUrl } from "../cancel-token";
 import type { Reservation } from "../reservations";
 import { calendarFile } from "./calendar";
 import { button, detailsTable, emailLayout, escapeHtml, formatLongDate, paragraph, quote, textLink } from "./html";
 import { isMailerConfigured, restaurantInbox, sendEmail } from "./send";
-import { passwordResetTexts, reservationTexts, type ReservationEmailKind } from "./texts";
+import { reservationTexts, type ReservationEmailKind } from "./texts";
 
 /** Booking received / confirmed / declined, to the guest in the language they booked in. */
 export async function sendGuestEmail(kind: ReservationEmailKind, reservation: Reservation, origin = siteUrl()) {
@@ -103,15 +102,4 @@ export async function notifyRestaurantCancelled(reservation: Reservation, origin
     },
     `restaurant cancellation ${reservation.reference}`,
   );
-}
-
-/** Password reset link. Returns false when email isn't set up or sending failed (the form then says so). */
-export async function sendPasswordReset(to: string, name: string, locale: Locale, link: string) {
-  if (!isMailerConfigured()) return false;
-
-  const text = passwordResetTexts[locale];
-  const body =
-    paragraph(text.intro) + button(link, text.button) + paragraph(text.outro, "margin-top:24px;color:#b9ab92");
-
-  return sendEmail({ to, subject: text.subject, html: emailLayout(`${escapeHtml(name)},`, body) }, "password reset");
 }

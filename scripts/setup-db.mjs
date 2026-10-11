@@ -1,24 +1,15 @@
-// Creates the tables in the database at DATABASE_URL and, the first time, copies the starting menu in.
-// Usage: npm run db:setup   (reads .env.local if present; safe to run repeatedly)
-import { readFileSync } from "node:fs";
+// Creates or updates the tables in the database at DATABASE_URL (see db/migrations) and, the first time,
+// copies the starting menu in. Usage: npm run db:setup   (reads .env.local if present; safe to run repeatedly)
 import { neon } from "@neondatabase/serverless";
+import { migrate } from "../db/migrate.mjs";
 import { seedMenu } from "../db/menu-seed.mts";
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is not set (add it to .env.local).");
   process.exit(1);
 }
+await migrate(process.env.DATABASE_URL);
 const sql = neon(process.env.DATABASE_URL);
-const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
-// Run each statement separately (the HTTP driver takes one statement per call).
-const statements = schema
-  .split("\n")
-  .filter((line) => !line.trim().startsWith("--"))
-  .join("\n")
-  .split(";")
-  .map((s) => s.trim())
-  .filter(Boolean);
-for (const statement of statements) await sql.query(statement);
 
 // Menu: only when the menu tables are still empty, so edits made in /admin are never overwritten.
 const [{ n }] = await sql`select count(*)::int as n from menu_categories`;

@@ -8,7 +8,7 @@ import type { Role } from "@/lib/roles";
   (/api/closures). Each is fetched once per page load, however many components ask for it.
 */
 
-type Me = { name: string; email: string; phone: string; role: Role } | null;
+type Me = { name: string; email: string; phone: string; role: Role; emailVerified: boolean } | null;
 type ClosedDay = { date: string; note: string };
 
 /** `failed` is what the store holds when the request does not work (default: stays `initial`). */

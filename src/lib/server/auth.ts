@@ -26,6 +26,8 @@ export type User = {
   phone: string;
   role: Role;
   locale: Locale;
+  /** Whether the account has proved it owns its email address (link clicked, Google, or created by the owner). */
+  emailVerified: boolean;
   createdAt: string;
 };
 
@@ -47,6 +49,7 @@ const toUser = (row: UserRow): User => ({
   phone: row.phone,
   role: row.role,
   locale: row.locale,
+  emailVerified: Boolean(row.email_verified),
   createdAt: String(row.created_at),
 });
 
@@ -222,7 +225,31 @@ export async function consumeResetToken(token: string) {
 }
 
 /** Removes expired sessions and reset links (called by the daily clean-up). */
+/* ---------- email verification ---------- */
+
+/** A one-time link (valid 24 hours) that confirms the account owns its email address. Replaces older links. */
+export async function createVerificationToken(userId: number) {
+  const token = randomBytes(32).toString("base64url");
+  await db()`delete from email_verifications where user_id = ${userId}`;
+  await db()`
+    insert into email_verifications (token_hash, user_id, expires_at)
+    values (${sha256(token)}, ${userId}, now() + interval '24 hours')
+  `;
+  return token;
+}
+
+/** Marks the account as verified. Returns the user id, or null for an unknown or expired link. */
+export async function consumeVerificationToken(token: string) {
+  const [row] = (await db()`
+    delete from email_verifications where token_hash = ${sha256(token)} and expires_at > now() returning user_id
+  `) as { user_id: string }[];
+  if (!row) return null;
+  await db()`update users set email_verified = true where id = ${row.user_id}`;
+  return Number(row.user_id);
+}
+
 export async function purgeExpiredAuth() {
   await db()`delete from sessions where expires_at < now()`;
   await db()`delete from password_resets where expires_at < now()`;
+  await db()`delete from email_verifications where expires_at < now()`;
 }

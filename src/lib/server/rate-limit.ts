@@ -16,6 +16,7 @@ export const RATE = {
   resetPerEmail: { max: 3, minutes: 60 },
   resetPerIp: { max: 10, minutes: 60 },
   registerPerIp: { max: 5, minutes: 60 },
+  verifyPerEmail: { max: 3, minutes: 60 }, // "send the link again"
   bookPerIp: { max: 6, minutes: 60 },
 } as const;
 type Limit = { max: number; minutes: number };

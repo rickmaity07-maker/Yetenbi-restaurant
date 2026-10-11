@@ -20,6 +20,8 @@ export async function POST(request: Request) {
   if (!hasDatabase()) return Response.json({ code: "unavailable" }, { status: 503 });
   const me = await getCurrentUser();
   if (!me) return Response.json({ code: "login" }, { status: 401 });
+  // Order emails go to the account's address, so it must belong to the person ordering.
+  if (!me.emailVerified) return Response.json({ code: "verify" }, { status: 403 });
   let body: Partial<OrderInput> & { locale?: string; website?: string };
   try {
     body = await request.json();

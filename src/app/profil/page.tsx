@@ -21,7 +21,14 @@ async function ProfileData() {
   ]);
   return (
     <ProfileView
-      user={{ name: user.name, email: user.email, phone: user.phone, role: user.role, locale: user.locale }}
+      user={{
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        locale: user.locale,
+        emailVerified: user.emailVerified,
+      }}
       bookings={bookings.map((booking) => ({
         id: booking.id,
         reference: booking.reference,
