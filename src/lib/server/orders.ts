@@ -53,49 +53,50 @@ export type Order = {
 };
 
 type Row = Record<string, unknown>;
-const iso = (v: unknown) => (v == null ? null : new Date(String(v)).toISOString());
-const toOrder = (r: Row): Order => ({
-  id: Number(r.id),
-  reference: String(r.reference),
-  statusToken: String(r.status_token),
-  status: r.status as OrderStatus,
-  method: r.method as Order["method"],
-  name: String(r.name),
-  phone: String(r.phone),
-  email: String(r.email),
-  street: String(r.street),
-  postcode: String(r.postcode),
-  city: String(r.city),
-  addressNote: String(r.address_note),
-  note: String(r.note),
-  items: r.items as OrderLine[],
-  subtotal: Number(r.subtotal),
-  deposit: Number(r.deposit ?? 0),
-  deliveryFee: Number(r.delivery_fee),
-  total: Number(r.total),
-  payment: r.payment as Order["payment"],
-  wanted: String(r.wanted),
-  etaMinutes: r.eta_minutes == null ? null : Number(r.eta_minutes),
-  staffNote: String(r.staff_note),
-  locale: r.locale as Locale,
-  hasAccount: r.user_id != null,
-  driverId: r.driver_id == null ? null : Number(r.driver_id),
-  driverName: r.driver_name == null ? undefined : String(r.driver_name),
-  acceptedAt: iso(r.accepted_at),
-  cookedAt: iso(r.cooked_at),
-  packedAt: iso(r.packed_at),
-  outAt: iso(r.out_at),
-  completedAt: iso(r.completed_at),
+/** A timestamp column as an ISO string, or null when the step hasn't happened yet. */
+const iso = (value: unknown) => (value == null ? null : new Date(String(value)).toISOString());
+const toOrder = (row: Row): Order => ({
+  id: Number(row.id),
+  reference: String(row.reference),
+  statusToken: String(row.status_token),
+  status: row.status as OrderStatus,
+  method: row.method as Order["method"],
+  name: String(row.name),
+  phone: String(row.phone),
+  email: String(row.email),
+  street: String(row.street),
+  postcode: String(row.postcode),
+  city: String(row.city),
+  addressNote: String(row.address_note),
+  note: String(row.note),
+  items: row.items as OrderLine[],
+  subtotal: Number(row.subtotal),
+  deposit: Number(row.deposit ?? 0),
+  deliveryFee: Number(row.delivery_fee),
+  total: Number(row.total),
+  payment: row.payment as Order["payment"],
+  wanted: String(row.wanted),
+  etaMinutes: row.eta_minutes == null ? null : Number(row.eta_minutes),
+  staffNote: String(row.staff_note),
+  locale: row.locale as Locale,
+  hasAccount: row.user_id != null,
+  driverId: row.driver_id == null ? null : Number(row.driver_id),
+  driverName: row.driver_name == null ? undefined : String(row.driver_name),
+  acceptedAt: iso(row.accepted_at),
+  cookedAt: iso(row.cooked_at),
+  packedAt: iso(row.packed_at),
+  outAt: iso(row.out_at),
+  completedAt: iso(row.completed_at),
   risk:
-    r.completed_before == null
+    row.completed_before == null
       ? undefined
       : {
-          completedBefore: Number(r.completed_before),
-          rejectedBefore: Number(r.rejected_before),
-          blocked: Boolean(r.blocked),
+          completedBefore: Number(row.completed_before),
+          rejectedBefore: Number(row.rejected_before),
+          blocked: Boolean(row.blocked),
         },
-  createdAt: new Date(String(r.created_at)).toISOString(),
-  updatedAt: new Date(String(r.updated_at)).toISOString(),
+  createdAt: new Date(String(row.created_at)).toISOString(),
+  updatedAt: new Date(String(row.updated_at)).toISOString(),
 });
 
 /* ---------- settings ---------- */
@@ -105,15 +106,16 @@ export async function getOrderSettings(): Promise<OrderSettings> {
   return { ...DEFAULT_SETTINGS, ...(row?.value ?? {}) };
 }
 
-export async function saveOrderSettings(s: OrderSettings) {
+export async function saveOrderSettings(settings: OrderSettings) {
   await db()`
-    insert into settings (key, value, updated_at) values ('ordering', ${JSON.stringify(s)}::jsonb, now())
+    insert into settings (key, value, updated_at) values ('ordering', ${JSON.stringify(settings)}::jsonb, now())
     on conflict (key) do update set value = excluded.value, updated_at = now()
   `;
 }
 
 /* ---------- orders ---------- */
 
+// No 0/O/1/I, so a reference can be read out on the phone without confusion.
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const newReference = () => "YO-" + Array.from({ length: 4 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("");
 
@@ -126,13 +128,15 @@ export async function createOrder(
   guard: { phoneKey: string; clientHash: string | null },
   catalog: Catalog,
 ) {
-  const lines: OrderLine[] = input.items.map((l) => {
-    const item = catalog.get(l.id)!;
-    const deposit = item.deposit;
-    return { id: l.id, name: item.name.de, qty: l.qty, unit: item.price, ...(deposit ? { deposit } : {}) };
+  const lines: OrderLine[] = input.items.map((cartLine) => {
+    const dish = catalog.get(cartLine.id)!; // validateOrder has checked every id against the menu
+    const line: OrderLine = { id: cartLine.id, name: dish.name.de, qty: cartLine.qty, unit: dish.price };
+    if (dish.deposit) line.deposit = dish.deposit;
+    return line;
   });
-  const t = totals(input.items, input.method, settings, catalog);
+  const prices = totals(input.items, input.method, settings, catalog);
   const delivery = input.method === "delivery";
+  // A new random reference is tried again if it happens to exist already.
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const [row] = (await db()`
@@ -141,7 +145,7 @@ export async function createOrder(
         values (${newReference()}, ${randomBytes(18).toString("base64url")}, ${input.method}, ${input.name.trim()}, ${input.phone.trim()},
                 ${input.email.trim().toLowerCase()}, ${delivery ? input.street.trim() : ""}, ${delivery ? input.postcode.trim() : ""},
                 ${delivery ? input.city.trim() || "Würzburg" : ""}, ${delivery ? input.addressNote.trim() : ""}, ${input.note.trim()},
-                ${JSON.stringify(lines)}::jsonb, ${t.subtotal}, ${t.deposit}, ${t.fee}, ${t.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId},
+                ${JSON.stringify(lines)}::jsonb, ${prices.subtotal}, ${prices.deposit}, ${prices.fee}, ${prices.total}, ${input.payment}, ${input.wanted}, ${locale}, ${userId},
                 ${guard.phoneKey}, ${guard.clientHash})
         returning *
       `) as Row[];

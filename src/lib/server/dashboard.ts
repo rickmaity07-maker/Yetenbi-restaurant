@@ -21,7 +21,7 @@ type Dashboard = {
 type Row = Record<string, unknown>;
 
 export async function getDashboard(): Promise<Dashboard> {
-  const [counts, days, res, newOrders, packed, pending, bookings] = (await Promise.all([
+  const [orderCountRows, dayRows, reservationCountRows, newOrders, packed, pending, bookings] = (await Promise.all([
     db()`
       select
         count(*) filter (where (created_at at time zone 'Europe/Berlin')::date = (now() at time zone 'Europe/Berlin')::date)::int as today,
@@ -53,57 +53,57 @@ export async function getDashboard(): Promise<Dashboard> {
     db()`select id, reference, date::text, time, guests, name from reservations where status = 'pending' and date >= (now() at time zone 'Europe/Berlin')::date order by date, time limit 10`,
     db()`select id, time, guests, name, status, source from reservations where date = (now() at time zone 'Europe/Berlin')::date and status in ('confirmed','pending') order by time`,
   ])) as Row[][];
-  const c = counts[0];
-  const r = res[0];
+  const counts = orderCountRows[0];
+  const reservations = reservationCountRows[0];
   return {
     orders: {
-      today: Number(c.today),
-      open: Number(c.open),
-      new: Number(c.new),
-      packed: Number(c.packed),
-      onTheWay: Number(c.on_the_way),
+      today: Number(counts.today),
+      open: Number(counts.open),
+      new: Number(counts.new),
+      packed: Number(counts.packed),
+      onTheWay: Number(counts.on_the_way),
     },
     revenue: {
-      today: Number(c.rev_today),
-      sameDayLastWeek: Number(c.rev_week_ago),
-      last14: days.map((d) => ({ day: String(d.day), total: Number(d.total), orders: Number(d.orders) })),
+      today: Number(counts.rev_today),
+      sameDayLastWeek: Number(counts.rev_week_ago),
+      last14: dayRows.map((row) => ({ day: String(row.day), total: Number(row.total), orders: Number(row.orders) })),
     },
     reservations: {
-      todayCount: Number(r.today_count),
-      todayGuests: Number(r.today_guests),
-      pending: Number(r.pending),
+      todayCount: Number(reservations.today_count),
+      todayGuests: Number(reservations.today_guests),
+      pending: Number(reservations.pending),
     },
     actions: {
-      newOrders: newOrders.map((o) => ({
-        id: Number(o.id),
-        reference: String(o.reference),
-        method: String(o.method),
-        total: Number(o.total),
-        createdAt: new Date(String(o.created_at)).toISOString(),
-        name: String(o.name),
+      newOrders: newOrders.map((order) => ({
+        id: Number(order.id),
+        reference: String(order.reference),
+        method: String(order.method),
+        total: Number(order.total),
+        createdAt: new Date(String(order.created_at)).toISOString(),
+        name: String(order.name),
       })),
-      packed: packed.map((o) => ({
-        id: Number(o.id),
-        reference: String(o.reference),
-        method: String(o.method),
-        name: String(o.name),
+      packed: packed.map((order) => ({
+        id: Number(order.id),
+        reference: String(order.reference),
+        method: String(order.method),
+        name: String(order.name),
       })),
-      pendingReservations: pending.map((p) => ({
-        id: Number(p.id),
-        reference: String(p.reference),
-        date: String(p.date),
-        time: String(p.time),
-        guests: Number(p.guests),
-        name: String(p.name),
+      pendingReservations: pending.map((reservation) => ({
+        id: Number(reservation.id),
+        reference: String(reservation.reference),
+        date: String(reservation.date),
+        time: String(reservation.time),
+        guests: Number(reservation.guests),
+        name: String(reservation.name),
       })),
     },
-    todaysBookings: bookings.map((b) => ({
-      id: Number(b.id),
-      time: String(b.time),
-      guests: Number(b.guests),
-      name: String(b.name),
-      status: String(b.status),
-      source: String(b.source),
+    todaysBookings: bookings.map((booking) => ({
+      id: Number(booking.id),
+      time: String(booking.time),
+      guests: Number(booking.guests),
+      name: String(booking.name),
+      status: String(booking.status),
+      source: String(booking.source),
     })),
   };
 }

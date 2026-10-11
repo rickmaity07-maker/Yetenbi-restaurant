@@ -60,46 +60,66 @@ export type OrderInput = {
   wanted: string; // "asap" or HH:MM
 };
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+const roundCents = (amount: number) => Math.round(amount * 100) / 100;
 
 /** Food and drink, deposit (Pfand), delivery fee, priced from the menu. Minimum order and free delivery count the food only. */
-export function totals(items: CartLine[], method: Method, s: OrderSettings, catalog: Catalog) {
-  const subtotal = round2(items.reduce((sum, l) => sum + (catalog.get(l.id)?.price ?? 0) * l.qty, 0));
-  const deposit = round2(items.reduce((sum, l) => sum + (catalog.get(l.id)?.deposit ?? 0) * l.qty, 0));
-  const fee = method === "delivery" && !(s.freeDeliveryFrom > 0 && subtotal >= s.freeDeliveryFrom) ? s.deliveryFee : 0;
-  return { subtotal, deposit, fee: round2(fee), total: round2(subtotal + deposit + fee) };
+export function totals(items: CartLine[], method: Method, settings: OrderSettings, catalog: Catalog) {
+  const sumOf = (field: "price" | "deposit") =>
+    roundCents(items.reduce((sum, line) => sum + (catalog.get(line.id)?.[field] ?? 0) * line.qty, 0));
+
+  const subtotal = sumOf("price");
+  const deposit = sumOf("deposit");
+  const freeDelivery = settings.freeDeliveryFrom > 0 && subtotal >= settings.freeDeliveryFrom;
+  const fee = method === "delivery" && !freeDelivery ? roundCents(settings.deliveryFee) : 0;
+  return { subtotal, deposit, fee, total: roundCents(subtotal + deposit + fee) };
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
-const hhmm = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+/** 1110 → "18:30" (minutes since midnight to a clock time). */
+function clockTime(minutesOfDay: number) {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${pad(Math.floor(minutesOfDay / 60))}:${pad(minutesOfDay % 60)}`;
+}
+
+/** Clock times every 15 minutes from `first` (rounded up) to `last`. */
+function quarterHours(first: number, last: number) {
+  const slots: string[] = [];
+  for (let minute = Math.ceil(first / 15) * 15; minute <= last; minute += 15) slots.push(clockTime(minute));
+  return slots;
+}
+
+const closed = () => ({ open: false, asap: false, slots: [] as string[] });
 
 /** Whether orders are accepted right now, and the times that can be chosen for later today. */
 export function orderWindow(
   method: Method,
-  s: OrderSettings,
+  settings: OrderSettings,
   closedToday = false,
   now = new Date(),
   week: DayHours[] = WEEK,
 ) {
-  const { day, minutes } = berlinNow(now);
-  if (s.paused) return { open: false, asap: false, slots: [] as string[] };
-  const lead = method === "delivery" ? s.deliveryMinutes : s.pickupMinutes;
-  if (s.ignoreHours) {
-    // any time today: as soon as possible, or later in 15-minute steps until 23:45
-    const slots: string[] = [];
-    for (let m = Math.ceil((minutes + lead) / 15) * 15; m <= 23 * 60 + 45; m += 15) slots.push(hhmm(m));
-    return { open: true, asap: true, slots };
+  if (settings.paused) return closed();
+
+  const { day, minutes: nowMinutes } = berlinNow(now);
+  const preparation = method === "delivery" ? settings.deliveryMinutes : settings.pickupMinutes;
+
+  // Temporary setting: any time today, until 23:45.
+  if (settings.ignoreHours) {
+    return { open: true, asap: true, slots: quarterHours(nowMinutes + preparation, 23 * 60 + 45) };
   }
-  const hours = week[day];
-  if (!hours || closedToday) return { open: false, asap: false, slots: [] as string[] };
-  const open = toMinutes(hours.open);
-  const last = toMinutes(hours.close) - LAST_ORDER_BEFORE_CLOSE;
-  const asap = minutes >= open && minutes <= last;
-  // scheduled: from the later of now+lead and opening+lead, in 15-minute steps, until closing - 15
-  const from = Math.ceil(Math.max(minutes + lead, open + lead) / 15) * 15;
-  const slots: string[] = [];
-  for (let m = from; m <= toMinutes(hours.close) - 15; m += 15) slots.push(hhmm(m));
-  return { open: minutes <= last, asap, slots };
+
+  const today = week[day];
+  if (!today || closedToday) return closed();
+
+  const opens = toMinutes(today.open);
+  const closes = toMinutes(today.close);
+  const lastOrder = closes - LAST_ORDER_BEFORE_CLOSE;
+  // Later today: from whichever is later, now or opening time, plus the preparation time; until 15 minutes before closing.
+  const firstSlot = Math.max(nowMinutes, opens) + preparation;
+  return {
+    open: nowMinutes <= lastOrder,
+    asap: nowMinutes >= opens && nowMinutes <= lastOrder,
+    slots: quarterHours(firstSlot, closes - 15),
+  };
 }
 
 export type OrderErrorCode =
@@ -119,39 +139,46 @@ export type OrderErrors = Partial<
   Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>
 >;
 
+const PHONE_PATTERN = /^[+\d][\d\s()/-]{5,24}$/;
+
+/** Checks an order against the menu, the settings and today's hours. Used by the order page and again by the API. */
 export function validateOrder(
-  o: OrderInput,
-  s: OrderSettings,
+  order: OrderInput,
+  settings: OrderSettings,
   catalog: Catalog,
   closedToday = false,
   now = new Date(),
   week: DayHours[] = WEEK,
 ): OrderErrors {
-  const e: OrderErrors = {};
-  if (!o.items.length) e.items = "empty";
-  else if (o.items.some((l) => !catalog.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY))
-    e.items = "item";
+  const errors: OrderErrors = {};
 
-  if (o.method !== "delivery" && o.method !== "pickup") e.method = "method";
-  else if ((o.method === "delivery" && !s.delivery) || (o.method === "pickup" && !s.pickup)) e.method = "method";
+  const badLine = (line: CartLine) =>
+    !catalog.has(line.id) || !Number.isInteger(line.qty) || line.qty < 1 || line.qty > MAX_QTY;
+  if (order.items.length === 0) errors.items = "empty";
+  else if (order.items.some(badLine)) errors.items = "item";
 
-  if (!e.method) {
-    const w = orderWindow(o.method, s, closedToday, now, week);
-    if (!w.open) e.wanted = "closed";
-    else if (o.wanted === "asap" ? !w.asap : !w.slots.includes(o.wanted)) e.wanted = "time";
+  const methodOffered =
+    (order.method === "delivery" && settings.delivery) || (order.method === "pickup" && settings.pickup);
+  if (!methodOffered) errors.method = "method";
+
+  if (!errors.method) {
+    const window = orderWindow(order.method, settings, closedToday, now, week);
+    const timeOffered = order.wanted === "asap" ? window.asap : window.slots.includes(order.wanted);
+    if (!window.open) errors.wanted = "closed";
+    else if (!timeOffered) errors.wanted = "time";
   }
 
-  if (o.method === "delivery" && !e.items) {
-    if (totals(o.items, o.method, s, catalog).subtotal < s.minOrder) e.items = "min";
-    if (!s.postcodes.includes(o.postcode.trim())) e.postcode = "postcode";
-    if (o.street.trim().length < 4 || o.street.length > 120) e.street = "street";
+  if (order.method === "delivery" && !errors.items) {
+    if (totals(order.items, order.method, settings, catalog).subtotal < settings.minOrder) errors.items = "min";
+    if (!settings.postcodes.includes(order.postcode.trim())) errors.postcode = "postcode";
+    if (order.street.trim().length < 4 || order.street.length > 120) errors.street = "street";
   }
 
-  if (o.name.trim().length < 2 || o.name.length > 80) e.name = "name";
-  if (!/^[+\d][\d\s()/-]{5,24}$/.test(o.phone.trim())) e.phone = "phone";
-  if (o.email && !isEmail(o.email)) e.email = "email";
-  if (o.note.length > 400 || o.addressNote.length > 200) e.note = "note";
-  return e;
+  if (order.name.trim().length < 2 || order.name.length > 80) errors.name = "name";
+  if (!PHONE_PATTERN.test(order.phone.trim())) errors.phone = "phone";
+  if (order.email && !isEmail(order.email)) errors.email = "email";
+  if (order.note.length > 400 || order.addressNote.length > 200) errors.note = "note";
+  return errors;
 }
 
 /*
@@ -191,7 +218,8 @@ export function canMove(role: StaffRole, from: OrderStatus, to: OrderStatus, met
   return flow[from]?.includes(to) ?? false;
 }
 
-export const formatEuro = (n: number, dateLocale: string) =>
-  new Intl.NumberFormat(dateLocale === "am-ET" ? "de-DE" : dateLocale, { style: "currency", currency: "EUR" }).format(
-    n,
-  );
+/** Prices in the visitor's language. Amharic uses the German format, which browsers support everywhere. */
+export function formatEuro(amount: number, dateLocale: string) {
+  const locale = dateLocale === "am-ET" ? "de-DE" : dateLocale;
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(amount);
+}

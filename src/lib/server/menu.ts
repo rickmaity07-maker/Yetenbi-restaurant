@@ -9,36 +9,36 @@ import { db, hasDatabase } from "./db";
 
 type Row = Record<string, unknown>;
 
-const toDish = (r: Row): Dish => ({
-  id: String(r.id),
-  categoryId: String(r.category_id),
-  name: r.name as L,
-  amharic: String(r.amharic ?? ""),
-  description: (r.description as L | null) ?? null,
-  price: Number(r.price),
-  tags: (r.tags as Dish["tags"]) ?? [],
-  gluten: r.gluten as GlutenClaim,
-  allergens: (r.allergens as string[]) ?? [],
-  additives: ((r.additives as number[]) ?? []).map(Number),
-  volume: r.volume == null ? null : Number(r.volume),
-  deposit: Number(r.deposit ?? 0),
-  orderable: Boolean(r.orderable),
-  available: Boolean(r.available),
+const toDish = (row: Row): Dish => ({
+  id: String(row.id),
+  categoryId: String(row.category_id),
+  name: row.name as L,
+  amharic: String(row.amharic ?? ""),
+  description: (row.description as L | null) ?? null,
+  price: Number(row.price),
+  tags: (row.tags as Dish["tags"]) ?? [],
+  gluten: row.gluten as GlutenClaim,
+  allergens: (row.allergens as string[]) ?? [],
+  additives: ((row.additives as number[]) ?? []).map(Number),
+  volume: row.volume == null ? null : Number(row.volume),
+  deposit: Number(row.deposit ?? 0),
+  orderable: Boolean(row.orderable),
+  available: Boolean(row.available),
 });
 
 /** The whole menu, categories and items in their order. Uncached; for the admin pages. */
 export async function readMenu(): Promise<Menu> {
-  const [cats, items] = (await Promise.all([
+  const [categoryRows, dishRows] = (await Promise.all([
     db()`select * from menu_categories order by position, id`,
     db()`select * from menu_items order by position, id`,
   ])) as [Row[], Row[]];
-  const dishes = items.map(toDish);
-  return cats.map((c) => ({
-    id: String(c.id),
-    title: c.title as L,
-    note: (c.note as L | null) ?? null,
-    drinks: Boolean(c.drinks),
-    items: dishes.filter((d) => d.categoryId === c.id),
+  const dishes = dishRows.map(toDish);
+  return categoryRows.map((category) => ({
+    id: String(category.id),
+    title: category.title as L,
+    note: (category.note as L | null) ?? null,
+    drinks: Boolean(category.drinks),
+    items: dishes.filter((dish) => dish.categoryId === category.id),
   }));
 }
 
@@ -58,34 +58,45 @@ export async function getMenu(): Promise<Menu> {
 
 /* ---------- categories ---------- */
 
-const slug = (v: string) =>
-  v
+const jsonOrNull = (value: L | null) => (value ? JSON.stringify(value) : null);
+
+/** A readable id for a new category, e.g. "Vorspeisen" → "vorspeisen" (umlauts become "a-", "o-", …). */
+const slug = (title: string) =>
+  title
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 24) || "kategorie";
 
-export async function createCategory(c: { title: L; note: L | null; drinks: boolean }) {
-  const base = slug(c.title.de);
+type CategoryInput = { title: L; note: L | null; drinks: boolean };
+
+export async function createCategory(category: CategoryInput) {
+  const base = slug(category.title.de);
   const [taken] = (await db()`select 1 from menu_categories where id = ${base}`) as Row[];
   const id = taken ? `${base}-${randomBytes(2).toString("hex")}` : base;
   await db()`
     insert into menu_categories (id, title, note, drinks, position)
-    values (${id}, ${JSON.stringify(c.title)}::jsonb, ${c.note ? JSON.stringify(c.note) : null}::jsonb, ${c.drinks},
+    values (${id}, ${JSON.stringify(category.title)}::jsonb, ${jsonOrNull(category.note)}::jsonb, ${category.drinks},
             (select coalesce(max(position), -1) + 1 from menu_categories))
   `;
   return id;
 }
 
-export async function updateCategory(id: string, c: { title: L; note: L | null; drinks: boolean }) {
-  await db()`update menu_categories set title = ${JSON.stringify(c.title)}::jsonb, note = ${c.note ? JSON.stringify(c.note) : null}::jsonb, drinks = ${c.drinks} where id = ${id}`;
+export async function updateCategory(id: string, category: CategoryInput) {
+  await db()`
+    update menu_categories
+    set title = ${JSON.stringify(category.title)}::jsonb, note = ${jsonOrNull(category.note)}::jsonb, drinks = ${category.drinks}
+    where id = ${id}
+  `;
 }
 
 /** Only empty categories can be deleted; returns false otherwise. */
 export async function deleteCategory(id: string) {
-  const [{ n }] = (await db()`select count(*)::int as n from menu_items where category_id = ${id}`) as { n: number }[];
-  if (n > 0) return false;
+  const [{ dishes }] = (await db()`select count(*)::int as dishes from menu_items where category_id = ${id}`) as {
+    dishes: number;
+  }[];
+  if (dishes > 0) return false;
   await db()`delete from menu_categories where id = ${id}`;
   return true;
 }
@@ -94,24 +105,24 @@ export async function deleteCategory(id: string) {
 
 export type DishInput = Omit<Dish, "id" | "categoryId"> & { categoryId: string };
 
-export async function createDish(d: DishInput) {
+export async function createDish(dish: DishInput) {
   const id = `i-${randomBytes(4).toString("hex")}`;
   await db()`
     insert into menu_items (id, category_id, name, amharic, description, price, tags, gluten, allergens, additives, volume, deposit, orderable, available, position)
-    values (${id}, ${d.categoryId}, ${JSON.stringify(d.name)}::jsonb, ${d.amharic}, ${d.description ? JSON.stringify(d.description) : null}::jsonb, ${d.price},
-            ${d.tags}, ${d.gluten}, ${d.allergens}, ${d.additives}, ${d.volume}, ${d.deposit}, ${d.orderable}, ${d.available},
-            (select coalesce(max(position), -1) + 1 from menu_items where category_id = ${d.categoryId}))
+    values (${id}, ${dish.categoryId}, ${JSON.stringify(dish.name)}::jsonb, ${dish.amharic}, ${jsonOrNull(dish.description)}::jsonb, ${dish.price},
+            ${dish.tags}, ${dish.gluten}, ${dish.allergens}, ${dish.additives}, ${dish.volume}, ${dish.deposit}, ${dish.orderable}, ${dish.available},
+            (select coalesce(max(position), -1) + 1 from menu_items where category_id = ${dish.categoryId}))
   `;
   return id;
 }
 
-export async function updateDish(id: string, d: DishInput) {
+export async function updateDish(id: string, dish: DishInput) {
   await db()`
     update menu_items set
-      category_id = ${d.categoryId}, name = ${JSON.stringify(d.name)}::jsonb, amharic = ${d.amharic},
-      description = ${d.description ? JSON.stringify(d.description) : null}::jsonb, price = ${d.price}, tags = ${d.tags}, gluten = ${d.gluten},
-      allergens = ${d.allergens}, additives = ${d.additives}, volume = ${d.volume}, deposit = ${d.deposit},
-      orderable = ${d.orderable}, available = ${d.available}, updated_at = now()
+      category_id = ${dish.categoryId}, name = ${JSON.stringify(dish.name)}::jsonb, amharic = ${dish.amharic},
+      description = ${jsonOrNull(dish.description)}::jsonb, price = ${dish.price}, tags = ${dish.tags}, gluten = ${dish.gluten},
+      allergens = ${dish.allergens}, additives = ${dish.additives}, volume = ${dish.volume}, deposit = ${dish.deposit},
+      orderable = ${dish.orderable}, available = ${dish.available}, updated_at = now()
     where id = ${id}
   `;
 }
@@ -125,18 +136,18 @@ export async function setAvailable(id: string, available: boolean) {
 }
 
 /** Moves a category or an item one place up or down (swaps positions with its neighbour). */
-export async function move(kind: "category" | "item", id: string, dir: -1 | 1) {
+export async function move(kind: "category" | "item", id: string, direction: -1 | 1) {
   const rows = (
     kind === "category"
       ? await db()`select id, position from menu_categories order by position, id`
       : await db()`select id, position from menu_items where category_id = (select category_id from menu_items where id = ${id}) order by position, id`
   ) as { id: string; position: number }[];
-  const i = rows.findIndex((r) => r.id === id);
-  const j = i + dir;
-  if (i < 0 || j < 0 || j >= rows.length) return;
-  // renumber the whole list so equal or missing positions never get stuck
-  const order = rows.map((r) => r.id);
-  [order[i], order[j]] = [order[j], order[i]];
+  const from = rows.findIndex((row) => row.id === id);
+  const to = from + direction;
+  if (from < 0 || to < 0 || to >= rows.length) return;
+  // Renumber the whole list, so equal or missing positions never get stuck.
+  const order = rows.map((row) => row.id);
+  [order[from], order[to]] = [order[to], order[from]];
   for (const [position, rowId] of order.entries()) {
     if (kind === "category") await db()`update menu_categories set position = ${position} where id = ${rowId}`;
     else await db()`update menu_items set position = ${position} where id = ${rowId}`;
