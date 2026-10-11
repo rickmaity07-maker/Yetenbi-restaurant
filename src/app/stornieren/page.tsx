@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LalibelaCross } from "@/components/heritage/Ornaments";
 import LegalLinks from "@/components/LegalLinks";
+import BackHomeLink from "@/components/BackHomeLink";
 import type { Locale } from "@/lib/i18n";
 import { checkCancelSignature } from "@/lib/server/cancel-token";
 import { notifyRestaurantCancelled } from "@/lib/server/email";
@@ -21,7 +21,6 @@ const copy: Record<
     done: string;
     invalid: string;
     closed: string;
-    home: string;
     dateLocale: string;
   }
 > = {
@@ -32,7 +31,6 @@ const copy: Record<
     done: "Die Reservierung ist storniert. Danke, dass ihr Bescheid gegeben habt.",
     invalid: "Dieser Link ist ungültig.",
     closed: "Diese Reservierung kann nicht mehr storniert werden. Ruft uns gerne an: 0176 21438960.",
-    home: "Zur Startseite",
     dateLocale: "de-DE",
   },
   en: {
@@ -42,7 +40,6 @@ const copy: Record<
     done: "Your reservation is cancelled. Thank you for letting us know.",
     invalid: "This link is not valid.",
     closed: "This reservation can no longer be cancelled. Please call us: 0176 21438960.",
-    home: "Back to the homepage",
     dateLocale: "en-GB",
   },
   am: {
@@ -52,7 +49,6 @@ const copy: Record<
     done: "ቦታ ማስያዣዎ ተሰርዟል። ስላሳወቁን እናመሰግናለን።",
     invalid: "ይህ ሊንክ ትክክል አይደለም።",
     closed: "ይህ ቦታ ማስያዣ ከእንግዲህ ሊሰረዝ አይችልም። እባክዎ ይደውሉ፦ 0176 21438960።",
-    home: "ወደ መነሻ ገጽ",
     dateLocale: "am-ET",
   },
 };
@@ -115,9 +111,6 @@ async function CancelContent({
       ) : (
         <p className="mt-8 font-display text-xl italic text-cream/80">{text.closed}</p>
       )}
-      <Link href="/" className="mt-10 inline-block text-sm text-gold-soft underline underline-offset-4">
-        {text.home}
-      </Link>
     </div>
   );
 }
@@ -129,6 +122,7 @@ export default function CancelPage({
 }) {
   return (
     <main id="main" className="mx-auto min-h-[100dvh] max-w-xl px-5 py-24">
+      <BackHomeLink className="mb-10" />
       <LalibelaCross className="h-9 w-9 text-gold" />
       <Suspense fallback={<div className="h-72" />}>
         <CancelContent searchParams={searchParams} />

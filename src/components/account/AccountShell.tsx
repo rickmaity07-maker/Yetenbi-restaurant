@@ -6,6 +6,7 @@ import LanguageToggle from "../LanguageToggle";
 import { AksumFrame, Tibeb } from "../heritage/Ornaments";
 import { useHtmlLang } from "@/lib/language";
 import LegalLinks from "../LegalLinks";
+import BackHomeLink from "../BackHomeLink";
 
 /** Frame for the account pages: brand link home, language switch, and the gold-framed card. */
 export default function AccountShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
@@ -19,7 +20,8 @@ export default function AccountShell({ children, wide = false }: { children: Rea
         </Link>
         <LanguageToggle layoutId="lang-pill-account" />
       </div>
-      <div className={`mx-auto mt-14 md:mt-20 ${wide ? "max-w-5xl" : "max-w-xl"}`}>
+      <div className={`mx-auto mt-10 md:mt-14 ${wide ? "max-w-5xl" : "max-w-xl"}`}>
+        <BackHomeLink className="mb-6" />
         <AksumFrame>
           <div className="relative bg-ink/80 bg-[radial-gradient(ellipse_at_top,rgba(201,162,74,0.12),transparent_60%)] px-6 pb-12 pt-14 md:px-12">
             <Tibeb className="absolute inset-x-0 top-0 opacity-60" />

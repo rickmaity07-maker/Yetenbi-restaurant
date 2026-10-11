@@ -32,6 +32,7 @@ const NAV: Group[] = [
     items: [
       { href: "/admin/speisekarte", label: "Speisekarte" },
       { href: "/admin/fotos", label: "Fotos" },
+      { href: "/", label: "Zur Website", external: true },
     ],
   },
   {
