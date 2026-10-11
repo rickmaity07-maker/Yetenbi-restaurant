@@ -27,7 +27,12 @@ export const isMailerConfigured = () =>
 function mailer() {
   const auth = { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD };
   transporter ??= process.env.SMTP_HOST
-    ? nodemailer.createTransport({ host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT ?? 587), secure: process.env.SMTP_PORT === "465", auth })
+    ? nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT ?? 587),
+        secure: process.env.SMTP_PORT === "465",
+        auth,
+      })
     : nodemailer.createTransport({ service: "gmail", auth });
   return transporter;
 }
@@ -37,35 +42,77 @@ const esc = (v: string) => v.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 const dateLocale: Record<Locale, string> = { de: "de-DE", en: "en-GB", am: "am-ET" };
 const longDate = (date: string, locale: Locale) =>
-  new Date(`${date}T12:00:00Z`).toLocaleDateString(dateLocale[locale], { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  new Date(`${date}T12:00:00Z`).toLocaleDateString(dateLocale[locale], {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 
 /* ---------- copy ---------- */
 
 type Kind = "received" | "confirmed" | "declined";
 
-const copy: Record<Locale, Record<Kind, { subject: (r: Reservation) => string; intro: string }> & { labels: string[]; outro: string; staffNote: string; cancel: string }> = {
+const copy: Record<
+  Locale,
+  Record<Kind, { subject: (r: Reservation) => string; intro: string }> & {
+    labels: string[];
+    outro: string;
+    staffNote: string;
+    cancel: string;
+  }
+> = {
   de: {
-    received: { subject: (r) => `Eure Anfrage bei Yetenbi (${r.reference})`, intro: "danke für eure Anfrage. Sie ist bei uns angekommen, wir melden uns, sobald der Tisch fest ist." },
-    confirmed: { subject: (r) => `Bestätigt: euer Tisch bei Yetenbi (${r.reference})`, intro: "euer Tisch ist reserviert. Wir freuen uns auf euch! Im Anhang findet ihr einen Kalendereintrag." },
-    declined: { subject: (r) => `Eure Anfrage bei Yetenbi (${r.reference})`, intro: "leider können wir zu dieser Zeit keinen Tisch anbieten. Ruft uns gerne an, dann finden wir eine andere Zeit." },
+    received: {
+      subject: (r) => `Eure Anfrage bei Yetenbi (${r.reference})`,
+      intro: "danke für eure Anfrage. Sie ist bei uns angekommen, wir melden uns, sobald der Tisch fest ist.",
+    },
+    confirmed: {
+      subject: (r) => `Bestätigt: euer Tisch bei Yetenbi (${r.reference})`,
+      intro: "euer Tisch ist reserviert. Wir freuen uns auf euch! Im Anhang findet ihr einen Kalendereintrag.",
+    },
+    declined: {
+      subject: (r) => `Eure Anfrage bei Yetenbi (${r.reference})`,
+      intro:
+        "leider können wir zu dieser Zeit keinen Tisch anbieten. Ruft uns gerne an, dann finden wir eine andere Zeit.",
+    },
     labels: ["Datum", "Uhrzeit", "Personen", "Nummer"],
     outro: "Bis bald in der Theaterstraße 6, Würzburg.",
     staffNote: "Nachricht vom Restaurant",
     cancel: "Doch verhindert? Hier könnt ihr die Reservierung stornieren.",
   },
   en: {
-    received: { subject: (r) => `Your request at Yetenbi (${r.reference})`, intro: "thank you for your request. It has reached us, and we'll be in touch as soon as your table is set." },
-    confirmed: { subject: (r) => `Confirmed: your table at Yetenbi (${r.reference})`, intro: "your table is booked. We look forward to seeing you! A calendar entry is attached." },
-    declined: { subject: (r) => `Your request at Yetenbi (${r.reference})`, intro: "unfortunately we can't offer a table at that time. Give us a call and we'll find another one." },
+    received: {
+      subject: (r) => `Your request at Yetenbi (${r.reference})`,
+      intro: "thank you for your request. It has reached us, and we'll be in touch as soon as your table is set.",
+    },
+    confirmed: {
+      subject: (r) => `Confirmed: your table at Yetenbi (${r.reference})`,
+      intro: "your table is booked. We look forward to seeing you! A calendar entry is attached.",
+    },
+    declined: {
+      subject: (r) => `Your request at Yetenbi (${r.reference})`,
+      intro: "unfortunately we can't offer a table at that time. Give us a call and we'll find another one.",
+    },
     labels: ["Date", "Time", "Guests", "Reference"],
     outro: "See you soon at Theaterstraße 6, Würzburg.",
     staffNote: "Message from the restaurant",
     cancel: "Can't make it after all? Cancel your reservation here.",
   },
   am: {
-    received: { subject: (r) => `ጥያቄዎ ደርሶናል – Yetenbi (${r.reference})`, intro: "ስለ ጥያቄዎ እናመሰግናለን። ደርሶናል፤ ቦታው ሲዘጋጅ እናሳውቅዎታለን።" },
-    confirmed: { subject: (r) => `ተረጋግጧል፦ ቦታዎ በYetenbi (${r.reference})`, intro: "ቦታዎ ተይዟል። በጉጉት እንጠብቅዎታለን! የቀን መቁጠሪያ ፋይል ተያይዟል።" },
-    declined: { subject: (r) => `ጥያቄዎ – Yetenbi (${r.reference})`, intro: "ይቅርታ፣ በዚህ ሰዓት ቦታ የለንም። እባክዎ ይደውሉልን፣ ሌላ ሰዓት እንፈልግልዎታለን።" },
+    received: {
+      subject: (r) => `ጥያቄዎ ደርሶናል – Yetenbi (${r.reference})`,
+      intro: "ስለ ጥያቄዎ እናመሰግናለን። ደርሶናል፤ ቦታው ሲዘጋጅ እናሳውቅዎታለን።",
+    },
+    confirmed: {
+      subject: (r) => `ተረጋግጧል፦ ቦታዎ በYetenbi (${r.reference})`,
+      intro: "ቦታዎ ተይዟል። በጉጉት እንጠብቅዎታለን! የቀን መቁጠሪያ ፋይል ተያይዟል።",
+    },
+    declined: {
+      subject: (r) => `ጥያቄዎ – Yetenbi (${r.reference})`,
+      intro: "ይቅርታ፣ በዚህ ሰዓት ቦታ የለንም። እባክዎ ይደውሉልን፣ ሌላ ሰዓት እንፈልግልዎታለን።",
+    },
     labels: ["ቀን", "ሰዓት", "የሰው ብዛት", "ቁጥር"],
     outro: "በቅርቡ እንገናኝ፣ Theaterstraße 6, Würzburg።",
     staffNote: "ከምግብ ቤቱ መልእክት",
@@ -92,7 +139,10 @@ function detailsTable(r: Reservation) {
   const c = copy[r.locale];
   const values = [longDate(r.date, r.locale), `${r.time}`, String(r.guests), r.reference];
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%">${c.labels
-    .map((l, i) => `<tr><td style="padding:6px 0;color:#c9a24a;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:40%">${esc(l)}</td><td style="padding:6px 0;font-size:17px;color:#f4ecdc">${esc(values[i])}</td></tr>`)
+    .map(
+      (l, i) =>
+        `<tr><td style="padding:6px 0;color:#c9a24a;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:40%">${esc(l)}</td><td style="padding:6px 0;font-size:17px;color:#f4ecdc">${esc(values[i])}</td></tr>`,
+    )
     .join("")}</table>`;
 }
 
@@ -105,7 +155,11 @@ function berlinToUtc(date: string, time: string) {
   const utc = new Date(guess.toLocaleString("en-US", { timeZone: "UTC" }));
   return new Date(guess.getTime() - (local.getTime() - utc.getTime()));
 }
-const icsStamp = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const icsStamp = (d: Date) =>
+  d
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 
 function ics(r: Reservation) {
   const start = berlinToUtc(r.date, r.time);
@@ -137,15 +191,23 @@ export async function sendGuestEmail(kind: Kind, r: Reservation, origin = siteUr
     kind === "declined"
       ? ""
       : `<p style="margin:18px 0 0;font-size:14px"><a href="${esc(cancelUrl(origin, r.reference))}" style="color:#e7cd8a">${esc(c.cancel)}</a></p>`;
-  const note = r.staffNote ? `<p style="margin:16px 0 0;padding:12px 16px;border-left:2px solid #c9a24a;color:#e0d6c3"><em>${esc(c.staffNote)}:</em><br>${esc(r.staffNote)}</p>` : "";
+  const note = r.staffNote
+    ? `<p style="margin:16px 0 0;padding:12px 16px;border-left:2px solid #c9a24a;color:#e0d6c3"><em>${esc(c.staffNote)}:</em><br>${esc(r.staffNote)}</p>`
+    : "";
   try {
     await mailer().sendMail({
       from: from(),
       to: r.email,
       replyTo: process.env.RESERVATION_NOTIFY_EMAIL,
       subject: c[kind].subject(r),
-      html: layout(esc(r.name) + ",", `<p style="margin:0">${esc(c[kind].intro)}</p>${detailsTable(r)}${note}${cancel}<p style="margin:22px 0 0;color:#b9ab92">${esc(c.outro)}</p>`),
-      attachments: kind === "confirmed" ? [{ filename: "yetenbi.ics", content: ics(r), contentType: "text/calendar; charset=utf-8; method=PUBLISH" }] : [],
+      html: layout(
+        esc(r.name) + ",",
+        `<p style="margin:0">${esc(c[kind].intro)}</p>${detailsTable(r)}${note}${cancel}<p style="margin:22px 0 0;color:#b9ab92">${esc(c.outro)}</p>`,
+      ),
+      attachments:
+        kind === "confirmed"
+          ? [{ filename: "yetenbi.ics", content: ics(r), contentType: "text/calendar; charset=utf-8; method=PUBLISH" }]
+          : [],
     });
   } catch (error) {
     console.error("Guest email failed", r.reference, error);
@@ -173,8 +235,13 @@ export async function notifyRestaurant(r: Reservation, origin: string) {
       html: layout(
         "Neue Reservierungsanfrage",
         `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">${rows
-          .map(([k, v]) => `<tr><td style="padding:5px 0;color:#c9a24a;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:35%">${esc(k)}</td><td style="padding:5px 0">${esc(v)}</td></tr>`)
-          .join("")}</table><p style="margin:24px 0 0"><a href="${esc(origin)}/admin/reservierungen" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">Annehmen oder ablehnen</a></p>`,
+          .map(
+            ([k, v]) =>
+              `<tr><td style="padding:5px 0;color:#c9a24a;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:35%">${esc(k)}</td><td style="padding:5px 0">${esc(v)}</td></tr>`,
+          )
+          .join(
+            "",
+          )}</table><p style="margin:24px 0 0"><a href="${esc(origin)}/admin/reservierungen" style="display:inline-block;background:#c9a24a;color:#1c1712;padding:12px 22px;border-radius:999px;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold">Annehmen oder ablehnen</a></p>`,
       ),
     });
   } catch (error) {
@@ -203,7 +270,8 @@ export async function notifyRestaurantCancelled(r: Reservation, origin = siteUrl
 const resetCopy: Record<Locale, { subject: string; intro: string; button: string; outro: string }> = {
   de: {
     subject: "Passwort zurücksetzen – Yetenbi",
-    intro: "über den Knopf unten könnt ihr ein neues Passwort für euer Yetenbi-Konto festlegen. Der Link ist eine Stunde gültig.",
+    intro:
+      "über den Knopf unten könnt ihr ein neues Passwort für euer Yetenbi-Konto festlegen. Der Link ist eine Stunde gültig.",
     button: "Neues Passwort festlegen",
     outro: "Habt ihr das nicht angefordert? Dann ignoriert diese E-Mail einfach.",
   },
@@ -245,54 +313,116 @@ export async function sendPasswordReset(to: string, name: string, locale: Locale
 /* ---------- online orders ---------- */
 
 /** Every step of an order is emailed to the guest (if they gave an email address). */
-type OrderKind = "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
+type OrderKind =
+  | "received"
+  | "accepted"
+  | "cooked"
+  | "packed"
+  | "ready"
+  | "on_the_way"
+  | "completed"
+  | "rejected"
+  | "cancelled";
 
-const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: string; intro: string }> & { status: string; total: string; delivery: string; pickup: string; terms: string; termsLink: string }> = {
+const orderCopy: Record<
+  Locale,
+  Record<OrderKind, (o: Order) => { subject: string; intro: string }> & {
+    status: string;
+    total: string;
+    delivery: string;
+    pickup: string;
+    terms: string;
+    termsLink: string;
+  }
+> = {
   de: {
-    received: (o) => ({ subject: `Eure Bestellung ${o.reference} ist eingegangen`, intro: "danke für eure Bestellung! Wir bestätigen sie gleich und sagen euch, wann sie fertig ist." }),
+    received: (o) => ({
+      subject: `Eure Bestellung ${o.reference} ist eingegangen`,
+      intro: "danke für eure Bestellung! Wir bestätigen sie gleich und sagen euch, wann sie fertig ist.",
+    }),
     accepted: (o) => ({
       subject: `Bestellung ${o.reference} angenommen`,
       intro: `eure Bestellung ist angenommen. ${o.method === "delivery" ? "Lieferung" : "Abholbereit"} in etwa ${o.etaMinutes ?? 30} Minuten.`,
     }),
-    cooked: (o) => ({ subject: `Bestellung ${o.reference}: Essen ist fertig`, intro: "euer Essen ist fertig gekocht und wird jetzt verpackt." }),
+    cooked: (o) => ({
+      subject: `Bestellung ${o.reference}: Essen ist fertig`,
+      intro: "euer Essen ist fertig gekocht und wird jetzt verpackt.",
+    }),
     packed: (o) => ({
       subject: `Bestellung ${o.reference} ist verpackt`,
-      intro: o.method === "delivery" ? "eure Bestellung ist verpackt und geht gleich an den Fahrer." : "eure Bestellung ist verpackt und gleich abholbereit.",
+      intro:
+        o.method === "delivery"
+          ? "eure Bestellung ist verpackt und geht gleich an den Fahrer."
+          : "eure Bestellung ist verpackt und gleich abholbereit.",
     }),
-    ready: (o) => ({ subject: `Bestellung ${o.reference} ist abholbereit`, intro: "eure Bestellung wartet auf euch in der Theaterstraße 6. Bis gleich!" }),
-    on_the_way: (o) => ({ subject: `Bestellung ${o.reference} ist unterwegs`, intro: "eure Bestellung ist unterwegs zu euch. Guten Appetit!" }),
+    ready: (o) => ({
+      subject: `Bestellung ${o.reference} ist abholbereit`,
+      intro: "eure Bestellung wartet auf euch in der Theaterstraße 6. Bis gleich!",
+    }),
+    on_the_way: (o) => ({
+      subject: `Bestellung ${o.reference} ist unterwegs`,
+      intro: "eure Bestellung ist unterwegs zu euch. Guten Appetit!",
+    }),
     completed: (o) => ({
       subject: o.method === "delivery" ? `Bestellung ${o.reference} geliefert` : `Bestellung ${o.reference} abgeholt`,
       intro: `eure Bestellung wurde ${o.method === "delivery" ? "geliefert" : "abgeholt"}. Danke und guten Appetit!`,
     }),
-    cancelled: (o) => ({ subject: `Bestellung ${o.reference} storniert`, intro: "eure Bestellung wurde storniert. Bei Fragen ruft uns bitte an." }),
-    rejected: (o) => ({ subject: `Bestellung ${o.reference}`, intro: "leider können wir eure Bestellung gerade nicht annehmen. Bitte ruft uns an, wir helfen gerne weiter." }),
+    cancelled: (o) => ({
+      subject: `Bestellung ${o.reference} storniert`,
+      intro: "eure Bestellung wurde storniert. Bei Fragen ruft uns bitte an.",
+    }),
+    rejected: (o) => ({
+      subject: `Bestellung ${o.reference}`,
+      intro: "leider können wir eure Bestellung gerade nicht annehmen. Bitte ruft uns an, wir helfen gerne weiter.",
+    }),
     status: "Status ansehen",
     total: "Summe (inkl. MwSt.)",
-    terms: "Es gelten unsere Bestellbedingungen. Für frisch zubereitete Speisen besteht kein Widerrufsrecht (§ 312g Abs. 2 BGB).",
+    terms:
+      "Es gelten unsere Bestellbedingungen. Für frisch zubereitete Speisen besteht kein Widerrufsrecht (§ 312g Abs. 2 BGB).",
     termsLink: "Bestellbedingungen ansehen",
     delivery: "Lieferung",
     pickup: "Abholung",
   },
   en: {
-    received: (o) => ({ subject: `Your order ${o.reference} has arrived`, intro: "thank you for your order! We'll confirm it shortly and tell you when it will be ready." }),
+    received: (o) => ({
+      subject: `Your order ${o.reference} has arrived`,
+      intro: "thank you for your order! We'll confirm it shortly and tell you when it will be ready.",
+    }),
     accepted: (o) => ({
       subject: `Order ${o.reference} accepted`,
       intro: `your order is accepted. ${o.method === "delivery" ? "Delivery" : "Ready for pick-up"} in about ${o.etaMinutes ?? 30} minutes.`,
     }),
-    cooked: (o) => ({ subject: `Order ${o.reference}: food is ready`, intro: "your food is cooked and is being packed now." }),
+    cooked: (o) => ({
+      subject: `Order ${o.reference}: food is ready`,
+      intro: "your food is cooked and is being packed now.",
+    }),
     packed: (o) => ({
       subject: `Order ${o.reference} is packed`,
-      intro: o.method === "delivery" ? "your order is packed and goes to the driver shortly." : "your order is packed and will be ready for pick-up in a moment.",
+      intro:
+        o.method === "delivery"
+          ? "your order is packed and goes to the driver shortly."
+          : "your order is packed and will be ready for pick-up in a moment.",
     }),
-    ready: (o) => ({ subject: `Order ${o.reference} is ready for pick-up`, intro: "your order is waiting for you at Theaterstraße 6. See you soon!" }),
-    on_the_way: (o) => ({ subject: `Order ${o.reference} is on its way`, intro: "your order is on its way to you. Enjoy your meal!" }),
+    ready: (o) => ({
+      subject: `Order ${o.reference} is ready for pick-up`,
+      intro: "your order is waiting for you at Theaterstraße 6. See you soon!",
+    }),
+    on_the_way: (o) => ({
+      subject: `Order ${o.reference} is on its way`,
+      intro: "your order is on its way to you. Enjoy your meal!",
+    }),
     completed: (o) => ({
       subject: o.method === "delivery" ? `Order ${o.reference} delivered` : `Order ${o.reference} picked up`,
       intro: `your order has been ${o.method === "delivery" ? "delivered" : "picked up"}. Thank you, and enjoy your meal!`,
     }),
-    cancelled: (o) => ({ subject: `Order ${o.reference} cancelled`, intro: "your order has been cancelled. Please call us if you have any questions." }),
-    rejected: (o) => ({ subject: `Order ${o.reference}`, intro: "unfortunately we can't take your order right now. Please give us a call and we'll help." }),
+    cancelled: (o) => ({
+      subject: `Order ${o.reference} cancelled`,
+      intro: "your order has been cancelled. Please call us if you have any questions.",
+    }),
+    rejected: (o) => ({
+      subject: `Order ${o.reference}`,
+      intro: "unfortunately we can't take your order right now. Please give us a call and we'll help.",
+    }),
     status: "View status",
     total: "Total (incl. VAT)",
     terms: "Our ordering terms apply. Freshly prepared food has no right of withdrawal (§ 312g(2) German Civil Code).",
@@ -301,7 +431,10 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
     pickup: "Pick-up",
   },
   am: {
-    received: (o) => ({ subject: `ትዕዛዝዎ ${o.reference} ደርሶናል`, intro: "ስለ ትዕዛዝዎ እናመሰግናለን! በቅርቡ አረጋግጠን መቼ እንደሚደርስ እናሳውቅዎታለን።" }),
+    received: (o) => ({
+      subject: `ትዕዛዝዎ ${o.reference} ደርሶናል`,
+      intro: "ስለ ትዕዛዝዎ እናመሰግናለን! በቅርቡ አረጋግጠን መቼ እንደሚደርስ እናሳውቅዎታለን።",
+    }),
     accepted: (o) => ({
       subject: `ትዕዛዝ ${o.reference} ተቀባይነት አግኝቷል`,
       intro: `ትዕዛዝዎ ተቀባይነት አግኝቷል። በግምት በ${o.etaMinutes ?? 30} ደቂቃ ${o.method === "delivery" ? "ይደርሳል" : "ዝግጁ ይሆናል"}።`,
@@ -311,7 +444,10 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
       subject: `ትዕዛዝ ${o.reference} ታሽጓል`,
       intro: o.method === "delivery" ? "ትዕዛዝዎ ታሽጓል፤ በቅርቡ ለአድራሹ ይሰጣል።" : "ትዕዛዝዎ ታሽጓል፤ በቅርቡ ለመውሰድ ዝግጁ ይሆናል።",
     }),
-    ready: (o) => ({ subject: `ትዕዛዝ ${o.reference} ለመውሰድ ዝግጁ ነው`, intro: "ትዕዛዝዎ Theaterstraße 6 ላይ ይጠብቅዎታል። በቅርቡ እንገናኝ!" }),
+    ready: (o) => ({
+      subject: `ትዕዛዝ ${o.reference} ለመውሰድ ዝግጁ ነው`,
+      intro: "ትዕዛዝዎ Theaterstraße 6 ላይ ይጠብቅዎታል። በቅርቡ እንገናኝ!",
+    }),
     on_the_way: (o) => ({ subject: `ትዕዛዝ ${o.reference} በመንገድ ላይ ነው`, intro: "ትዕዛዝዎ ወደ እርስዎ በመንገድ ላይ ነው። መልካም ምግብ!" }),
     completed: (o) => ({
       subject: o.method === "delivery" ? `ትዕዛዝ ${o.reference} ደርሷል` : `ትዕዛዝ ${o.reference} ተወስዷል`,
@@ -329,14 +465,22 @@ const orderCopy: Record<Locale, Record<OrderKind, (o: Order) => { subject: strin
 };
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-export const orderStatusUrl = (origin: string, o: Order) => `${origin}/bestellung?r=${encodeURIComponent(o.reference)}&t=${o.statusToken}`;
+export const orderStatusUrl = (origin: string, o: Order) =>
+  `${origin}/bestellung?r=${encodeURIComponent(o.reference)}&t=${o.statusToken}`;
 
 function orderTable(o: Order, totalLabel: string) {
   const rows = o.items
-    .map((l) => `<tr><td style="padding:4px 0">${l.qty} × ${esc(l.name)}</td><td style="padding:4px 0;text-align:right">${euro(l.qty * l.unit)}</td></tr>`)
+    .map(
+      (l) =>
+        `<tr><td style="padding:4px 0">${l.qty} × ${esc(l.name)}</td><td style="padding:4px 0;text-align:right">${euro(l.qty * l.unit)}</td></tr>`,
+    )
     .join("");
-  const deposit = o.deposit ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Pfand</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deposit)}</td></tr>` : "";
-  const fee = o.deliveryFee ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Lieferung</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deliveryFee)}</td></tr>` : "";
+  const deposit = o.deposit
+    ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Pfand</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deposit)}</td></tr>`
+    : "";
+  const fee = o.deliveryFee
+    ? `<tr><td style="padding:4px 0;color:#b9ab92">+ Lieferung</td><td style="padding:4px 0;text-align:right;color:#b9ab92">${euro(o.deliveryFee)}</td></tr>`
+    : "";
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;font-size:15px">${rows}${deposit}${fee}<tr><td style="padding:10px 0 0;border-top:1px solid #6b5426;color:#e7cd8a">${esc(totalLabel)}</td><td style="padding:10px 0 0;border-top:1px solid #6b5426;text-align:right;color:#e7cd8a;font-size:18px">${euro(o.total)}</td></tr></table>`;
 }
 
@@ -344,7 +488,9 @@ export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl
   if (!isMailerConfigured() || !o.email) return;
   const c = orderCopy[o.locale];
   const { subject, intro } = c[kind](o);
-  const note = o.staffNote ? `<p style="margin:12px 0 0;padding:12px 16px;border-left:2px solid #c9a24a">${esc(o.staffNote)}</p>` : "";
+  const note = o.staffNote
+    ? `<p style="margin:12px 0 0;padding:12px 16px;border-left:2px solid #c9a24a">${esc(o.staffNote)}</p>`
+    : "";
   try {
     await mailer().sendMail({
       from: from(),
@@ -367,7 +513,10 @@ export async function sendOrderEmail(kind: OrderKind, o: Order, origin = siteUrl
 
 export async function notifyRestaurantOrder(o: Order, origin = siteUrl()) {
   if (!isMailerConfigured()) return;
-  const where = o.method === "delivery" ? `${o.street}, ${o.postcode} ${o.city}${o.addressNote ? ` (${o.addressNote})` : ""}` : "Abholung";
+  const where =
+    o.method === "delivery"
+      ? `${o.street}, ${o.postcode} ${o.city}${o.addressNote ? ` (${o.addressNote})` : ""}`
+      : "Abholung";
   try {
     await mailer().sendMail({
       from: from(),
@@ -441,7 +590,12 @@ export async function notifyStaffOrder(kind: StaffKind, o: Order, to: (string | 
   };
   const m = mail[kind];
   try {
-    await mailer().sendMail({ from: from(), to: recipients.join(", "), subject: m.subject, html: layout(m.heading, m.body) });
+    await mailer().sendMail({
+      from: from(),
+      to: recipients.join(", "),
+      subject: m.subject,
+      html: layout(m.heading, m.body),
+    });
   } catch (error) {
     console.error("Staff order email failed", kind, o.reference, error);
   }

@@ -10,10 +10,13 @@ export function signingKey() {
   if (process.env.ADMIN_SESSION_SECRET) return process.env.ADMIN_SESSION_SECRET;
   // Without a secret anyone could forge cancel links, so production refuses to run without one.
   if (process.env.NODE_ENV === "production") throw new Error("ADMIN_SESSION_SECRET is not set.");
-  return createHash("sha256").update(`yetenbi-dev:${process.env.ADMIN_PASSWORD ?? ""}`).digest("hex");
+  return createHash("sha256")
+    .update(`yetenbi-dev:${process.env.ADMIN_PASSWORD ?? ""}`)
+    .digest("hex");
 }
 
-const cancelSignature = (reference: string) => createHmac("sha256", signingKey()).update(`cancel:${reference}`).digest("base64url").slice(0, 32);
+const cancelSignature = (reference: string) =>
+  createHmac("sha256", signingKey()).update(`cancel:${reference}`).digest("base64url").slice(0, 32);
 
 export function checkCancelSignature(reference: string, signature: string) {
   const a = Buffer.from(cancelSignature(reference));
@@ -21,4 +24,5 @@ export function checkCancelSignature(reference: string, signature: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export const cancelUrl = (origin: string, reference: string) => `${origin}/stornieren?r=${encodeURIComponent(reference)}&s=${cancelSignature(reference)}`;
+export const cancelUrl = (origin: string, reference: string) =>
+  `${origin}/stornieren?r=${encodeURIComponent(reference)}&s=${cancelSignature(reference)}`;

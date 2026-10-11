@@ -1,0 +1,6 @@
+.next
+.vercel
+node_modules
+test-results
+package-lock.json
+*.md

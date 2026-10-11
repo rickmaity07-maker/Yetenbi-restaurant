@@ -9,7 +9,10 @@ import { Rise, Title } from "../ui/primitives";
 export default function ProverbBand() {
   const { t, locale } = useLanguage();
   return (
-    <section aria-label="Äthiopisches Sprichwort" className="relative py-24 md:py-32 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
+    <section
+      aria-label="Äthiopisches Sprichwort"
+      className="relative py-24 md:py-32 [content-visibility:auto] [contain-intrinsic-size:auto_900px]"
+    >
       <Tibeb className="opacity-70" />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-5 py-20 text-center md:py-24">
         <LalibelaCross className="h-7 w-7 text-gold" />
@@ -26,7 +29,9 @@ export default function ProverbBand() {
           delay={0.2}
         />
         <Rise delay={0.4}>
-          <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/55">{t.proverb.caption}</p>
+          <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/55">
+            {t.proverb.caption}
+          </p>
         </Rise>
       </div>
       <Tibeb className="opacity-70" />

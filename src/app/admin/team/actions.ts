@@ -18,7 +18,9 @@ const asRole = (v: FormDataEntryValue | null) => (STAFF.includes(String(v) as Ro
 export async function addStaff(_: TeamState, form: FormData): Promise<TeamState> {
   const me = await requireOwner();
   const name = String(form.get("name") ?? "").trim();
-  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const email = String(form.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   const phone = String(form.get("phone") ?? "").trim();
   const password = String(form.get("password") ?? "");
   const role = asRole(form.get("role"));
@@ -34,7 +36,8 @@ export async function addStaff(_: TeamState, form: FormData): Promise<TeamState>
   }
   if (name.length < 2 || name.length > 80) return { error: "Bitte einen Namen eingeben." };
   if (phone && !/^[+\d][\d\s()/-]{5,24}$/.test(phone)) return { error: "Die Telefonnummer ist ungültig." };
-  if (password.length < 10 || password.length > 200) return { error: "Das Startpasswort braucht mindestens 10 Zeichen." };
+  if (password.length < 10 || password.length > 200)
+    return { error: "Das Startpasswort braucht mindestens 10 Zeichen." };
   await createUser({ name, email, phone, password, locale: "de", role });
   await audit(me, "team", `Konto angelegt: ${role}`, email);
   revalidatePath("/admin/team");
@@ -49,7 +52,12 @@ export async function changeRole(form: FormData) {
   if (!Number.isInteger(id) || id === me.id || !role) return;
   const who = await findUserById(id);
   await setRole(id, role);
-  await audit(me, "team", role === "guest" ? "Aus dem Team entfernt" : `Rolle geändert: ${who?.role} → ${role}`, who?.email ?? `#${id}`);
+  await audit(
+    me,
+    "team",
+    role === "guest" ? "Aus dem Team entfernt" : `Rolle geändert: ${who?.role} → ${role}`,
+    who?.email ?? `#${id}`,
+  );
   revalidatePath("/admin/team");
 }
 

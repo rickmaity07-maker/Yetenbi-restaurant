@@ -2,14 +2,29 @@
 
 const PAGES = {
   dashboard: { title: "Übersicht", lead: "Was jetzt zu tun ist und wie der Tag läuft." },
-  reservations: { title: "Reservierungen", lead: "Anfragen annehmen oder ablehnen, telefonische Reservierungen eintragen, Schließtage." },
-  orders: { title: "Bestellungen", lead: "Neue Bestellungen annehmen, an Fahrer übergeben, Einstellungen für Lieferung und Abholung." },
-  menu: { title: "Speisekarte", lead: "Kategorien und Gerichte anlegen, ändern, sortieren, ausverkauft melden; Allergene und Pfand." },
+  reservations: {
+    title: "Reservierungen",
+    lead: "Anfragen annehmen oder ablehnen, telefonische Reservierungen eintragen, Schließtage.",
+  },
+  orders: {
+    title: "Bestellungen",
+    lead: "Neue Bestellungen annehmen, an Fahrer übergeben, Einstellungen für Lieferung und Abholung.",
+  },
+  menu: {
+    title: "Speisekarte",
+    lead: "Kategorien und Gerichte anlegen, ändern, sortieren, ausverkauft melden; Allergene und Pfand.",
+  },
   photos: { title: "Fotos", lead: "Die Bilder der Website durch eigene Fotos ersetzen." },
-  reports: { title: "Berichte", lead: "Umsatz, Bestellungen und Reservierungen über einen Zeitraum, mit Export für die Buchhaltung." },
+  reports: {
+    title: "Berichte",
+    lead: "Umsatz, Bestellungen und Reservierungen über einen Zeitraum, mit Export für die Buchhaltung.",
+  },
   customers: { title: "Kunden", lead: "Alle Gäste mit ihren Bestellungen, Reservierungen und euren Notizen." },
   log: { title: "Protokoll", lead: "Wer im Team wann was geändert hat." },
-  settings: { title: "Betrieb & Rechtliches", lead: "Öffnungszeiten, Kontaktdaten und die Angaben für Impressum und Datenschutz." },
+  settings: {
+    title: "Betrieb & Rechtliches",
+    lead: "Öffnungszeiten, Kontaktdaten und die Angaben für Impressum und Datenschutz.",
+  },
   team: { title: "Team & Zugänge", lead: "Logins für Verwaltung, Küche und Fahrer anlegen und verwalten." },
 } as const;
 

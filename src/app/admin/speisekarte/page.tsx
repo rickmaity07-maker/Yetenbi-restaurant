@@ -8,7 +8,8 @@ import AdminHeader from "../AdminHeader";
 import { moveEntry, toggleAvailable } from "./actions";
 import { CategoryForm, DishForm } from "./Forms";
 
-const small = "rounded-full border border-cream/25 px-2.5 py-0.5 text-xs text-cream/75 hover:border-gold hover:text-gold-soft disabled:opacity-30";
+const small =
+  "rounded-full border border-cream/25 px-2.5 py-0.5 text-xs text-cream/75 hover:border-gold hover:text-gold-soft disabled:opacity-30";
 
 function Move({ kind, id, first, last }: { kind: "category" | "item"; id: string; first: boolean; last: boolean }) {
   return (
@@ -35,15 +36,19 @@ async function Editor() {
     <>
       <div className="mt-8 max-w-3xl space-y-3 text-sm leading-relaxed text-cream/70">
         <p>
-          Hier pflegt ihr die ganze Speisekarte: Kategorien und Gerichte anlegen, ändern, sortieren und löschen. Jede Änderung ist sofort auf
-          der Website und beim Online-Bestellen sichtbar. „Ausverkauft“ nimmt ein Gericht nur für heute aus der Bestellung.
+          Hier pflegt ihr die ganze Speisekarte: Kategorien und Gerichte anlegen, ändern, sortieren und löschen. Jede
+          Änderung ist sofort auf der Website und beim Online-Bestellen sichtbar. „Ausverkauft“ nimmt ein Gericht nur
+          für heute aus der Bestellung.
         </p>
         <p>
-          Für Online-Bestellungen müssen die 14 Allergene und bestimmte Zusatzstoffe bei jedem Gericht stehen (LMIV, LMIDV), auch aus Soßen,
-          Gewürzmischungen und Injera. „Glutenfrei“ nur bei unter 20 mg Gluten pro kg, auch ohne Spuren aus der Küche.
+          Für Online-Bestellungen müssen die 14 Allergene und bestimmte Zusatzstoffe bei jedem Gericht stehen (LMIV,
+          LMIDV), auch aus Soßen, Gewürzmischungen und Injera. „Glutenfrei“ nur bei unter 20 mg Gluten pro kg, auch ohne
+          Spuren aus der Küche.
         </p>
         {!hasAllergenData(menu) && (
-          <p className="border-l-2 border-[#f0a080] pl-4 text-[#f0a080]">Noch keine Allergene eingetragen: die Website sagt bis dahin „Fragen zu Allergenen beantworten wir gerne“.</p>
+          <p className="border-l-2 border-[#f0a080] pl-4 text-[#f0a080]">
+            Noch keine Allergene eingetragen: die Website sagt bis dahin „Fragen zu Allergenen beantworten wir gerne“.
+          </p>
         )}
       </div>
 
@@ -53,7 +58,9 @@ async function Editor() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-2xl font-semibold text-gold-soft">
                 {c.title.de} <span className="text-base text-cream/45">({c.items.length})</span>
-                {c.drinks && <span className="ml-3 align-middle text-xs uppercase tracking-[0.2em] text-cream/50">Getränke</span>}
+                {c.drinks && (
+                  <span className="ml-3 align-middle text-xs uppercase tracking-[0.2em] text-cream/50">Getränke</span>
+                )}
               </h2>
               <Move kind="category" id={c.id} first={ci === 0} last={ci === menu.length - 1} />
             </div>
@@ -69,9 +76,16 @@ async function Editor() {
                 <li key={d.id} className="py-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className={d.available ? "text-cream" : "text-cream/45 line-through"}>
-                      <strong className="font-semibold">{d.name.de}</strong> <span className="text-cream/55">· {priceText(d.price)} €</span>
-                      {!d.orderable && <span className="ml-2 rounded-full border border-cream/20 px-2 py-0.5 text-[0.65rem] text-cream/55 no-underline">nur Karte</span>}
-                      {d.allergens.length > 0 && <span className="ml-2 text-xs text-cream/45">Allergene {d.allergens.join(", ")}</span>}
+                      <strong className="font-semibold">{d.name.de}</strong>{" "}
+                      <span className="text-cream/55">· {priceText(d.price)} €</span>
+                      {!d.orderable && (
+                        <span className="ml-2 rounded-full border border-cream/20 px-2 py-0.5 text-[0.65rem] text-cream/55 no-underline">
+                          nur Karte
+                        </span>
+                      )}
+                      {d.allergens.length > 0 && (
+                        <span className="ml-2 text-xs text-cream/45">Allergene {d.allergens.join(", ")}</span>
+                      )}
                     </p>
                     <div className="flex items-center gap-2">
                       <form action={toggleAvailable}>
@@ -97,7 +111,9 @@ async function Editor() {
             </ul>
 
             <details className="mt-4">
-              <summary className="cursor-pointer text-sm font-semibold text-gold-soft hover:text-gold">+ Gericht in „{c.title.de}“ hinzufügen</summary>
+              <summary className="cursor-pointer text-sm font-semibold text-gold-soft hover:text-gold">
+                + Gericht in „{c.title.de}“ hinzufügen
+              </summary>
               <div className="mt-4">
                 <DishForm categories={categories} categoryId={c.id} />
               </div>

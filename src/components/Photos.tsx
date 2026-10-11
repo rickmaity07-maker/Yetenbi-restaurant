@@ -18,7 +18,8 @@ function useUploaded(img: StaticImageData | string): Uploaded | undefined {
 }
 
 /** Cloudinary sizes and compresses the photo itself, so Next's optimiser is not used for these. */
-const cloudinaryLoader: ImageLoader = ({ src, width, quality }) => cloudinaryUrl(src, `w_${width},c_limit,f_auto,q_${quality ?? "auto"}`);
+const cloudinaryLoader: ImageLoader = ({ src, width, quality }) =>
+  cloudinaryUrl(src, `w_${width},c_limit,f_auto,q_${quality ?? "auto"}`);
 
 /** next/image for a built-in picture, swapped for the uploaded photo when there is one. */
 export function Photo({ src, alt, placeholder, ...props }: Omit<ImageProps, "src"> & { src: StaticImageData }) {

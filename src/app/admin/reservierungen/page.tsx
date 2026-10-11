@@ -19,7 +19,12 @@ const STATUS: Record<Status, { label: string; tone: string }> = {
 };
 
 const dayLabel = (iso: string) =>
-  new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  });
 
 function Card({ r, past }: { r: Reservation; past: boolean }) {
   const s = STATUS[r.status];
@@ -36,11 +41,15 @@ function Card({ r, past }: { r: Reservation; past: boolean }) {
         {r.source === "phone" && <span className="ml-2 text-xs uppercase tracking-[0.2em] text-cream/50">Telefon</span>}
       </p>
       <p className="mt-1 text-sm text-cream/70">
-        <a className="underline decoration-gold/40 underline-offset-4" href={`tel:${r.phone}`}>{r.phone}</a>
+        <a className="underline decoration-gold/40 underline-offset-4" href={`tel:${r.phone}`}>
+          {r.phone}
+        </a>
         {r.email && (
           <>
             {"  ·  "}
-            <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${r.email}`}>{r.email}</a>
+            <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${r.email}`}>
+              {r.email}
+            </a>
           </>
         )}
         {"  ·  "}
@@ -60,10 +69,18 @@ function Card({ r, past }: { r: Reservation; past: boolean }) {
             className="w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 text-sm text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none"
           />
           <div className="flex flex-wrap gap-3">
-            <button name="status" value="confirmed" className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink">
+            <button
+              name="status"
+              value="confirmed"
+              className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink"
+            >
               Annehmen
             </button>
-            <button name="status" value="declined" className="rounded-full border border-cream/30 px-5 py-2 text-sm font-semibold text-cream hover:border-[#f0a080] hover:text-[#f0a080]">
+            <button
+              name="status"
+              value="declined"
+              className="rounded-full border border-cream/30 px-5 py-2 text-sm font-semibold text-cream hover:border-[#f0a080] hover:text-[#f0a080]"
+            >
               Ablehnen
             </button>
           </div>
@@ -73,7 +90,11 @@ function Card({ r, past }: { r: Reservation; past: boolean }) {
         <form action={decide} className="mt-4">
           <input type="hidden" name="id" value={r.id} />
           <input type="hidden" name="note" value={r.staffNote} />
-          <button name="status" value="cancelled" className="text-xs text-cream/55 underline underline-offset-4 hover:text-[#f0a080]">
+          <button
+            name="status"
+            value="cancelled"
+            className="text-xs text-cream/55 underline underline-offset-4 hover:text-[#f0a080]"
+          >
             Als storniert markieren
           </button>
         </form>
@@ -110,7 +131,9 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
 
   return (
     <>
-      <p className="mt-3 text-sm text-cream/60">Angemeldet als {me.name} ({me.email})</p>
+      <p className="mt-3 text-sm text-cream/60">
+        Angemeldet als {me.name} ({me.email})
+      </p>
 
       {!past && (
         <div className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm text-cream/75">
@@ -118,23 +141,36 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
             <span className="font-display text-3xl text-gold-soft">{pending.length}</span> offen
           </p>
           <p>
-            <span className="font-display text-3xl text-gold-soft">{list.filter((r) => r.status === "confirmed").length}</span> bestätigt (ab heute)
+            <span className="font-display text-3xl text-gold-soft">
+              {list.filter((r) => r.status === "confirmed").length}
+            </span>{" "}
+            bestätigt (ab heute)
           </p>
-          {!isMailerConfigured() && <p className="self-end text-[#f0a080]">E-Mail-Versand ist noch nicht eingerichtet.</p>}
+          {!isMailerConfigured() && (
+            <p className="self-end text-[#f0a080]">E-Mail-Versand ist noch nicht eingerichtet.</p>
+          )}
         </div>
       )}
 
       <nav className="mt-10 flex gap-6 border-b border-gold/20 text-sm" aria-label="Ansicht">
-        <Link href="/admin/reservierungen" className={`pb-3 ${!past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}>
+        <Link
+          href="/admin/reservierungen"
+          className={`pb-3 ${!past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}
+        >
           Ab heute
         </Link>
-        <Link href="/admin/reservierungen?ansicht=frueher" className={`pb-3 ${past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}>
+        <Link
+          href="/admin/reservierungen?ansicht=frueher"
+          className={`pb-3 ${past ? "border-b border-gold text-gold-soft" : "text-cream/60 hover:text-cream"}`}
+        >
           Letzte 60 Tage
         </Link>
       </nav>
 
       {ordered.length === 0 && (
-        <p className="mt-12 font-display text-2xl italic text-cream/70">{past ? "Keine Reservierungen in den letzten 60 Tagen." : "Noch keine Reservierungen ab heute."}</p>
+        <p className="mt-12 font-display text-2xl italic text-cream/70">
+          {past ? "Keine Reservierungen in den letzten 60 Tagen." : "Noch keine Reservierungen ab heute."}
+        </p>
       )}
 
       <div className="mt-10 space-y-12">
@@ -161,18 +197,25 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
             <PhoneBookingForm />
           </Panel>
           <Panel title="Schließtage">
-            <p className="mb-5 text-sm text-cream/65">An diesen Tagen nimmt die Website keine Reservierungen an; die Anfahrt zeigt den Hinweis.</p>
+            <p className="mb-5 text-sm text-cream/65">
+              An diesen Tagen nimmt die Website keine Reservierungen an; die Anfahrt zeigt den Hinweis.
+            </p>
             {closures.length > 0 && (
               <ul className="mb-6 space-y-2">
                 {closures.map((c) => (
-                  <li key={c.date} className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 pb-2">
+                  <li
+                    key={c.date}
+                    className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 pb-2"
+                  >
                     <span className="text-cream">
                       {dayLabel(c.date)}
                       {c.note && <span className="text-cream/60"> · {c.note}</span>}
                     </span>
                     <form action={removeClosedDay}>
                       <input type="hidden" name="date" value={c.date} />
-                      <button className="text-xs text-cream/60 underline underline-offset-4 hover:text-[#f0a080]">Entfernen</button>
+                      <button className="text-xs text-cream/60 underline underline-offset-4 hover:text-[#f0a080]">
+                        Entfernen
+                      </button>
                     </form>
                   </li>
                 ))}
@@ -186,7 +229,11 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
   );
 }
 
-export default function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   return (
     <main id="main" className="mx-auto w-full max-w-6xl px-5 py-8 md:px-10 md:py-12">
       <AdminHeader active="reservations" />

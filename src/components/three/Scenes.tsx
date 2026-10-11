@@ -10,6 +10,9 @@ const Jebena3DScene = dynamic(() => import("./Jebena3D"), { ssr: false });
 export function Jebena3D({ className = "" }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const near = useNearViewport(ref, "600px");
-  return <div ref={ref} className={className}>{near && <Jebena3DScene className="h-full w-full" />}</div>;
+  return (
+    <div ref={ref} className={className}>
+      {near && <Jebena3DScene className="h-full w-full" />}
+    </div>
+  );
 }
-

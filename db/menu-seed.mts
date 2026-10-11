@@ -19,7 +19,6 @@ type MenuCategory = {
   items: MenuItem[];
 };
 
-
 const same = (s: string): L => ({ de: s, en: s, am: s });
 
 /*
@@ -160,14 +159,22 @@ export const seedMenu: MenuCategory[] = [
       {
         name: { de: "Sambusa mit Linsen", en: "Lentil sambusa", am: "የምስር ሳምቡሳ" },
         amharic: "ሳምቡሳ የምስር",
-        description: { de: "Braune Linsen mit Kräutern und Zwiebeln.", en: "Brown lentils with herbs and onions.", am: "ምስር በሽንኩርትና በቅመም።" },
+        description: {
+          de: "Braune Linsen mit Kräutern und Zwiebeln.",
+          en: "Brown lentils with herbs and onions.",
+          am: "ምስር በሽንኩርትና በቅመም።",
+        },
         price: "2,50",
         tags: ["vegan"],
       },
       {
         name: { de: "Sambusa mit Hackfleisch", en: "Minced beef sambusa", am: "የሥጋ ሳምቡሳ" },
         amharic: "ሳምቡሳ የስጋ",
-        description: { de: "Hackfleisch mit Kräutern und Zwiebeln.", en: "Minced beef with herbs and onions.", am: "የተፈጨ ሥጋ በሽንኩርትና በቅመም።" },
+        description: {
+          de: "Hackfleisch mit Kräutern und Zwiebeln.",
+          en: "Minced beef with herbs and onions.",
+          am: "የተፈጨ ሥጋ በሽንኩርትና በቅመም።",
+        },
         price: "3,00",
       },
     ],
@@ -184,13 +191,21 @@ export const seedMenu: MenuCategory[] = [
       { name: { de: "Eine Tasse Kaffee", en: "A cup of coffee", am: "አንድ ስኒ ቡና" }, price: "2,50" },
       {
         name: same("Jebena Buna"),
-        description: { de: "Kaffeezeremonie für 2-3 Personen", en: "Coffee ceremony for 2-3 people", am: "የቡና ሥነ ሥርዓት ለ2-3 ሰዎች" },
+        description: {
+          de: "Kaffeezeremonie für 2-3 Personen",
+          en: "Coffee ceremony for 2-3 people",
+          am: "የቡና ሥነ ሥርዓት ለ2-3 ሰዎች",
+        },
         price: "6,90",
         tags: ["special"],
       },
       {
         name: same("Jebena Buna"),
-        description: { de: "Kaffeezeremonie für 4-5 Personen", en: "Coffee ceremony for 4-5 people", am: "የቡና ሥነ ሥርዓት ለ4-5 ሰዎች" },
+        description: {
+          de: "Kaffeezeremonie für 4-5 Personen",
+          en: "Coffee ceremony for 4-5 people",
+          am: "የቡና ሥነ ሥርዓት ለ4-5 ሰዎች",
+        },
         price: "9,90",
         tags: ["special"],
       },
@@ -201,7 +216,10 @@ export const seedMenu: MenuCategory[] = [
     title: { de: "Heißgetränke", en: "Hot drinks", am: "ትኩስ መጠጦች" },
     items: [
       { name: { de: "Schwarzer Tee", en: "Black tea", am: "ሻይ" }, price: "2,00" },
-      { name: { de: "Ingwertee mit Zitrone & Honig", en: "Ginger tea with lemon & honey", am: "የዝንጅብል ሻይ ከሎሚና ማር ጋር" }, price: "2,50" },
+      {
+        name: { de: "Ingwertee mit Zitrone & Honig", en: "Ginger tea with lemon & honey", am: "የዝንጅብል ሻይ ከሎሚና ማር ጋር" },
+        price: "2,50",
+      },
       { name: { de: "Pfefferminztee", en: "Peppermint tea", am: "የናና ሻይ" }, price: "2,50" },
       { name: { de: "Kamillentee", en: "Chamomile tea", am: "የካሞሚል ሻይ" }, price: "2,50" },
       { name: { de: "Heiße Schokolade", en: "Hot chocolate", am: "ትኩስ ቸኮሌት" }, price: "3,00" },
@@ -222,7 +240,10 @@ export const seedMenu: MenuCategory[] = [
       { name: same("Sprite"), price: "2,50" },
       { name: { de: "Mineralwasser (still)", en: "Still water", am: "ውሃ" }, price: "2,00" },
       { name: { de: "Mineralwasser (sprudelnd)", en: "Sparkling water", am: "አምቦ ውሃ" }, price: "2,00" },
-      { name: { de: "Eistee (Zitrone oder Pfirsich)", en: "Iced tea (lemon or peach)", am: "ቀዝቃዛ ሻይ (ሎሚ ወይም ኮክ)" }, price: "2,50" },
+      {
+        name: { de: "Eistee (Zitrone oder Pfirsich)", en: "Iced tea (lemon or peach)", am: "ቀዝቃዛ ሻይ (ሎሚ ወይም ኮክ)" },
+        price: "2,50",
+      },
       { name: { de: "Orangensaft", en: "Orange juice", am: "የብርቱካን ጭማቂ" }, price: "3,00" },
       { name: { de: "Apfelsaft", en: "Apple juice", am: "የፖም ጭማቂ" }, price: "3,00" },
       { name: { de: "Mangosaft", en: "Mango juice", am: "የማንጎ ጭማቂ" }, price: "3,00" },

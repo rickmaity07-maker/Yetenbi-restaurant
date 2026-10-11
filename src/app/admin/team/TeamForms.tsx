@@ -8,8 +8,18 @@ const field =
 const label = "text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold";
 
 function Message({ state }: { state: TeamState }) {
-  if (state?.error) return <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>;
-  if (state?.ok) return <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>;
+  if (state?.error)
+    return (
+      <p role="alert" className="text-sm text-[#f0a080]">
+        {state.error}
+      </p>
+    );
+  if (state?.ok)
+    return (
+      <p role="status" className="text-sm text-[#9fe0b6]">
+        {state.ok}
+      </p>
+    );
   return null;
 }
 
@@ -48,10 +58,14 @@ export function AddStaffForm() {
         <input name="password" type="text" minLength={10} autoComplete="new-password" className={field} />
       </label>
       <p className="text-xs text-cream/55 sm:col-span-2">
-        Hat die Person schon ein Gast-Konto mit dieser E-Mail, bekommt es nur die Rolle; Name und Passwort bleiben dann leer.
+        Hat die Person schon ein Gast-Konto mit dieser E-Mail, bekommt es nur die Rolle; Name und Passwort bleiben dann
+        leer.
       </p>
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-        <button disabled={pending} className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60">
+        <button
+          disabled={pending}
+          className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60"
+        >
           {pending ? "Speichern …" : "Konto anlegen"}
         </button>
         <Message state={state} />
@@ -65,8 +79,19 @@ export function ResetPasswordForm({ id }: { id: number }) {
   return (
     <form action={action} className="mt-3 flex flex-wrap items-end gap-3">
       <input type="hidden" name="id" value={id} />
-      <input name="password" type="text" minLength={10} placeholder="Neues Passwort" aria-label="Neues Passwort" autoComplete="new-password" className={`${field} max-w-xs text-sm`} />
-      <button disabled={pending} className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold disabled:opacity-60">
+      <input
+        name="password"
+        type="text"
+        minLength={10}
+        placeholder="Neues Passwort"
+        aria-label="Neues Passwort"
+        autoComplete="new-password"
+        className={`${field} max-w-xs text-sm`}
+      />
+      <button
+        disabled={pending}
+        className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold disabled:opacity-60"
+      >
         Setzen
       </button>
       <div className="basis-full">

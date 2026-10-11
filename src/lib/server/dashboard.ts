@@ -56,19 +56,55 @@ export async function getDashboard(): Promise<Dashboard> {
   const c = counts[0];
   const r = res[0];
   return {
-    orders: { today: Number(c.today), open: Number(c.open), new: Number(c.new), packed: Number(c.packed), onTheWay: Number(c.on_the_way) },
+    orders: {
+      today: Number(c.today),
+      open: Number(c.open),
+      new: Number(c.new),
+      packed: Number(c.packed),
+      onTheWay: Number(c.on_the_way),
+    },
     revenue: {
       today: Number(c.rev_today),
       sameDayLastWeek: Number(c.rev_week_ago),
       last14: days.map((d) => ({ day: String(d.day), total: Number(d.total), orders: Number(d.orders) })),
     },
-    reservations: { todayCount: Number(r.today_count), todayGuests: Number(r.today_guests), pending: Number(r.pending) },
-    actions: {
-      newOrders: newOrders.map((o) => ({ id: Number(o.id), reference: String(o.reference), method: String(o.method), total: Number(o.total), createdAt: new Date(String(o.created_at)).toISOString(), name: String(o.name) })),
-      packed: packed.map((o) => ({ id: Number(o.id), reference: String(o.reference), method: String(o.method), name: String(o.name) })),
-      pendingReservations: pending.map((p) => ({ id: Number(p.id), reference: String(p.reference), date: String(p.date), time: String(p.time), guests: Number(p.guests), name: String(p.name) })),
+    reservations: {
+      todayCount: Number(r.today_count),
+      todayGuests: Number(r.today_guests),
+      pending: Number(r.pending),
     },
-    todaysBookings: bookings.map((b) => ({ id: Number(b.id), time: String(b.time), guests: Number(b.guests), name: String(b.name), status: String(b.status), source: String(b.source) })),
+    actions: {
+      newOrders: newOrders.map((o) => ({
+        id: Number(o.id),
+        reference: String(o.reference),
+        method: String(o.method),
+        total: Number(o.total),
+        createdAt: new Date(String(o.created_at)).toISOString(),
+        name: String(o.name),
+      })),
+      packed: packed.map((o) => ({
+        id: Number(o.id),
+        reference: String(o.reference),
+        method: String(o.method),
+        name: String(o.name),
+      })),
+      pendingReservations: pending.map((p) => ({
+        id: Number(p.id),
+        reference: String(p.reference),
+        date: String(p.date),
+        time: String(p.time),
+        guests: Number(p.guests),
+        name: String(p.name),
+      })),
+    },
+    todaysBookings: bookings.map((b) => ({
+      id: Number(b.id),
+      time: String(b.time),
+      guests: Number(b.guests),
+      name: String(b.name),
+      status: String(b.status),
+      source: String(b.source),
+    })),
   };
 }
 

@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import type { OrderSettings } from "@/lib/ordering";
 import { addPhoneBlock, saveSettings } from "../order-actions";
 
-const field = "w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 pt-1 text-base text-cream focus:border-gold focus:outline-none";
+const field =
+  "w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 pt-1 text-base text-cream focus:border-gold focus:outline-none";
 const label = "text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold";
 
 export function SettingsForm({ settings }: { settings: OrderSettings }) {
@@ -14,17 +15,30 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
     <form action={action} className="space-y-6">
       <div className="flex flex-wrap gap-x-8 gap-y-3">
         <label className={box}>
-          <input type="checkbox" name="paused" defaultChecked={settings.paused} className="h-4 w-4 accent-[#c9a24a]" /> Online-Bestellungen pausieren
+          <input type="checkbox" name="paused" defaultChecked={settings.paused} className="h-4 w-4 accent-[#c9a24a]" />{" "}
+          Online-Bestellungen pausieren
         </label>
         <label className={box}>
-          <input type="checkbox" name="delivery" defaultChecked={settings.delivery} className="h-4 w-4 accent-[#c9a24a]" /> Lieferung
+          <input
+            type="checkbox"
+            name="delivery"
+            defaultChecked={settings.delivery}
+            className="h-4 w-4 accent-[#c9a24a]"
+          />{" "}
+          Lieferung
         </label>
         <label className={box}>
-          <input type="checkbox" name="pickup" defaultChecked={settings.pickup} className="h-4 w-4 accent-[#c9a24a]" /> Abholung
+          <input type="checkbox" name="pickup" defaultChecked={settings.pickup} className="h-4 w-4 accent-[#c9a24a]" />{" "}
+          Abholung
         </label>
         <label className={box}>
-          <input type="checkbox" name="ignoreHours" defaultChecked={settings.ignoreHours} className="h-4 w-4 accent-[#c9a24a]" /> Bestellungen auch
-          außerhalb der Öffnungszeiten (vorübergehend)
+          <input
+            type="checkbox"
+            name="ignoreHours"
+            defaultChecked={settings.ignoreHours}
+            className="h-4 w-4 accent-[#c9a24a]"
+          />{" "}
+          Bestellungen auch außerhalb der Öffnungszeiten (vorübergehend)
         </label>
       </div>
       <div className="grid gap-5 sm:grid-cols-3">
@@ -57,8 +71,9 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
           </option>
         </select>
         <span className="text-xs text-cream/50">
-          Wer Essen in Einweg-Kunststoff oder Einwegbechern ausgibt, muss Mehrweg anbieten; Betriebe mit höchstens 5 Beschäftigten und
-          80 m² dürfen stattdessen eigene Behälter befüllen. Beides muss gut sichtbar angegeben werden.
+          Wer Essen in Einweg-Kunststoff oder Einwegbechern ausgibt, muss Mehrweg anbieten; Betriebe mit höchstens 5
+          Beschäftigten und 80 m² dürfen stattdessen eigene Behälter befüllen. Beides muss gut sichtbar angegeben
+          werden.
         </span>
       </label>
       <label className="flex flex-col gap-1.5">
@@ -66,11 +81,22 @@ export function SettingsForm({ settings }: { settings: OrderSettings }) {
         <input name="postcodes" defaultValue={settings.postcodes.join(", ")} className={field} />
       </label>
       <div className="flex items-center gap-4">
-        <button disabled={pending} className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60">
+        <button
+          disabled={pending}
+          className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60"
+        >
           {pending ? "Speichern …" : "Einstellungen speichern"}
         </button>
-        {state?.ok && <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>}
-        {state?.error && <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>}
+        {state?.ok && (
+          <p role="status" className="text-sm text-[#9fe0b6]">
+            {state.ok}
+          </p>
+        )}
+        {state?.error && (
+          <p role="alert" className="text-sm text-[#f0a080]">
+            {state.error}
+          </p>
+        )}
       </div>
     </form>
   );
@@ -89,11 +115,22 @@ export function AddBlockForm() {
         <span className={label}>Grund (intern)</span>
         <input name="reason" maxLength={300} className={field} />
       </label>
-      <button disabled={pending} className="rounded-full border border-[#f0a080]/70 px-5 py-2.5 text-sm font-semibold text-[#f0a080] disabled:opacity-60">
+      <button
+        disabled={pending}
+        className="rounded-full border border-[#f0a080]/70 px-5 py-2.5 text-sm font-semibold text-[#f0a080] disabled:opacity-60"
+      >
         Sperren
       </button>
-      {state?.ok && <p role="status" className="text-sm text-[#9fe0b6] sm:col-span-3">{state.ok}</p>}
-      {state?.error && <p role="alert" className="text-sm text-[#f0a080] sm:col-span-3">{state.error}</p>}
+      {state?.ok && (
+        <p role="status" className="text-sm text-[#9fe0b6] sm:col-span-3">
+          {state.ok}
+        </p>
+      )}
+      {state?.error && (
+        <p role="alert" className="text-sm text-[#f0a080] sm:col-span-3">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }

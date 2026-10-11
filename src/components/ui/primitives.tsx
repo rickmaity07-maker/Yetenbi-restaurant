@@ -16,7 +16,15 @@ import { Photo, useAmbientUrl } from "@/components/Photos";
 
 export const ease = [0.22, 1, 0.36, 1] as const;
 
-export function Label({ children, className = "", am }: { children: React.ReactNode; className?: string; am?: string }) {
+export function Label({
+  children,
+  className = "",
+  am,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  am?: string;
+}) {
   const reduce = useReducedMotion();
   return (
     <div className={`flex items-center gap-4 ${className}`}>
@@ -108,7 +116,10 @@ export function Heading({
   align?: "left" | "center";
 }) {
   const reduce = useReducedMotion();
-  const words = [...title.split(" ").map((w) => ({ w, em: false })), ...(em ? em.split(" ").map((w) => ({ w, em: true })) : [])];
+  const words = [
+    ...title.split(" ").map((w) => ({ w, em: false })),
+    ...(em ? em.split(" ").map((w) => ({ w, em: true })) : []),
+  ];
   return (
     <div className={`${align === "center" ? "flex flex-col items-center text-center" : ""} ${className}`}>
       {label && <Label am={labelAm}>{label}</Label>}
@@ -126,7 +137,10 @@ export function Heading({
           <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.14em]">
             <motion.span
               className={`inline-block ${italic ? "pr-[0.06em] font-medium italic text-gold-soft" : ""}`}
-              variants={{ hidden: { y: "110%", rotate: 6 }, show: { y: "0%", rotate: 0, transition: { duration: 1.1, ease } } }}
+              variants={{
+                hidden: { y: "110%", rotate: 6 },
+                show: { y: "0%", rotate: 0, transition: { duration: 1.1, ease } },
+              }}
             >
               {w}
             </motion.span>
@@ -138,7 +152,15 @@ export function Heading({
 }
 
 /** Italic serif paragraph, the hero subtitle voice. */
-export function Lead({ children, className = "", delay = 0.2 }: { children: React.ReactNode; className?: string; delay?: number }) {
+export function Lead({
+  children,
+  className = "",
+  delay = 0.2,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
   const reduce = useReducedMotion();
   return (
     <motion.p
@@ -177,7 +199,15 @@ export function Rise({
   );
 }
 
-export function GoldButton({ href, children, external }: { href: string; children: React.ReactNode; external?: boolean }) {
+export function GoldButton({
+  href,
+  children,
+  external,
+}: {
+  href: string;
+  children: React.ReactNode;
+  external?: boolean;
+}) {
   return (
     <Magnetic>
       <a
@@ -240,7 +270,10 @@ export function CinematicImage({
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.div style={reduce ? undefined : { y }} className="absolute -inset-y-[10%] inset-x-0 will-change-transform">
+      <motion.div
+        style={reduce ? undefined : { y }}
+        className="absolute -inset-y-[10%] inset-x-0 will-change-transform"
+      >
         <motion.div
           className="absolute inset-0"
           initial={reduce ? false : { scale: 1.3 }}
@@ -248,7 +281,15 @@ export function CinematicImage({
           viewport={{ once: true, margin: "-15% 0px" }}
           transition={{ duration: 2.4, ease }}
         >
-          <Photo src={src} alt={alt} fill sizes={sizes} placeholder="blur" className="object-cover" style={{ objectPosition: position }} />
+          <Photo
+            src={src}
+            alt={alt}
+            fill
+            sizes={sizes}
+            placeholder="blur"
+            className="object-cover"
+            style={{ objectPosition: position }}
+          />
         </motion.div>
       </motion.div>
       {/* darkness lifting: an opacity fade, which the GPU composites without repainting the photo */}

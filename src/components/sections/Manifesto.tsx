@@ -21,23 +21,45 @@ const photos: { img: StaticImageData; alt: string }[] = [
 
 /** "[0]" marks an inline photo, "*word" a gold italic word (see manifesto.text in lib/i18n). */
 function parse(text: string): Token[] {
-  return text.split(" ").filter(Boolean).map((w) => {
-    const m = w.match(/^\[(\d)\]$/);
-    if (m) return photos[Number(m[1])];
-    return w.startsWith("*") ? { word: w.slice(1), gold: true } : { word: w };
-  });
+  return text
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => {
+      const m = w.match(/^\[(\d)\]$/);
+      if (m) return photos[Number(m[1])];
+      return w.startsWith("*") ? { word: w.slice(1), gold: true } : { word: w };
+    });
 }
 
-function Word({ token, range, progress }: { token: Extract<Token, { word: string }>; range: [number, number]; progress: MotionValue<number> }) {
+function Word({
+  token,
+  range,
+  progress,
+}: {
+  token: Extract<Token, { word: string }>;
+  range: [number, number];
+  progress: MotionValue<number>;
+}) {
   const opacity = useTransform(progress, range, [0.14, 1]);
   return (
-    <motion.span style={{ opacity }} className={`mr-[0.24em] inline-block ${token.gold ? "italic text-gold-soft" : ""}`}>
+    <motion.span
+      style={{ opacity }}
+      className={`mr-[0.24em] inline-block ${token.gold ? "italic text-gold-soft" : ""}`}
+    >
       {token.word}
     </motion.span>
   );
 }
 
-function Pill({ token, range, progress }: { token: Extract<Token, { img: StaticImageData }>; range: [number, number]; progress: MotionValue<number> }) {
+function Pill({
+  token,
+  range,
+  progress,
+}: {
+  token: Extract<Token, { img: StaticImageData }>;
+  range: [number, number];
+  progress: MotionValue<number>;
+}) {
   const scale = useTransform(progress, range, [0.3, 1]);
   const opacity = useTransform(progress, range, [0, 1]);
   return (
@@ -74,14 +96,14 @@ export default function Manifesto() {
         >
           <span className="sr-only">{plain}</span>
           <span aria-hidden>
-          {tokens.map((t, i) => {
-            const range: [number, number] = [i / tokens.length, Math.min(1, (i + 1.5) / tokens.length)];
-            return "img" in t ? (
-              <Pill key={i} token={t} range={range} progress={progress} />
-            ) : (
-              <Word key={i} token={t} range={range} progress={progress} />
-            );
-          })}
+            {tokens.map((t, i) => {
+              const range: [number, number] = [i / tokens.length, Math.min(1, (i + 1.5) / tokens.length)];
+              return "img" in t ? (
+                <Pill key={i} token={t} range={range} progress={progress} />
+              ) : (
+                <Word key={i} token={t} range={range} progress={progress} />
+              );
+            })}
           </span>
         </p>
       </div>

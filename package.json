@@ -9,7 +9,9 @@
     "lint": "eslint",
     "db:setup": "node --env-file-if-exists=.env.local scripts/setup-db.mjs",
     "owner:create": "node --env-file-if-exists=.env.local scripts/create-owner.mjs",
-    "test:devices": "node --env-file-if-exists=.env.local tests/device-suite.mjs"
+    "test:devices": "node --env-file-if-exists=.env.local tests/device-suite.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
@@ -35,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "playwright": "1.62.1",
+    "prettier": "3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

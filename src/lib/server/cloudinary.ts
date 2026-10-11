@@ -22,13 +22,21 @@ function sign(params: Record<string, string | number>) {
     .sort()
     .map((k) => `${k}=${params[k]}`)
     .join("&");
-  return createHash("sha1").update(base + process.env.CLOUDINARY_API_SECRET).digest("hex");
+  return createHash("sha1")
+    .update(base + process.env.CLOUDINARY_API_SECRET)
+    .digest("hex");
 }
 
 /** Everything the browser needs to upload one file directly to Cloudinary. */
 export function uploadTicket(publicId: string) {
   const params = { public_id: publicId, timestamp: Math.floor(Date.now() / 1000), allowed_formats: ALLOWED_FORMATS };
-  return { url: api("image/upload"), cloudName: cloud(), apiKey: process.env.CLOUDINARY_API_KEY!, ...params, signature: sign(params) };
+  return {
+    url: api("image/upload"),
+    cloudName: cloud(),
+    apiKey: process.env.CLOUDINARY_API_KEY!,
+    ...params,
+    signature: sign(params),
+  };
 }
 
 type Resource = { public_id: string; secure_url: string; width: number; height: number; format: string; bytes: number };
@@ -47,7 +55,11 @@ export async function findResource(publicId: string): Promise<Resource | null> {
 export async function destroy(publicId: string) {
   try {
     const params = { public_id: publicId, timestamp: Math.floor(Date.now() / 1000), invalidate: "true" };
-    const body = new URLSearchParams({ ...Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])), api_key: process.env.CLOUDINARY_API_KEY!, signature: sign(params) });
+    const body = new URLSearchParams({
+      ...Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])),
+      api_key: process.env.CLOUDINARY_API_KEY!,
+      signature: sign(params),
+    });
     await fetch(api("image/destroy"), { method: "POST", body });
   } catch (error) {
     console.error("Cloudinary delete failed", publicId, error);

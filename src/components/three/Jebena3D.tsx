@@ -70,7 +70,13 @@ function Pot() {
   return (
     <group ref={group}>
       <mesh geometry={body}>
-        <meshPhysicalMaterial color="#2e1b11" roughness={0.42} metalness={0.05} clearcoat={0.6} clearcoatRoughness={0.35} />
+        <meshPhysicalMaterial
+          color="#2e1b11"
+          roughness={0.42}
+          metalness={0.05}
+          clearcoat={0.6}
+          clearcoatRoughness={0.35}
+        />
       </mesh>
       <mesh geometry={spout}>
         <meshPhysicalMaterial color="#2e1b11" roughness={0.42} clearcoat={0.6} />

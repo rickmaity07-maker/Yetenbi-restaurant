@@ -28,7 +28,8 @@ export type Photo = { url: string; publicId: string; width: number; height: numb
 export type Photos = Record<string, Photo>;
 
 /** The same Cloudinary photo with a transformation, e.g. "w_800,c_limit,f_auto,q_auto". */
-export const cloudinaryUrl = (url: string, transform: string) => url.replace("/image/upload/", `/image/upload/${transform}/`);
+export const cloudinaryUrl = (url: string, transform: string) =>
+  url.replace("/image/upload/", `/image/upload/${transform}/`);
 
 /** The slot of a built-in picture, from its file path ("/_next/static/media/hero.1a2b.jpg" → "hero"). */
 export const slotOf = (path: string) => {

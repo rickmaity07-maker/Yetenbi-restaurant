@@ -22,7 +22,10 @@ export default function Visit() {
   ];
 
   return (
-    <section id="besuch" className="relative overflow-hidden py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
+    <section
+      id="besuch"
+      className="relative overflow-hidden py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]"
+    >
       <Ambient src={jebenaSet} className="-left-[20%] top-[10%] h-[80%] w-[60%]" opacity={0.45} />
       <Ambient src={cups} className="-right-[15%] top-[30%] h-[70%] w-[60%]" opacity={0.3} />
       <Embers count={12} />
@@ -42,28 +45,30 @@ export default function Visit() {
               />
             </AksumFrame>
             <div className="space-y-5">
-            <dl className="space-y-5">
-              <Rise>
-                <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{t.visit.hours}</dt>
-                <dd className="mt-2">
-                  <HoursTable />
-                </dd>
-              </Rise>
-              {rows.map((r, i) => (
-                <Rise key={r.term} delay={i * 0.08}>
-                  <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{r.term}</dt>
-                  <dd className="mt-1 font-display text-xl text-cream md:text-2xl">
-                    {r.href ? (
-                      <a href={r.href} className="transition-colors duration-500 hover:text-gold-soft">
-                        {r.value}
-                      </a>
-                    ) : (
-                      r.value
-                    )}
+              <dl className="space-y-5">
+                <Rise>
+                  <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">
+                    {t.visit.hours}
+                  </dt>
+                  <dd className="mt-2">
+                    <HoursTable />
                   </dd>
                 </Rise>
-              ))}
-            </dl>
+                {rows.map((r, i) => (
+                  <Rise key={r.term} delay={i * 0.08}>
+                    <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{r.term}</dt>
+                    <dd className="mt-1 font-display text-xl text-cream md:text-2xl">
+                      {r.href ? (
+                        <a href={r.href} className="transition-colors duration-500 hover:text-gold-soft">
+                          {r.value}
+                        </a>
+                      ) : (
+                        r.value
+                      )}
+                    </dd>
+                  </Rise>
+                ))}
+              </dl>
               <Rise delay={0.25} className="border-t border-gold/20 pt-6">
                 <EthiopianNow />
               </Rise>
@@ -114,7 +119,10 @@ export default function Visit() {
                     <span className="block font-display text-lg leading-tight text-cream">Yetenbi</span>
                     <span className="text-xs text-cream/68">{t.visit.near}</span>
                   </span>
-                  <ArrowUpRight size={16} className="text-gold-soft transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  <ArrowUpRight
+                    size={16}
+                    className="text-gold-soft transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
                 </a>
               </div>
             </AksumFrame>

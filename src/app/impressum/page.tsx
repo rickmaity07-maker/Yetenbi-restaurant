@@ -21,7 +21,10 @@ export default async function Impressum() {
         {restaurant.city}
       </p>
       <p>
-        Telefon: <a href={restaurant.phoneHref} className="text-gold-soft underline underline-offset-4">{restaurant.phone}</a>
+        Telefon:{" "}
+        <a href={restaurant.phoneHref} className="text-gold-soft underline underline-offset-4">
+          {restaurant.phone}
+        </a>
         <br />
         E-Mail:{" "}
         {b.contactEmail ? (

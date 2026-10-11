@@ -33,7 +33,14 @@ export const metadata: Metadata = {
   },
   description:
     "Authentisch äthiopische Küche in der Theaterstraße 6, Würzburg: Kitfo, Tibs, Wot, vegane Beyaynetu-Platte auf Injera und die traditionelle Kaffeezeremonie. Jetzt Tisch reservieren.",
-  keywords: ["Äthiopisches Restaurant Würzburg", "Ethiopian restaurant Würzburg", "Injera", "Kaffeezeremonie", "vegan Würzburg", "Yetenbi"],
+  keywords: [
+    "Äthiopisches Restaurant Würzburg",
+    "Ethiopian restaurant Würzburg",
+    "Injera",
+    "Kaffeezeremonie",
+    "vegan Würzburg",
+    "Yetenbi",
+  ],
   openGraph: {
     type: "website",
     locale: "de_DE",
@@ -53,10 +60,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="de"
-      className={`${cormorant.variable} ${outfit.variable} ${ethiopic.variable} h-full antialiased`}
-    >
+    <html lang="de" className={`${cormorant.variable} ${outfit.variable} ${ethiopic.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         <a
           href="#main"

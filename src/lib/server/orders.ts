@@ -1,7 +1,14 @@
 import "server-only";
 import { randomBytes, randomInt } from "node:crypto";
 import type { Locale } from "@/lib/i18n";
-import { DEFAULT_SETTINGS, OPEN_STATUSES, totals, type OrderInput, type OrderSettings, type OrderStatus } from "@/lib/ordering";
+import {
+  DEFAULT_SETTINGS,
+  OPEN_STATUSES,
+  totals,
+  type OrderInput,
+  type OrderSettings,
+  type OrderStatus,
+} from "@/lib/ordering";
 import type { Catalog } from "@/lib/menu";
 import { db } from "./db";
 
@@ -82,7 +89,11 @@ const toOrder = (r: Row): Order => ({
   risk:
     r.completed_before == null
       ? undefined
-      : { completedBefore: Number(r.completed_before), rejectedBefore: Number(r.rejected_before), blocked: Boolean(r.blocked) },
+      : {
+          completedBefore: Number(r.completed_before),
+          rejectedBefore: Number(r.rejected_before),
+          blocked: Boolean(r.blocked),
+        },
   createdAt: new Date(String(r.created_at)).toISOString(),
   updatedAt: new Date(String(r.updated_at)).toISOString(),
 });

@@ -1,7 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "motion/react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { useLenis } from "lenis/react";
 import { useCallback, useEffect, useState } from "react";
 import { useIntro } from "./IntroState";
@@ -19,7 +27,17 @@ const captions = [
   { range: [0.66, 0.7, 0.83, 0.87], text: "für Sie serviert", am: "እንኳን ደህና መጡ" },
 ];
 
-function Caption({ progress, range, text, am }: { progress: MotionValue<number>; range: number[]; text: string; am: string }) {
+function Caption({
+  progress,
+  range,
+  text,
+  am,
+}: {
+  progress: MotionValue<number>;
+  range: number[];
+  text: string;
+  am: string;
+}) {
   const opacity = useTransform(progress, range, [0, 1, 1, 0]);
   const y = useTransform(progress, [range[0], range[3]], [24, -24]);
   const filter = useTransform(progress, range, ["blur(10px)", "blur(0px)", "blur(0px)", "blur(10px)"]);
@@ -89,7 +107,10 @@ export default function Intro() {
           <div className="absolute inset-0">
             <ParticleJourney progress={progress} active onReady={onReady} />
           </div>
-          <motion.div style={{ opacity: flash }} className="pointer-events-none absolute inset-0 bg-gold-soft mix-blend-overlay" />
+          <motion.div
+            style={{ opacity: flash }}
+            className="pointer-events-none absolute inset-0 bg-gold-soft mix-blend-overlay"
+          />
 
           {captions.map((c, i) => (
             <Caption key={c.text} progress={progress} {...c} text={t.intro.captions[i]} />
@@ -111,4 +132,3 @@ export default function Intro() {
     </AnimatePresence>
   );
 }
-

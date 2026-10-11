@@ -29,7 +29,11 @@ export default function EthiopianNow({ className = "" }: { className?: string })
     <div className={className}>
       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-gold">{t.visit.addis.label}</p>
       <p className="mt-2 font-display text-2xl text-cream md:text-3xl">
-        {locale === "am" ? `${month.am} ${date.day} ${date.year}` : locale === "en" ? `${date.day} ${month.de} ${date.year}` : `${date.day}. ${month.de} ${date.year}`}
+        {locale === "am"
+          ? `${month.am} ${date.day} ${date.year}`
+          : locale === "en"
+            ? `${date.day} ${month.de} ${date.year}`
+            : `${date.day}. ${month.de} ${date.year}`}
       </p>
       <p className="mt-1 font-ethiopic text-base text-gold/80" lang="am">
         {month.am} {geez(date.day)} ቀን {geez(date.year)} ዓ.ም.

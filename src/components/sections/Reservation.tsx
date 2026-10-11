@@ -5,7 +5,17 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CheckCircle, Minus, Plus, WhatsappLogo } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import { restaurant } from "@/lib/data";
-import { addDays, BOOKING, slotsFor, todayISO, validateBooking, whatsappLink, type BookingErrorCode, type BookingErrors, type BookingRequest } from "@/lib/booking";
+import {
+  addDays,
+  BOOKING,
+  slotsFor,
+  todayISO,
+  validateBooking,
+  whatsappLink,
+  type BookingErrorCode,
+  type BookingErrors,
+  type BookingRequest,
+} from "@/lib/booking";
 import { useLanguage } from "@/lib/language";
 import { useAccount, useClosures } from "@/lib/account-client";
 import Embers from "../motion/Embers";
@@ -17,7 +27,17 @@ const input =
   "w-full border-0 border-b bg-transparent px-0 pb-3 pt-1 font-display text-2xl text-cream placeholder:text-cream/35 transition-colors duration-500 focus:outline-none [color-scheme:dark] disabled:opacity-50";
 const line = (err?: string) => (err ? "border-[#f0a080]/70" : "border-gold/30 focus:border-gold");
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
@@ -26,7 +46,13 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
       {children}
       <AnimatePresence>
         {error && (
-          <motion.p id={`${id}-error`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm text-[#f0a080]">
+          <motion.p
+            id={`${id}-error`}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="text-sm text-[#f0a080]"
+          >
             {error}
           </motion.p>
         )}
@@ -41,7 +67,12 @@ type Outcome = { kind: "booked"; reference: string; email: string } | { kind: "w
 function Ticket({ form }: { form: BookingRequest }) {
   const { t, locale } = useLanguage();
   const dateLabel = form.date
-    ? new Date(`${form.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" })
+    ? new Date(`${form.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
+        weekday: "short",
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      })
     : "";
   const cells = [
     { k: t.reserve.date, v: dateLabel },
@@ -61,7 +92,9 @@ function Ticket({ form }: { form: BookingRequest }) {
             </div>
             <LalibelaCross className="h-10 w-10 text-gold" />
           </div>
-          <p className="mt-8 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-cream/55">{t.reserve.ticketFor}</p>
+          <p className="mt-8 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-cream/55">
+            {t.reserve.ticketFor}
+          </p>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.p
               key={form.guests}
@@ -84,7 +117,9 @@ function Ticket({ form }: { form: BookingRequest }) {
           {cells.map((c) => (
             <div key={c.k} className="min-w-0">
               <dt className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-cream/55">{c.k}</dt>
-              <dd className={`mt-1 truncate font-display text-lg ${c.v ? "text-cream" : "italic text-cream/45"}`}>{c.v || t.reserve.open}</dd>
+              <dd className={`mt-1 truncate font-display text-lg ${c.v ? "text-cream" : "italic text-cream/45"}`}>
+                {c.v || t.reserve.open}
+              </dd>
             </div>
           ))}
         </dl>
@@ -143,7 +178,13 @@ export default function Reservation() {
   };
 
   const dateLabel = (iso: string) =>
-    new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +221,10 @@ export default function Reservation() {
   };
 
   return (
-    <section id="reservieren" className="relative overflow-hidden py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]">
+    <section
+      id="reservieren"
+      className="relative overflow-hidden py-32 md:py-44 [content-visibility:auto] [contain-intrinsic-size:auto_900px]"
+    >
       <div className="pointer-events-none absolute right-[10%] top-[35%] h-[80vmin] w-[80vmin] rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.18),rgba(218,90,26,0.06)_45%,transparent_70%)]" />
       <Embers count={16} />
 
@@ -203,15 +247,23 @@ export default function Reservation() {
                   <CheckCircle size={52} weight="thin" className="text-gold-soft" />
                   {outcome.kind === "booked" ? (
                     <>
-                      <h3 className="mt-6 font-display text-5xl font-semibold leading-[1.05] text-cream">{t.reserve.sentTitle}</h3>
-                      <p className="mt-4 max-w-md font-display text-2xl italic leading-snug text-cream/85">{t.reserve.sentText(outcome.email)}</p>
-                      <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">{t.reserve.sentRef}</p>
+                      <h3 className="mt-6 font-display text-5xl font-semibold leading-[1.05] text-cream">
+                        {t.reserve.sentTitle}
+                      </h3>
+                      <p className="mt-4 max-w-md font-display text-2xl italic leading-snug text-cream/85">
+                        {t.reserve.sentText(outcome.email)}
+                      </p>
+                      <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
+                        {t.reserve.sentRef}
+                      </p>
                       <p className="font-display text-4xl tracking-[0.15em] text-gold-soft">{outcome.reference}</p>
                     </>
                   ) : (
                     <>
                       <h3 className="mt-6 font-display text-5xl font-semibold text-cream">{t.reserve.waTitle}</h3>
-                      <p className="mt-4 max-w-md font-display text-2xl italic leading-snug text-cream/85">{t.reserve.waText}</p>
+                      <p className="mt-4 max-w-md font-display text-2xl italic leading-snug text-cream/85">
+                        {t.reserve.waText}
+                      </p>
                       <a
                         href={outcome.link}
                         target="_blank"
@@ -222,12 +274,23 @@ export default function Reservation() {
                       </a>
                     </>
                   )}
-                  <button type="button" onClick={reset} className="mt-8 w-max text-sm text-cream/70 underline decoration-cream/20 underline-offset-4 hover:text-cream">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-8 w-max text-sm text-cream/70 underline decoration-cream/20 underline-offset-4 hover:text-cream"
+                  >
                     {t.reserve.another}
                   </button>
                 </motion.div>
               ) : (
-                <motion.form key="form" noValidate onSubmit={submit} initial={false} exit={{ opacity: 0, y: -12 }} className="grid gap-x-10 gap-y-10 md:grid-cols-2">
+                <motion.form
+                  key="form"
+                  noValidate
+                  onSubmit={submit}
+                  initial={false}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="grid gap-x-10 gap-y-10 md:grid-cols-2"
+                >
                   <Field id="res-name" label={t.reserve.name} error={err(errors.name)}>
                     <input
                       id="res-name"
@@ -290,7 +353,9 @@ export default function Reservation() {
                       aria-describedby={errors.time ? "res-time-error" : undefined}
                       className={`${input} ${line(errors.time)} cursor-pointer appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2012%2012%22%3E%3Cpath%20d=%22M2%204l4%204%204-4%22%20fill=%22none%22%20stroke=%22%23c9a24a%22%20stroke-width=%221.5%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat`}
                     >
-                      {!slots.length && <option value="">{form.date ? t.reserve.errors.closed : t.reserve.chooseDate}</option>}
+                      {!slots.length && (
+                        <option value="">{form.date ? t.reserve.errors.closed : t.reserve.chooseDate}</option>
+                      )}
                       {slots.map((s) => (
                         <option key={s} value={s} className="bg-coal text-base">
                           {t.clock(s)}
@@ -308,7 +373,11 @@ export default function Reservation() {
                       >
                         <Minus size={16} />
                       </button>
-                      <output id="res-guests" aria-live="polite" className="font-display text-3xl tabular-nums text-cream">
+                      <output
+                        id="res-guests"
+                        aria-live="polite"
+                        className="font-display text-3xl tabular-nums text-cream"
+                      >
                         {form.guests}
                       </output>
                       <button

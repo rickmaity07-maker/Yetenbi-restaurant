@@ -17,7 +17,8 @@ export function parseRange(params: Record<string, string | string[] | undefined>
   const one = (k: string) => (typeof params[k] === "string" ? (params[k] as string) : "");
   const von = one("von");
   const bis = one("bis");
-  if (ISO.test(von) && ISO.test(bis) && von <= bis && addDays(von, 366) >= bis) return { from: von, to: bis, preset: "eigen" };
+  if (ISO.test(von) && ISO.test(bis) && von <= bis && addDays(von, 366) >= bis)
+    return { from: von, to: bis, preset: "eigen" };
   const r = one("r") || "30";
   const [y, m] = today.split("-").map(Number);
   const first = (yy: number, mm: number) => `${yy}-${String(mm).padStart(2, "0")}-01`;

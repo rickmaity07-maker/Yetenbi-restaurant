@@ -26,7 +26,10 @@ export function LalibelaCross({ className = "" }: { className?: string }) {
 /** A projecting beam end: a square block with a carved inner square. */
 function Knob({ className }: { className: string }) {
   return (
-    <span aria-hidden className={`pointer-events-none absolute flex h-4 w-4 items-center justify-center border-[1.5px] border-gold bg-ink ${className}`}>
+    <span
+      aria-hidden
+      className={`pointer-events-none absolute flex h-4 w-4 items-center justify-center border-[1.5px] border-gold bg-ink ${className}`}
+    >
       <span className="h-1.5 w-1.5 bg-gold/80" />
     </span>
   );

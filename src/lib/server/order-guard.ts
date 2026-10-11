@@ -37,7 +37,12 @@ export function clientHash(request: Request) {
   return ip ? createHmac("sha256", signingKey()).update(`client:${ip}`).digest("base64url").slice(0, 32) : null;
 }
 
-export async function checkOrder(g: { phoneKey: string; email: string; clientHash: string | null; total: number }): Promise<GuardCode | null> {
+export async function checkOrder(g: {
+  phoneKey: string;
+  email: string;
+  clientHash: string | null;
+  total: number;
+}): Promise<GuardCode | null> {
   const email = g.email.trim().toLowerCase();
   const [r] = (await db()`
     select
@@ -52,7 +57,12 @@ export async function checkOrder(g: { phoneKey: string; email: string; clientHas
       (select count(*) from orders where phone_key = ${g.phoneKey} and status = 'completed')::int as completed
   `) as Record<string, number>[];
   if (r.blocked > 0) return "blocked";
-  if (r.phone_hour >= LIMITS.perPhonePerHour || r.device_hour >= LIMITS.perDevicePerHour || r.device_day >= LIMITS.perDevicePerDay) return "busy";
+  if (
+    r.phone_hour >= LIMITS.perPhonePerHour ||
+    r.device_hour >= LIMITS.perDevicePerHour ||
+    r.device_day >= LIMITS.perDevicePerDay
+  )
+    return "busy";
   if (r.unconfirmed >= LIMITS.maxUnconfirmed) return "kitchen";
   if (g.total > LIMITS.largeFirstOrder && r.completed === 0) return "large";
   return null;
@@ -60,11 +70,21 @@ export async function checkOrder(g: { phoneKey: string; email: string; clientHas
 
 /* ---------- block list (admin) ---------- */
 
-export type Block = { id: number; kind: "phone" | "email" | "client"; label: string; reason: string; createdAt: string };
+export type Block = {
+  id: number;
+  kind: "phone" | "email" | "client";
+  label: string;
+  reason: string;
+  createdAt: string;
+};
 
 /** Blocks the phone number, email and device of an order. Returns false if the order does not exist. */
 export async function blockOrderGuest(orderId: number, reason: string) {
-  const [o] = (await db()`select reference, phone, phone_key, email, client_hash from orders where id = ${orderId}`) as Record<string, string | null>[];
+  const [o] =
+    (await db()`select reference, phone, phone_key, email, client_hash from orders where id = ${orderId}`) as Record<
+      string,
+      string | null
+    >[];
   if (!o) return false;
   const pk = o.phone_key || phoneKey(String(o.phone));
   const entries: [Block["kind"], string, string][] = [["phone", pk, String(o.phone)]];
@@ -84,7 +104,11 @@ export async function blockPhone(phone: string, reason: string) {
 }
 
 export async function listBlocks(): Promise<Block[]> {
-  const rows = (await db()`select id, kind, label, reason, created_at from order_blocks order by created_at desc`) as Record<string, unknown>[];
+  const rows =
+    (await db()`select id, kind, label, reason, created_at from order_blocks order by created_at desc`) as Record<
+      string,
+      unknown
+    >[];
   return rows.map((r) => ({
     id: Number(r.id),
     kind: r.kind as Block["kind"],

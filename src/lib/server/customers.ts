@@ -9,7 +9,8 @@ import { phoneKey } from "./order-guard";
 
 type Row = Record<string, unknown>;
 
-const customerKey = (email: string, phone: string) => (email.trim() ? email.trim().toLowerCase() : `tel:${phoneKey(phone)}`);
+const customerKey = (email: string, phone: string) =>
+  email.trim() ? email.trim().toLowerCase() : `tel:${phoneKey(phone)}`;
 export const encodeKey = (key: string) => Buffer.from(key).toString("base64url");
 export const decodeKey = (v: string) => {
   try {
@@ -20,7 +21,14 @@ export const decodeKey = (v: string) => {
 };
 
 type CustomerOrder = { reference: string; createdAt: string; status: string; method: string; total: number };
-type CustomerBooking = { reference: string; date: string; time: string; guests: number; status: string; source: string };
+type CustomerBooking = {
+  reference: string;
+  date: string;
+  time: string;
+  guests: number;
+  status: string;
+  source: string;
+};
 
 type Customer = {
   key: string;
@@ -51,7 +59,21 @@ async function load() {
   const get = (key: string, name: string, email: string, phone: string, seen: string) => {
     let c = map.get(key);
     if (!c) {
-      c = { key, name, email, phone, hasAccount: false, orders: [], bookings: [], revenue: 0, completed: 0, rejected: 0, lastSeen: seen, blocked: false, note: "" };
+      c = {
+        key,
+        name,
+        email,
+        phone,
+        hasAccount: false,
+        orders: [],
+        bookings: [],
+        revenue: 0,
+        completed: 0,
+        rejected: 0,
+        lastSeen: seen,
+        blocked: false,
+        note: "",
+      };
       map.set(key, c);
     }
     if (seen > c.lastSeen) c.lastSeen = seen;
@@ -63,7 +85,13 @@ async function load() {
   for (const o of orders) {
     const at = new Date(String(o.created_at)).toISOString();
     const c = get(customerKey(String(o.email), String(o.phone)), String(o.name), String(o.email), String(o.phone), at);
-    c.orders.push({ reference: String(o.reference), createdAt: at, status: String(o.status), method: String(o.method), total: Number(o.total) });
+    c.orders.push({
+      reference: String(o.reference),
+      createdAt: at,
+      status: String(o.status),
+      method: String(o.method),
+      total: Number(o.total),
+    });
     if (o.status === "completed") {
       c.completed++;
       c.revenue += Number(o.total);
@@ -73,10 +101,23 @@ async function load() {
   for (const b of bookings) {
     const at = new Date(String(b.created_at)).toISOString();
     const c = get(customerKey(String(b.email), String(b.phone)), String(b.name), String(b.email), String(b.phone), at);
-    c.bookings.push({ reference: String(b.reference), date: String(b.date), time: String(b.time), guests: Number(b.guests), status: String(b.status), source: String(b.source) });
+    c.bookings.push({
+      reference: String(b.reference),
+      date: String(b.date),
+      time: String(b.time),
+      guests: Number(b.guests),
+      status: String(b.status),
+      source: String(b.source),
+    });
   }
   for (const u of users) {
-    const c = get(customerKey(String(u.email), ""), String(u.name), String(u.email), String(u.phone), new Date(String(u.created_at)).toISOString());
+    const c = get(
+      customerKey(String(u.email), ""),
+      String(u.name),
+      String(u.email),
+      String(u.phone),
+      new Date(String(u.created_at)).toISOString(),
+    );
     c.hasAccount = true;
     if (u.name) c.name = String(u.name);
   }
@@ -84,7 +125,9 @@ async function load() {
   const blocked = new Set(blocks.map((b) => `${b.kind}:${b.value}`));
   for (const c of map.values()) {
     c.note = noteBy.get(c.key) ?? "";
-    c.blocked = (c.email !== "" && blocked.has(`email:${c.email.toLowerCase()}`)) || (c.phone !== "" && blocked.has(`phone:${phoneKey(c.phone)}`));
+    c.blocked =
+      (c.email !== "" && blocked.has(`email:${c.email.toLowerCase()}`)) ||
+      (c.phone !== "" && blocked.has(`phone:${phoneKey(c.phone)}`));
   }
   return [...map.values()];
 }
@@ -94,7 +137,13 @@ export async function listCustomers(q: string) {
   const needle = q.trim().toLowerCase();
   const digits = needle.replace(/\D/g, "");
   return all
-    .filter((c) => !needle || c.name.toLowerCase().includes(needle) || c.email.includes(needle) || (digits.length >= 4 && c.phone.replace(/\D/g, "").includes(digits)))
+    .filter(
+      (c) =>
+        !needle ||
+        c.name.toLowerCase().includes(needle) ||
+        c.email.includes(needle) ||
+        (digits.length >= 4 && c.phone.replace(/\D/g, "").includes(digits)),
+    )
     .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
 }
 
@@ -121,7 +170,8 @@ export async function saveNote(key: string, note: string, by: string) {
 */
 export async function personalData(user: { id: number; email: string }) {
   const email = user.email.toLowerCase();
-  const [account] = (await db()`select id, email, name, phone, role, locale, email_verified, google_sub is not null as google, created_at from users where id = ${user.id}`) as Row[];
+  const [account] =
+    (await db()`select id, email, name, phone, role, locale, email_verified, google_sub is not null as google, created_at from users where id = ${user.id}`) as Row[];
   const verified = Boolean(account?.email_verified);
   const [orders, reservations] = (await Promise.all([
     db()`
@@ -139,7 +189,9 @@ export async function personalData(user: { id: number; email: string }) {
     verified ? db()`select note, updated_at, updated_by from customer_notes where key = ${email}` : Promise.resolve([]),
     db()`select kind, label, reason, created_at from order_blocks
          where (kind = 'email' and ${verified} and value = ${email}) or (kind = 'phone' and value = any(${phoneKeys}))`,
-    verified ? db()`select bucket, created_at from rate_hits where key = ${email} order by created_at desc` : Promise.resolve([]),
+    verified
+      ? db()`select bucket, created_at from rate_hits where key = ${email} order by created_at desc`
+      : Promise.resolve([]),
     db()`select at, actor, role, area, action, target from audit_log
          where target = any(${references}) or (${verified} and lower(target) = ${email}) order by at desc`,
   ])) as Row[][];

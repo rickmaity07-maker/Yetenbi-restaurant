@@ -20,8 +20,16 @@ const AREAS: Record<string, string> = {
 };
 
 const when = (iso: string) =>
-  new Date(iso).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
-const field = "border-0 border-b border-gold/30 bg-transparent pb-1 text-sm text-cream [color-scheme:dark] focus:border-gold focus:outline-none";
+  new Date(iso).toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin",
+  });
+const field =
+  "border-0 border-b border-gold/30 bg-transparent pb-1 text-sm text-cream [color-scheme:dark] focus:border-gold focus:outline-none";
 
 async function Log({ searchParams }: { searchParams: Params }) {
   await connection();
@@ -63,12 +71,21 @@ async function Log({ searchParams }: { searchParams: Params }) {
         </label>
         <label className="flex flex-col gap-1 text-xs text-cream/60">
           Suche
-          <input name="q" defaultValue={filter.q} placeholder="z. B. YO-7KQ2, Kitfo" className={`${field} w-56 placeholder:text-cream/35`} />
+          <input
+            name="q"
+            defaultValue={filter.q}
+            placeholder="z. B. YO-7KQ2, Kitfo"
+            className={`${field} w-56 placeholder:text-cream/35`}
+          />
         </label>
-        <button className="rounded-full border border-cream/25 px-4 py-1.5 text-sm text-cream hover:border-gold">Filtern</button>
+        <button className="rounded-full border border-cream/25 px-4 py-1.5 text-sm text-cream hover:border-gold">
+          Filtern
+        </button>
       </form>
 
-      <p className="mt-4 text-xs text-cream/50">Die letzten {entries.length} Einträge. Einträge werden nach einem Jahr gelöscht.</p>
+      <p className="mt-4 text-xs text-cream/50">
+        Die letzten {entries.length} Einträge. Einträge werden nach einem Jahr gelöscht.
+      </p>
       {entries.length === 0 ? (
         <p className="mt-8 font-display text-xl italic text-cream/60">Noch keine Einträge.</p>
       ) : (
@@ -89,7 +106,9 @@ async function Log({ searchParams }: { searchParams: Params }) {
                   <td className="whitespace-nowrap py-2 pr-4 tabular-nums text-cream/60">{when(e.at)}</td>
                   <td className="py-2 pr-4 text-cream">
                     {e.actor}
-                    {e.role && <span className="block text-xs text-cream/45">{ROLE_LABEL[e.role as Role] ?? e.role}</span>}
+                    {e.role && (
+                      <span className="block text-xs text-cream/45">{ROLE_LABEL[e.role as Role] ?? e.role}</span>
+                    )}
                   </td>
                   <td className="py-2 pr-4 text-cream/70">{AREAS[e.area] ?? e.area}</td>
                   <td className="py-2 pr-4 text-cream">{e.action}</td>

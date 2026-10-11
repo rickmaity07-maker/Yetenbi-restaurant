@@ -27,27 +27,27 @@ export default async function Home() {
   return (
     <PhotosProvider photos={photos}>
       <MenuProvider menu={menu}>
-      <HoursProvider hours={business.hours}>
-      <StructuredData menu={menu} hours={business.hours} />
-      <Intro />
-      <ScrollProgress />
-      <SideRail />
-      <Header />
-      {/* overflow-x-clip (not hidden) so the pinned platter and coffee rounds keep working */}
-      <main id="main" className="w-full max-w-full flex-1 overflow-x-clip">
-        <Hero />
-        <Manifesto />
-        <Platte />
-        <MenuCard />
-        <Buna />
-        <ProverbBand />
-        <Info />
-        <Amharisch />
-        <Visit />
-        <Reservation />
-      </main>
-      <Footer />
-      </HoursProvider>
+        <HoursProvider hours={business.hours}>
+          <StructuredData menu={menu} hours={business.hours} />
+          <Intro />
+          <ScrollProgress />
+          <SideRail />
+          <Header />
+          {/* overflow-x-clip (not hidden) so the pinned platter and coffee rounds keep working */}
+          <main id="main" className="w-full max-w-full flex-1 overflow-x-clip">
+            <Hero />
+            <Manifesto />
+            <Platte />
+            <MenuCard />
+            <Buna />
+            <ProverbBand />
+            <Info />
+            <Amharisch />
+            <Visit />
+            <Reservation />
+          </main>
+          <Footer />
+        </HoursProvider>
       </MenuProvider>
     </PhotosProvider>
   );

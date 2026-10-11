@@ -24,9 +24,9 @@ async function Team() {
       <section className="mt-10 border border-gold/20 bg-ink/40 p-6 md:p-8">
         <h2 className="font-display text-2xl font-semibold text-gold-soft">Konto anlegen</h2>
         <p className="mb-6 mt-2 text-sm text-cream/65">
-          Jede Person meldet sich unter <span className="text-cream">/login</span> mit ihrer E-Mail an und landet direkt auf ihrem Bildschirm. Das
-          Passwort kann sie danach im Profil ändern; vergessen geht über „Passwort vergessen“ oder hier. Gebt neuen
-          Teammitgliedern die{" "}
+          Jede Person meldet sich unter <span className="text-cream">/login</span> mit ihrer E-Mail an und landet direkt
+          auf ihrem Bildschirm. Das Passwort kann sie danach im Profil ändern; vergessen geht über „Passwort vergessen“
+          oder hier. Gebt neuen Teammitgliedern die{" "}
           <Link href="/datenschutz/team" className="text-gold-soft underline underline-offset-4">
             Datenschutzhinweise für das Team
           </Link>
@@ -51,9 +51,12 @@ async function Team() {
                   <li key={p.id} className="py-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-cream">
-                        <strong className="font-semibold">{p.name}</strong> <span className="text-cream/60">· {p.email}</span>
+                        <strong className="font-semibold">{p.name}</strong>{" "}
+                        <span className="text-cream/60">· {p.email}</span>
                         {p.phone && <span className="text-cream/60"> · {p.phone}</span>}
-                        {p.id === me.id && <span className="ml-2 text-xs uppercase tracking-[0.2em] text-gold">Du</span>}
+                        {p.id === me.id && (
+                          <span className="ml-2 text-xs uppercase tracking-[0.2em] text-gold">Du</span>
+                        )}
                       </p>
                       {p.id !== me.id && (
                         <form action={changeRole} className="flex flex-wrap items-center gap-2">
@@ -61,11 +64,20 @@ async function Team() {
                           {(["owner", "kitchen", "driver"] as const)
                             .filter((r) => r !== role)
                             .map((r) => (
-                              <button key={r} name="role" value={r} className="rounded-full border border-cream/30 px-3 py-1 text-xs font-semibold text-cream hover:border-gold">
+                              <button
+                                key={r}
+                                name="role"
+                                value={r}
+                                className="rounded-full border border-cream/30 px-3 py-1 text-xs font-semibold text-cream hover:border-gold"
+                              >
                                 → {ROLE_LABEL[r]}
                               </button>
                             ))}
-                          <button name="role" value="guest" className="rounded-full border border-[#f0a080]/60 px-3 py-1 text-xs font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink">
+                          <button
+                            name="role"
+                            value="guest"
+                            className="rounded-full border border-[#f0a080]/60 px-3 py-1 text-xs font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink"
+                          >
                             Aus dem Team entfernen
                           </button>
                         </form>

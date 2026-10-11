@@ -21,10 +21,16 @@ export default function SideRail() {
   const [lit, setLit] = useState(0);
   const { scrollY, scrollYProgress } = useScroll();
   // Stay out of the hero, which has its own stelae; fade in once it has scrolled away.
-  const show = useTransform(scrollY, (y) => (typeof window === "undefined" ? 0 : Math.min(1, Math.max(0, (y - window.innerHeight * 0.55) / (window.innerHeight * 0.3)))));
+  const show = useTransform(scrollY, (y) =>
+    typeof window === "undefined"
+      ? 0
+      : Math.min(1, Math.max(0, (y - window.innerHeight * 0.55) / (window.innerHeight * 0.3))),
+  );
 
   // One storey per sixth of the page, so the stela is fully lit when you reach the bottom.
-  useMotionValueEvent(scrollYProgress, "change", (v) => setLit(Math.min(STELA_FLOORS, Math.ceil(v * STELA_FLOORS - 0.02))));
+  useMotionValueEvent(scrollYProgress, "change", (v) =>
+    setLit(Math.min(STELA_FLOORS, Math.ceil(v * STELA_FLOORS - 0.02))),
+  );
 
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -44,7 +50,11 @@ export default function SideRail() {
   const label = current >= 0 ? t.rail[current] : undefined;
 
   return (
-    <motion.aside style={{ opacity: show }} aria-hidden className="pointer-events-none fixed right-5 top-1/2 z-30 hidden will-change-[opacity] -translate-y-1/2 flex-col items-center gap-4 xl:flex">
+    <motion.aside
+      style={{ opacity: show }}
+      aria-hidden
+      className="pointer-events-none fixed right-5 top-1/2 z-30 hidden will-change-[opacity] -translate-y-1/2 flex-col items-center gap-4 xl:flex"
+    >
       <Stela className="h-72 w-auto text-gold/90 drop-shadow-[0_0_14px_rgba(201,162,74,0.3)]" lit={lit} />
       <div className="h-28 w-6">
         <AnimatePresence mode="wait">

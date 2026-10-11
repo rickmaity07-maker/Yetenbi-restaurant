@@ -59,7 +59,10 @@ export async function login(_: AccountState, form: FormData): Promise<AccountSta
   if (!hasDatabase()) return { error: "unavailable" };
   const email = str(form, "email").toLowerCase().slice(0, 120);
   const ip = await visitorKey();
-  if ((await isLimited("login-email", email, RATE.loginPerEmail)) || (await isLimited("login-ip", ip, RATE.loginPerIp))) {
+  if (
+    (await isLimited("login-email", email, RATE.loginPerEmail)) ||
+    (await isLimited("login-ip", ip, RATE.loginPerIp))
+  ) {
     await slowDown();
     return { error: "throttled" };
   }
@@ -107,7 +110,10 @@ export async function requestReset(_: AccountState, form: FormData): Promise<Acc
   const email = str(form, "email").toLowerCase().slice(0, 120);
   const ip = await visitorKey();
   // Same answer when limited, so the form can't be used to bomb someone's inbox or probe for accounts.
-  if ((await isLimited("reset-email", email, RATE.resetPerEmail)) || (await isLimited("reset-ip", ip, RATE.resetPerIp))) {
+  if (
+    (await isLimited("reset-email", email, RATE.resetPerEmail)) ||
+    (await isLimited("reset-ip", ip, RATE.resetPerIp))
+  ) {
     await slowDown();
     return { ok: true };
   }
@@ -164,7 +170,11 @@ export async function deleteAccount(_: AccountState, form: FormData): Promise<Ac
   const me = await requireUser();
   const hash = await getPasswordHash(me.id);
   const confirmed =
-    hash === "none" ? String(form.get("current") ?? "").trim().toLowerCase() === me.email : await verifyPassword(String(form.get("current") ?? ""), hash);
+    hash === "none"
+      ? String(form.get("current") ?? "")
+          .trim()
+          .toLowerCase() === me.email
+      : await verifyPassword(String(form.get("current") ?? ""), hash);
   if (!confirmed) {
     await slowDown();
     return { error: "current" };

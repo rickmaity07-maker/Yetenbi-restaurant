@@ -39,7 +39,15 @@ function gregorianToJdn(y: number, m: number, d: number) {
   const a = Math.floor((14 - m) / 12);
   const yy = y + 4800 - a;
   const mm = m + 12 * a - 3;
-  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+  return (
+    d +
+    Math.floor((153 * mm + 2) / 5) +
+    365 * yy +
+    Math.floor(yy / 4) -
+    Math.floor(yy / 100) +
+    Math.floor(yy / 400) -
+    32045
+  );
 }
 
 /** Ethiopian calendar date for a Gregorian year/month/day. */
@@ -60,7 +68,7 @@ export function addisNow(now = new Date()) {
   const min = addis.getUTCMinutes();
   const date = toEthiopian(addis.getUTCFullYear(), addis.getUTCMonth() + 1, addis.getUTCDate());
   // Ethiopian hours start at sunrise: 7:00 is "1 o'clock in the day", 19:00 "1 o'clock in the night".
-  const ethHour = ((h + 6) % 12) || 12;
+  const ethHour = (h + 6) % 12 || 12;
   const daytime = h >= 6 && h < 18;
   return { date, h, min, ethHour, daytime };
 }

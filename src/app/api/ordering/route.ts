@@ -11,7 +11,12 @@ import { getBusiness } from "@/lib/server/business";
 export async function GET() {
   await connection();
   if (!hasDatabase()) return Response.json({ available: false, settings: DEFAULT_SETTINGS });
-  const [settings, closures, menu, business] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu(), getBusiness()]);
+  const [settings, closures, menu, business] = await Promise.all([
+    getOrderSettings(),
+    upcomingClosures(),
+    getMenu(),
+    getBusiness(),
+  ]);
   const closedToday = closures.some((c) => c.date === todayISO());
   return Response.json(
     {

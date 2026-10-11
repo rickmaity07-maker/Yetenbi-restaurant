@@ -53,16 +53,26 @@ export async function exchangeCode(origin: string, code: string, verifier: strin
   if (!tokenRes.ok) return null;
   const { access_token } = (await tokenRes.json()) as { access_token?: string };
   if (!access_token) return null;
-  const infoRes = await fetch("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: `Bearer ${access_token}` } });
+  const infoRes = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
   if (!infoRes.ok) return null;
   const info = (await infoRes.json()) as { sub?: string; email?: string; email_verified?: boolean; name?: string };
   if (!info.sub || !info.email) return null;
-  return { sub: info.sub, email: info.email.toLowerCase(), emailVerified: Boolean(info.email_verified), name: info.name || info.email.split("@")[0] };
+  return {
+    sub: info.sub,
+    email: info.email.toLowerCase(),
+    emailVerified: Boolean(info.email_verified),
+    name: info.name || info.email.split("@")[0],
+  };
 }
 
 /** Finds the account for a Google profile, linking an existing account with the same verified email, or creates one. */
 export async function upsertGoogleUser(p: GoogleProfile) {
-  const [bySub] = (await db()`select id, role from users where google_sub = ${p.sub}`) as { id: string; role: string }[];
+  const [bySub] = (await db()`select id, role from users where google_sub = ${p.sub}`) as {
+    id: string;
+    role: string;
+  }[];
   if (bySub) return { id: Number(bySub.id), role: bySub.role };
   /*
     Linking to an account with the same email. If that account never proved it owns the address, someone else may

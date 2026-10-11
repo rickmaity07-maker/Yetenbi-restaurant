@@ -67,7 +67,11 @@ export async function recentCount(email: string) {
 export async function createReservation(
   input: BookingRequest,
   locale: Locale,
-  { source = "website", status = "pending", userId = null }: { source?: "website" | "phone"; status?: Status; userId?: number | null } = {},
+  {
+    source = "website",
+    status = "pending",
+    userId = null,
+  }: { source?: "website" | "phone"; status?: Status; userId?: number | null } = {},
 ) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -87,15 +91,18 @@ export async function createReservation(
 
 /** Reservations from `fromDate` on (default: today in Berlin), oldest first. */
 export async function listReservations(fromDate?: string) {
-  const rows = (fromDate
-    ? await db()`select * from reservations where date >= ${fromDate} order by date, time, id`
-    : await db()`select * from reservations where date >= (now() at time zone 'Europe/Berlin')::date order by date, time, id`) as Row[];
+  const rows = (
+    fromDate
+      ? await db()`select * from reservations where date >= ${fromDate} order by date, time, id`
+      : await db()`select * from reservations where date >= (now() at time zone 'Europe/Berlin')::date order by date, time, id`
+  ) as Row[];
   return rows.map(toReservation);
 }
 
 /** Reservations in a date range (inclusive), oldest first. */
 export async function listBetween(from: string, to: string) {
-  const rows = (await db()`select * from reservations where date between ${from} and ${to} order by date, time, id`) as Row[];
+  const rows =
+    (await db()`select * from reservations where date between ${from} and ${to} order by date, time, id`) as Row[];
   return rows.map(toReservation);
 }
 
@@ -114,13 +121,17 @@ export async function setStatus(id: number, status: Status, staffNote: string) {
 
 /** Data retention: personal data of reservations older than 180 days is removed. */
 export async function purgeOld() {
-  const rows = (await db()`delete from reservations where date < (now() at time zone 'Europe/Berlin')::date - 180 returning id`) as { id: string }[];
+  const rows =
+    (await db()`delete from reservations where date < (now() at time zone 'Europe/Berlin')::date - 180 returning id`) as {
+      id: string;
+    }[];
   return rows.length;
 }
 
 /** A guest's own bookings, newest first. */
 export async function listForUser(userId: number) {
-  const rows = (await db()`select * from reservations where user_id = ${userId} order by date desc, time desc`) as Row[];
+  const rows =
+    (await db()`select * from reservations where user_id = ${userId} order by date desc, time desc`) as Row[];
   return rows.map(toReservation);
 }
 

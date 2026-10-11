@@ -234,7 +234,14 @@ function Lamps() {
     <>
       <instancedMesh ref={glows} args={[undefined, undefined, n]} key={`g${n}`} frustumCulled={false}>
         <planeGeometry args={[110, 110]} />
-        <shaderMaterial vertexShader={vertex} fragmentShader={glowFragment} uniforms={uniforms.glow} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+        <shaderMaterial
+          vertexShader={vertex}
+          fragmentShader={glowFragment}
+          uniforms={uniforms.glow}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
       </instancedMesh>
       <instancedMesh ref={bodies} args={[undefined, undefined, n]} key={`b${n}`} frustumCulled={false}>
         <planeGeometry args={[LAMP_W, LAMP_H]} />
@@ -242,7 +249,14 @@ function Lamps() {
       </instancedMesh>
       <instancedMesh ref={flames} args={[undefined, undefined, n]} key={`f${n}`} frustumCulled={false}>
         <planeGeometry args={[19, 28]} />
-        <shaderMaterial vertexShader={vertex} fragmentShader={flameFragment} uniforms={uniforms.flame} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+        <shaderMaterial
+          vertexShader={vertex}
+          fragmentShader={flameFragment}
+          uniforms={uniforms.flame}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
       </instancedMesh>
     </>
   );

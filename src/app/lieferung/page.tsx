@@ -11,8 +11,10 @@ import { markDelivered } from "./actions";
 export const metadata: Metadata = { title: "Lieferungen | Yetenbi", robots: { index: false, follow: false } };
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-const time = (iso: string) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
-const mapsUrl = (o: Order) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.street}, ${o.postcode} ${o.city}`)}`;
+const time = (iso: string) =>
+  new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+const mapsUrl = (o: Order) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.street}, ${o.postcode} ${o.city}`)}`;
 
 function Delivery({ o, showDriver }: { o: Order; showDriver: boolean }) {
   const pieces = o.items.reduce((n, l) => n + l.qty, 0);
@@ -25,15 +27,24 @@ function Delivery({ o, showDriver }: { o: Order; showDriver: boolean }) {
       <p className="mt-3 text-lg text-cream">
         <strong className="font-semibold">{o.name}</strong>
       </p>
-      <a href={mapsUrl(o)} target="_blank" rel="noreferrer" className="mt-1 block text-lg text-cream underline decoration-gold/50 underline-offset-4">
+      <a
+        href={mapsUrl(o)}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-1 block text-lg text-cream underline decoration-gold/50 underline-offset-4"
+      >
         {o.street}, {o.postcode} {o.city}
       </a>
       {o.addressNote && <p className="mt-1 text-cream/75">{o.addressNote}</p>}
-      <a href={`tel:${o.phone}`} className="mt-3 inline-block rounded-full border border-cream/30 px-4 py-1.5 text-sm font-semibold text-cream">
+      <a
+        href={`tel:${o.phone}`}
+        className="mt-3 inline-block rounded-full border border-cream/30 px-4 py-1.5 text-sm font-semibold text-cream"
+      >
         Anrufen: {o.phone}
       </a>
       <p className="mt-4 border-t border-gold/15 pt-4 text-cream">
-        {o.payment === "cash" ? "Bar kassieren" : "Kartenzahlung an der Tür"}: <span className="font-display text-2xl text-gold-soft">{euro(o.total)}</span>
+        {o.payment === "cash" ? "Bar kassieren" : "Kartenzahlung an der Tür"}:{" "}
+        <span className="font-display text-2xl text-gold-soft">{euro(o.total)}</span>
       </p>
       <p className="mt-1 text-sm text-cream/60">
         {pieces} {pieces === 1 ? "Gericht" : "Gerichte"}: {o.items.map((l) => `${l.qty}× ${l.name}`).join(", ")}
@@ -62,7 +73,9 @@ async function Board() {
       <StaffHeader title="Lieferungen" me={me} />
       <LiveRefresh seconds={20} />
       {open.length === 0 ? (
-        <p className="mt-12 font-display text-2xl italic text-cream/70">Gerade keine Lieferungen{owner ? " unterwegs" : " für dich"}.</p>
+        <p className="mt-12 font-display text-2xl italic text-cream/70">
+          Gerade keine Lieferungen{owner ? " unterwegs" : " für dich"}.
+        </p>
       ) : (
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
           {open.map((o) => (

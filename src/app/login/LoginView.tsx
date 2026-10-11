@@ -17,7 +17,10 @@ function GoogleButton({ label, next }: { label: string; next: string }) {
       className="flex w-full items-center justify-center gap-3 rounded-full border border-cream/25 bg-cream/[0.04] px-6 py-3.5 font-semibold text-cream transition-colors hover:border-gold hover:text-gold-soft"
     >
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-        <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1-3.3 0-6-2.74-6-6.2s2.7-6.2 6-6.2c1.88 0 3.14.8 3.86 1.49l2.63-2.54C16.86 3.2 14.65 2.2 12 2.2 6.6 2.2 2.2 6.6 2.2 12s4.4 9.8 9.8 9.8c5.66 0 9.4-3.98 9.4-9.58 0-.64-.07-1.13-.16-1.62H12z" />
+        <path
+          fill="#EA4335"
+          d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1-3.3 0-6-2.74-6-6.2s2.7-6.2 6-6.2c1.88 0 3.14.8 3.86 1.49l2.63-2.54C16.86 3.2 14.65 2.2 12 2.2 6.6 2.2 2.2 6.6 2.2 12s4.4 9.8 9.8 9.8c5.66 0 9.4-3.98 9.4-9.58 0-.64-.07-1.13-.16-1.62H12z"
+        />
       </svg>
       {label}
     </a>
@@ -79,7 +82,13 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
       )}
 
       <AnimatePresence mode="wait">
-        <motion.div key={mode} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}>
+        <motion.div
+          key={mode}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35 }}
+        >
           {mode === "login" && (
             <form action={loginAction} className={`${googleEnabled ? "mt-2" : "mt-10"} space-y-8`}>
               <input type="hidden" name="next" value={next} />
@@ -106,7 +115,15 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
               <AuthField id="name" label={a.name} autoComplete="name" required />
               <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
               <AuthField id="phone" label={a.phone} type="tel" autoComplete="tel" />
-              <AuthField id="password" label={a.password} type="password" autoComplete="new-password" minLength={8} required hint={a.passwordHint} />
+              <AuthField
+                id="password"
+                label={a.password}
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                required
+                hint={a.passwordHint}
+              />
               <p className="text-sm text-cream/75">
                 {a.consentPre}{" "}
                 <Link href="/datenschutz" target="_blank" className="text-gold-soft underline underline-offset-4">
@@ -122,7 +139,10 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
           {mode === "forgot" && (
             <form action={resetAction} className="mt-10 space-y-8">
               <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
-              <FormMessage error={resetState?.error && a.errors[resetState.error]} ok={resetState?.ok ? a.linkSent : undefined} />
+              <FormMessage
+                error={resetState?.error && a.errors[resetState.error]}
+                ok={resetState?.ok ? a.linkSent : undefined}
+              />
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <SubmitButton pending={resetPending}>{a.sendLink}</SubmitButton>
                 <button

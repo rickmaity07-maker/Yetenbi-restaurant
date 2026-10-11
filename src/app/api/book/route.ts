@@ -32,7 +32,9 @@ export async function POST(request: Request) {
     time: String(body.time ?? ""),
     guests: Number(body.guests),
     name: String(body.name ?? "").trim(),
-    email: String(body.email ?? "").trim().toLowerCase(),
+    email: String(body.email ?? "")
+      .trim()
+      .toLowerCase(),
     phone: String(body.phone ?? "").trim(),
     note: String(body.note ?? "").trim(),
   };
@@ -47,7 +49,8 @@ export async function POST(request: Request) {
   // …and one connection can't flood it with ever-new addresses.
   const recent = await recentCount(clean.email);
   const ip = await visitorKey(request);
-  if (recent.open >= 3 || recent.day >= 10 || (await isLimited("book-ip", ip, RATE.bookPerIp))) return Response.json({ code: "busy" }, { status: 429 });
+  if (recent.open >= 3 || recent.day >= 10 || (await isLimited("book-ip", ip, RATE.bookPerIp)))
+    return Response.json({ code: "busy" }, { status: 429 });
   await recordHit("book-ip", ip);
 
   const me = await getCurrentUser();

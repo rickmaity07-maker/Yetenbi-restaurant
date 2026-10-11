@@ -52,14 +52,22 @@ const de = {
       atkilt: "Weißkohl, Karotten und grüne Bohnen, mild geschmort mit frischen Kräutern.",
     },
   },
-  tags: { special: "Hausspezialität", spicy: "Scharf", mild: "Mild", vegan: "Vegan", glutenfree: "Glutenfrei", noGluten: "Ohne glutenhaltige Zutaten" },
+  tags: {
+    special: "Hausspezialität",
+    spicy: "Scharf",
+    mild: "Mild",
+    vegan: "Vegan",
+    glutenfree: "Glutenfrei",
+    noGluten: "Ohne glutenhaltige Zutaten",
+  },
   menu: {
     title: "Speisekarte",
     lead: "Traditionelle Rezepte, frische Gewürze und Injera, jeden Tag neu gebacken.",
     categories: "Kategorien",
     appetit: "Wir wünschen einen guten Appetit",
     priceNote: "Alle Preise in Euro inkl. MwSt. Fragen zu Allergenen beantworten wir gerne.",
-    priceNoteCodes: "Alle Preise in Euro inkl. MwSt. Allergene (Buchstaben) und Zusatzstoffe (Zahlen) stehen bei den Gerichten.",
+    priceNoteCodes:
+      "Alle Preise in Euro inkl. MwSt. Allergene (Buchstaben) und Zusatzstoffe (Zahlen) stehen bei den Gerichten.",
     allergens: "Allergene",
     soldOut: "Zurzeit nicht verfügbar",
     additives: "Zusatzstoffe",
@@ -81,15 +89,36 @@ const de = {
     large: "für 4-5 Personen",
     cup: "eine Tasse",
   },
-  proverb: { translation: "Wenn sich Spinnweben verbinden, halten sie einen Löwen.", caption: "Äthiopisches Sprichwort" },
+  proverb: {
+    translation: "Wenn sich Spinnweben verbinden, halten sie einen Löwen.",
+    caption: "Äthiopisches Sprichwort",
+  },
   info: {
     title: "Gut zu wissen,",
     em: "bevor ihr kommt.",
     facts: [
-      { term: "Preise", value: "10 bis 20 € pro Person", detail: "So schätzen es 142 Gäste auf Google. Hauptgerichte kosten 15 bis 18 €, Sambusa gibt es ab 2,50 €." },
-      { term: "Vegan", value: "Vier Gerichte, alle glutenfrei", detail: "Misir Wot, Shiro, Atkilt Wot und die vegane Beyaynetu-Platte. Injera aus Teff ist von Natur aus glutenfrei." },
-      { term: "Mitnehmen", value: "Abholung und Lieferung", detail: "Ihr könnt auch abholen oder euch liefern lassen. Fragt uns einfach telefonisch." },
-      { term: "Tradition", value: "Gegessen wird mit der Hand", detail: "Ein Stück Injera abreißen, damit zugreifen, teilen. Wer mag, reicht dem Gegenüber einen Bissen: das ist Gursha." },
+      {
+        term: "Preise",
+        value: "10 bis 20 € pro Person",
+        detail: "So schätzen es 142 Gäste auf Google. Hauptgerichte kosten 15 bis 18 €, Sambusa gibt es ab 2,50 €.",
+      },
+      {
+        term: "Vegan",
+        value: "Vier Gerichte, alle glutenfrei",
+        detail:
+          "Misir Wot, Shiro, Atkilt Wot und die vegane Beyaynetu-Platte. Injera aus Teff ist von Natur aus glutenfrei.",
+      },
+      {
+        term: "Mitnehmen",
+        value: "Abholung und Lieferung",
+        detail: "Ihr könnt auch abholen oder euch liefern lassen. Fragt uns einfach telefonisch.",
+      },
+      {
+        term: "Tradition",
+        value: "Gegessen wird mit der Hand",
+        detail:
+          "Ein Stück Injera abreißen, damit zugreifen, teilen. Wer mag, reicht dem Gegenüber einen Bissen: das ist Gursha.",
+      },
     ],
     hoursTerm: "Geöffnet",
     hoursValue: "Täglich, Mi & So ab 16 Uhr",
@@ -99,7 +128,8 @@ const de = {
     label: "Fidel · ፊደል",
     title: "Ein bisschen Amharisch",
     em: "für den Abend.",
-    intro: "Amharisch schreibt man mit dem Fidel, einer der ältesten Schriften Afrikas. Jedes Zeichen ist eine Silbe: ein Konsonant in sieben Vokalformen.",
+    intro:
+      "Amharisch schreibt man mit dem Fidel, einer der ältesten Schriften Afrikas. Jedes Zeichen ist eine Silbe: ein Konsonant in sieben Vokalformen.",
     phrases: [
       { meaning: "Hallo", when: "Zur Begrüßung, und es heißt zugleich Frieden." },
       { meaning: "Guten Tag", when: "Die höfliche Begrüßung: Gott gebe Ihnen Gesundheit." },
@@ -172,7 +202,8 @@ const de = {
       busy: "Ihr habt schon mehrere offene Anfragen. Wir melden uns bald.",
     },
     sentTitle: "Danke, die Anfrage ist da.",
-    sentText: (email: string) => `Wir haben euch eine Bestätigung des Eingangs an ${email} geschickt und melden uns, sobald der Tisch fest ist.`,
+    sentText: (email: string) =>
+      `Wir haben euch eine Bestätigung des Eingangs an ${email} geschickt und melden uns, sobald der Tisch fest ist.`,
     sentRef: "Eure Nummer",
     waTitle: "Fast geschafft.",
     waText: "Sendet die vorbereitete Nachricht in WhatsApp ab. Wir melden uns mit einer Bestätigung.",
@@ -226,7 +257,8 @@ const de = {
     dataText: "Ladet alles herunter, was wir zu eurem Konto gespeichert haben.",
     export: "Daten herunterladen",
     deleteTitle: "Konto löschen",
-    deleteText: "Euer Konto und unsere Notizen zu euch werden endgültig gelöscht. Bestellungen und Reservierungen bleiben ohne Verknüpfung zum Konto erhalten und werden wie alle anderen nach 180 Tagen gelöscht.",
+    deleteText:
+      "Euer Konto und unsere Notizen zu euch werden endgültig gelöscht. Bestellungen und Reservierungen bleiben ohne Verknüpfung zum Konto erhalten und werden wie alle anderen nach 180 Tagen gelöscht.",
     deleteConfirm: "Konto endgültig löschen",
     adminLink: "Zur Verwaltung",
     google: "Mit Google fortfahren",
@@ -280,23 +312,27 @@ const de = {
     phone: "Telefon",
     email: "E-Mail (für die Bestätigung)",
     note: "Anmerkung zur Bestellung (optional)",
-    noteHint: "Bitte keine Angaben zu Allergien oder Gesundheit eintragen. Fragen zu Allergenen klären wir gern telefonisch.",
+    noteHint:
+      "Bitte keine Angaben zu Allergien oder Gesundheit eintragen. Fragen zu Allergenen klären wir gern telefonisch.",
     payment: "Bezahlung",
     cash: "Bar bei Übergabe",
     card: "Karte bei Übergabe",
     place: (total: string) => `Zahlungspflichtig bestellen · ${total}`,
     vat: "inkl. MwSt.",
     deposit: "Pfand",
-    reusableOffer: "Auf Wunsch bekommt ihr eure Bestellung in Mehrwegverpackung, nicht teurer als Einweg (ggf. gegen Pfand). Schreibt es einfach in die Anmerkung.",
+    reusableOffer:
+      "Auf Wunsch bekommt ihr eure Bestellung in Mehrwegverpackung, nicht teurer als Einweg (ggf. gegen Pfand). Schreibt es einfach in die Anmerkung.",
     reusableOwn: "Ihr könnt bei Abholung gern eure eigenen Behälter mitbringen; wir füllen eure Speisen hinein.",
     terms: "Es gelten unsere Bestellbedingungen. Für frisch zubereitete Speisen besteht kein Widerrufsrecht.",
     termsLink: "Bestellbedingungen",
     placing: "Wird gesendet …",
-    closed: "Gerade nehmen wir keine Bestellungen an. Bestellungen sind möglich, während wir geöffnet haben, bis 30 Minuten vor Schluss.",
+    closed:
+      "Gerade nehmen wir keine Bestellungen an. Bestellungen sind möglich, während wir geöffnet haben, bis 30 Minuten vor Schluss.",
     paused: "Online-Bestellungen sind gerade pausiert. Ruft uns gerne an.",
     unavailable: "Online-Bestellungen sind gerade nicht verfügbar. Ruft uns gerne an.",
     loginTitle: "Zum Bestellen anmelden",
-    loginText: "Online bestellen könnt ihr mit einem Konto. Euer Warenkorb bleibt erhalten, und alle Updates zur Bestellung kommen per E-Mail.",
+    loginText:
+      "Online bestellen könnt ihr mit einem Konto. Euer Warenkorb bleibt erhalten, und alle Updates zur Bestellung kommen per E-Mail.",
     loginButton: "Anmelden",
     registerButton: "Konto erstellen",
     accountEmail: (email: string) => `Updates gehen an ${email}`,
@@ -317,9 +353,11 @@ const de = {
       note: "Die Anmerkung ist zu lang.",
       server: "Das hat nicht geklappt. Bitte versucht es noch einmal oder ruft uns an.",
       busy: "Ihr habt gerade schon bestellt. Bei Fragen ruft uns bitte an.",
-      kitchen: "Gerade gehen sehr viele Bestellungen ein. Bitte versucht es in ein paar Minuten noch einmal oder ruft uns an.",
+      kitchen:
+        "Gerade gehen sehr viele Bestellungen ein. Bitte versucht es in ein paar Minuten noch einmal oder ruft uns an.",
       large: "Für eine so große erste Bestellung ruft uns bitte kurz an, damit wir alles gut vorbereiten können.",
-      blocked: "Eine Online-Bestellung ist gerade nicht möglich. Ruft uns bitte an, dann nehmen wir eure Bestellung telefonisch auf.",
+      blocked:
+        "Eine Online-Bestellung ist gerade nicht möglich. Ruft uns bitte an, dann nehmen wir eure Bestellung telefonisch auf.",
       login: "Bitte meldet euch erneut an, um zu bestellen.",
     },
     statusTitle: "Eure Bestellung",
@@ -335,7 +373,8 @@ const de = {
       rejected: "Abgelehnt",
       cancelled: "Storniert",
     },
-    eta: (min: number, delivery: boolean) => (delivery ? `Lieferung in ca. ${min} Minuten` : `Abholbereit in ca. ${min} Minuten`),
+    eta: (min: number, delivery: boolean) =>
+      delivery ? `Lieferung in ca. ${min} Minuten` : `Abholbereit in ca. ${min} Minuten`,
     waiting: "Wir haben eure Bestellung und bestätigen sie gleich.",
     rejectedText: "Leider können wir die Bestellung gerade nicht annehmen. Bitte ruft uns an.",
     cancelledText: "Diese Bestellung wurde storniert.",
@@ -402,14 +441,22 @@ const en: Dict = {
       atkilt: "Cabbage, carrots and green beans, gently braised with fresh herbs.",
     },
   },
-  tags: { special: "House speciality", spicy: "Spicy", mild: "Mild", vegan: "Vegan", glutenfree: "Gluten-free", noGluten: "No ingredients containing gluten" },
+  tags: {
+    special: "House speciality",
+    spicy: "Spicy",
+    mild: "Mild",
+    vegan: "Vegan",
+    glutenfree: "Gluten-free",
+    noGluten: "No ingredients containing gluten",
+  },
   menu: {
     title: "Menu",
     lead: "Traditional recipes, fresh spices and injera baked every day.",
     categories: "Categories",
     appetit: "Enjoy your meal",
     priceNote: "All prices in euros incl. VAT. Ask us about allergens any time.",
-    priceNoteCodes: "All prices in euros incl. VAT. Allergens (letters) and additives (numbers) are listed with each dish.",
+    priceNoteCodes:
+      "All prices in euros incl. VAT. Allergens (letters) and additives (numbers) are listed with each dish.",
     allergens: "Allergens",
     soldOut: "Currently unavailable",
     additives: "Additives",
@@ -436,10 +483,26 @@ const en: Dict = {
     title: "Good to know",
     em: "before you come.",
     facts: [
-      { term: "Prices", value: "€10 to €20 per person", detail: "That's what 142 guests report on Google. Main dishes are €15 to €18, sambusa from €2.50." },
-      { term: "Vegan", value: "Four dishes, all gluten-free", detail: "Misir wot, shiro, atkilt wot and the vegan beyaynetu platter. Teff injera is naturally gluten-free." },
-      { term: "Takeaway", value: "Pick-up and delivery", detail: "You can collect your food or have it delivered. Just give us a call." },
-      { term: "Tradition", value: "You eat with your hand", detail: "Tear off some injera, scoop, share. Offering someone a bite from your hand is called gursha." },
+      {
+        term: "Prices",
+        value: "€10 to €20 per person",
+        detail: "That's what 142 guests report on Google. Main dishes are €15 to €18, sambusa from €2.50.",
+      },
+      {
+        term: "Vegan",
+        value: "Four dishes, all gluten-free",
+        detail: "Misir wot, shiro, atkilt wot and the vegan beyaynetu platter. Teff injera is naturally gluten-free.",
+      },
+      {
+        term: "Takeaway",
+        value: "Pick-up and delivery",
+        detail: "You can collect your food or have it delivered. Just give us a call.",
+      },
+      {
+        term: "Tradition",
+        value: "You eat with your hand",
+        detail: "Tear off some injera, scoop, share. Offering someone a bite from your hand is called gursha.",
+      },
     ],
     hoursTerm: "Open",
     hoursValue: "Daily, Wed & Sun from 4 pm",
@@ -449,7 +512,8 @@ const en: Dict = {
     label: "Fidel · ፊደል",
     title: "A little Amharic",
     em: "for the evening.",
-    intro: "Amharic is written in fidel, one of Africa's oldest scripts. Each character is a syllable: a consonant in seven vowel forms.",
+    intro:
+      "Amharic is written in fidel, one of Africa's oldest scripts. Each character is a syllable: a consonant in seven vowel forms.",
     phrases: [
       { meaning: "Hello", when: "A greeting that also means peace." },
       { meaning: "Good day", when: "The polite greeting: may God give you health." },
@@ -576,7 +640,8 @@ const en: Dict = {
     dataText: "Download everything we store about your account.",
     export: "Download data",
     deleteTitle: "Delete account",
-    deleteText: "Your account and our notes about you are deleted for good. Orders and reservations stay, unlinked from the account, and are deleted after 180 days like all others.",
+    deleteText:
+      "Your account and our notes about you are deleted for good. Orders and reservations stay, unlinked from the account, and are deleted after 180 days like all others.",
     deleteConfirm: "Delete account for good",
     adminLink: "Go to admin",
     google: "Continue with Google",
@@ -637,16 +702,19 @@ const en: Dict = {
     place: (total: string) => `Order with obligation to pay · ${total}`,
     vat: "incl. VAT",
     deposit: "Deposit",
-    reusableOffer: "On request we pack your order in reusable packaging, at no extra cost compared to single-use (a deposit may apply). Just add it to the note.",
+    reusableOffer:
+      "On request we pack your order in reusable packaging, at no extra cost compared to single-use (a deposit may apply). Just add it to the note.",
     reusableOwn: "For pick-up you are welcome to bring your own containers; we will fill them for you.",
     terms: "Our ordering terms apply. Freshly prepared food has no right of withdrawal.",
     termsLink: "Ordering terms",
     placing: "Sending …",
-    closed: "We are not taking orders right now. Orders are possible while we are open, until 30 minutes before closing.",
+    closed:
+      "We are not taking orders right now. Orders are possible while we are open, until 30 minutes before closing.",
     paused: "Online ordering is paused right now. Please give us a call.",
     unavailable: "Online ordering is not available right now. Please give us a call.",
     loginTitle: "Sign in to order",
-    loginText: "You need an account to order online. Your basket is kept, and every update on your order comes by email.",
+    loginText:
+      "You need an account to order online. Your basket is kept, and every update on your order comes by email.",
     loginButton: "Sign in",
     registerButton: "Create account",
     accountEmail: (email: string) => `Updates go to ${email}`,
@@ -685,7 +753,8 @@ const en: Dict = {
       rejected: "Declined",
       cancelled: "Cancelled",
     },
-    eta: (min: number, delivery: boolean) => (delivery ? `Delivery in about ${min} minutes` : `Ready in about ${min} minutes`),
+    eta: (min: number, delivery: boolean) =>
+      delivery ? `Delivery in about ${min} minutes` : `Ready in about ${min} minutes`,
     waiting: "We have your order and will confirm it shortly.",
     rejectedText: "Unfortunately we cannot take this order right now. Please give us a call.",
     cancelledText: "This order was cancelled.",
@@ -750,7 +819,14 @@ const am: Dict = {
       atkilt: "ጥቅል ጎመን፣ ካሮትና ፎሶሊያ በለስላሳ ቅመም።",
     },
   },
-  tags: { special: "የቤቱ ልዩ", spicy: "ቅመም ያለው", mild: "ለስላሳ", vegan: "የጾም", glutenfree: "ከግሉተን ነፃ", noGluten: "ግሉተን ያላቸው ግብዓቶች የሉትም" },
+  tags: {
+    special: "የቤቱ ልዩ",
+    spicy: "ቅመም ያለው",
+    mild: "ለስላሳ",
+    vegan: "የጾም",
+    glutenfree: "ከግሉተን ነፃ",
+    noGluten: "ግሉተን ያላቸው ግብዓቶች የሉትም",
+  },
   menu: {
     title: "የምግብ ዝርዝር",
     lead: "ባህላዊ የአሠራር ዘዴ፣ ትኩስ ቅመምና በየቀኑ የሚጋገር እንጀራ።",
@@ -784,7 +860,11 @@ const am: Dict = {
     title: "ከመምጣትዎ በፊት",
     em: "ማወቅ ያለብዎት።",
     facts: [
-      { term: "ዋጋ", value: "ለአንድ ሰው 10-20 ዩሮ", detail: "142 እንግዶች በGoogle ላይ እንዲህ ገምተዋል። ዋና ምግቦች 15-18 ዩሮ፣ ሳምቡሳ ከ2.50 ዩሮ ጀምሮ።" },
+      {
+        term: "ዋጋ",
+        value: "ለአንድ ሰው 10-20 ዩሮ",
+        detail: "142 እንግዶች በGoogle ላይ እንዲህ ገምተዋል። ዋና ምግቦች 15-18 ዩሮ፣ ሳምቡሳ ከ2.50 ዩሮ ጀምሮ።",
+      },
       { term: "ጾም", value: "አራት የጾም ምግቦች", detail: "ምስር ወጥ፣ ሽሮ፣ አትክልትና የጾም በያይነቱ። የጤፍ እንጀራ ከግሉተን ነፃ ነው።" },
       { term: "መውሰድ", value: "መውሰድና ማድረስ", detail: "ምግብዎን መውሰድ ወይም ማስመጣት ይችላሉ። በስልክ ይጠይቁን።" },
       { term: "ባህል", value: "በእጅ ይበላል", detail: "እንጀራ ቆርሰው ያጥቅሱ፣ ያካፍሉ። ለሌላው በእጅ ማጉረስ ጉርሻ ይባላል።" },
@@ -924,7 +1004,8 @@ const am: Dict = {
     dataText: "ስለ መለያዎ የያዝነውን መረጃ በሙሉ ያውርዱ።",
     export: "መረጃ አውርድ",
     deleteTitle: "መለያ ሰርዝ",
-    deleteText: "መለያዎና ስለ እርስዎ ያለን ማስታወሻ ሙሉ በሙሉ ይሰረዛሉ። ትዕዛዞችና ቦታ ማስያዣዎች ከመለያው ተለይተው ይቀራሉ፤ እንደ ሌሎቹ ሁሉ ከ180 ቀናት በኋላ ይሰረዛሉ።",
+    deleteText:
+      "መለያዎና ስለ እርስዎ ያለን ማስታወሻ ሙሉ በሙሉ ይሰረዛሉ። ትዕዛዞችና ቦታ ማስያዣዎች ከመለያው ተለይተው ይቀራሉ፤ እንደ ሌሎቹ ሁሉ ከ180 ቀናት በኋላ ይሰረዛሉ።",
     deleteConfirm: "መለያውን ሙሉ በሙሉ ሰርዝ",
     adminLink: "ወደ አስተዳደር",
     google: "በGoogle ይቀጥሉ",

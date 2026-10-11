@@ -44,7 +44,11 @@ function createStore<T>(url: string, pick: (json: unknown) => T, initial: T, fai
 // undefined until /api/me has answered, then the user or null (signed out)
 const meStore = createStore<Me | undefined>("/api/me", (j) => (j as { user: Me }).user ?? null, undefined, null);
 const EMPTY: ClosedDay[] = [];
-const closuresStore = createStore<ClosedDay[]>("/api/closures", (j) => (j as { closures: ClosedDay[] }).closures ?? EMPTY, EMPTY);
+const closuresStore = createStore<ClosedDay[]>(
+  "/api/closures",
+  (j) => (j as { closures: ClosedDay[] }).closures ?? EMPTY,
+  EMPTY,
+);
 
 function useStore<T>(store: ReturnType<typeof createStore<T>>) {
   useEffect(() => store.load(), [store]);

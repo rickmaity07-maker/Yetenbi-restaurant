@@ -26,9 +26,14 @@ const CODES = new Set(ALLERGENS.map((a) => a.code));
 const NUMBERS = new Set(ADDITIVES.map((a) => a.code));
 const CLAIMS: GlutenClaim[] = ["free", "noGluten", "none"];
 
-const str = (form: FormData, key: string, max: number) => String(form.get(key) ?? "").trim().slice(0, max);
+const str = (form: FormData, key: string, max: number) =>
+  String(form.get(key) ?? "")
+    .trim()
+    .slice(0, max);
 const num = (form: FormData, key: string) => {
-  const raw = String(form.get(key) ?? "").replace(",", ".").trim();
+  const raw = String(form.get(key) ?? "")
+    .replace(",", ".")
+    .trim();
   if (!raw) return null;
   const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n : NaN;
@@ -63,7 +68,8 @@ export async function saveCategory(_: MenuState, form: FormData): Promise<MenuSt
 export async function removeCategory(_: MenuState, form: FormData): Promise<MenuState> {
   const me = await requireOwner();
   const catId = str(form, "id", 60);
-  if (!(await deleteCategory(catId))) return { error: "Nur leere Kategorien können gelöscht werden. Erst die Gerichte löschen oder verschieben." };
+  if (!(await deleteCategory(catId)))
+    return { error: "Nur leere Kategorien können gelöscht werden. Erst die Gerichte löschen oder verschieben." };
   await audit(me, "menu", "Kategorie gelöscht", catId);
   refresh();
   return { ok: "Kategorie gelöscht." };
@@ -80,7 +86,8 @@ export async function saveDish(_: MenuState, form: FormData): Promise<MenuState>
   const name = text(form, "name", 80);
   if (!name || name.de.length < 2) return { error: "Bitte einen Namen (Deutsch) eingeben." };
   const price = num(form, "price");
-  if (price === null || Number.isNaN(price) || price > 999) return { error: "Bitte einen Preis in Euro eingeben, z. B. 12,50." };
+  if (price === null || Number.isNaN(price) || price > 999)
+    return { error: "Bitte einen Preis in Euro eingeben, z. B. 12,50." };
   const volume = num(form, "volume");
   const deposit = num(form, "deposit");
   if (Number.isNaN(volume) || (volume !== null && volume > 5)) return { error: "Menge bitte in Litern, z. B. 0,33." };
@@ -92,10 +99,21 @@ export async function saveDish(_: MenuState, form: FormData): Promise<MenuState>
     amharic: str(form, "amharic", 80),
     description: text(form, "description", 400),
     price: Math.round(price * 100) / 100,
-    tags: form.getAll("tags").map(String).filter((t): t is DishInput["tags"][number] => (DISH_TAGS as string[]).includes(t)),
+    tags: form
+      .getAll("tags")
+      .map(String)
+      .filter((t): t is DishInput["tags"][number] => (DISH_TAGS as string[]).includes(t)),
     gluten: CLAIMS.find((c) => c === form.get("gluten")) ?? "none",
-    allergens: form.getAll("allergens").map(String).filter((c) => CODES.has(c)).sort(),
-    additives: form.getAll("additives").map(Number).filter((n) => NUMBERS.has(n)).sort((a, b) => a - b),
+    allergens: form
+      .getAll("allergens")
+      .map(String)
+      .filter((c) => CODES.has(c))
+      .sort(),
+    additives: form
+      .getAll("additives")
+      .map(Number)
+      .filter((n) => NUMBERS.has(n))
+      .sort((a, b) => a - b),
     volume: category.drinks && volume ? Math.round(volume * 1000) / 1000 : null,
     deposit: category.drinks && deposit ? Math.round(deposit * 100) / 100 : 0,
     orderable: form.get("orderable") === "on",
@@ -107,7 +125,11 @@ export async function saveDish(_: MenuState, form: FormData): Promise<MenuState>
   await audit(
     me,
     "menu",
-    id ? (before && before.price !== dish.price ? `Preis geändert: ${before.price.toFixed(2)} → ${dish.price.toFixed(2)} €` : "Gericht geändert") : "Gericht angelegt",
+    id
+      ? before && before.price !== dish.price
+        ? `Preis geändert: ${before.price.toFixed(2)} → ${dish.price.toFixed(2)} €`
+        : "Gericht geändert"
+      : "Gericht angelegt",
     dish.name.de,
   );
   refresh();

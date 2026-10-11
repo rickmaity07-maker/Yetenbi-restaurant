@@ -35,14 +35,23 @@ export async function blockGuest(form: FormData) {
   // decided from the stored status, not from what the form claims
   const current = (await findOrderById(id))?.status;
   if (!current) return;
-  const reason = String(form.get("note") ?? "").slice(0, 300).trim();
+  const reason = String(form.get("note") ?? "")
+    .slice(0, 300)
+    .trim();
   if (!(await blockOrderGuest(id, reason))) return;
-  const next: OrderStatus | null = current === "new" ? "rejected" : OPEN_STATUSES.includes(current) ? "cancelled" : null;
+  const next: OrderStatus | null =
+    current === "new" ? "rejected" : OPEN_STATUSES.includes(current) ? "cancelled" : null;
   if (next) {
     const order = await setOrderStatus(id, next, null, reason);
     if (order) await sendOrderEmail(next, order);
   }
-  await audit(me, "orders", next === "rejected" ? "Abgelehnt und Gast gesperrt" : next ? "Storniert und Gast gesperrt" : "Gast gesperrt", `Bestellung #${id}`, { reason });
+  await audit(
+    me,
+    "orders",
+    next === "rejected" ? "Abgelehnt und Gast gesperrt" : next ? "Storniert und Gast gesperrt" : "Gast gesperrt",
+    `Bestellung #${id}`,
+    { reason },
+  );
   revalidatePath("/admin/bestellungen");
 }
 
@@ -52,7 +61,12 @@ export async function addPhoneBlock(_: BlockState, form: FormData): Promise<Bloc
   const me = await requireOwner();
   const phone = String(form.get("phone") ?? "").trim();
   if (phone.replace(/\D/g, "").length < 6) return { error: "Bitte eine Telefonnummer eingeben." };
-  await blockPhone(phone, String(form.get("reason") ?? "").slice(0, 300).trim());
+  await blockPhone(
+    phone,
+    String(form.get("reason") ?? "")
+      .slice(0, 300)
+      .trim(),
+  );
   await audit(me, "orders", "Telefonnummer gesperrt", phone);
   revalidatePath("/admin/bestellungen");
   return { ok: "Gesperrt." };
@@ -95,8 +109,17 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
     pickupMinutes: Math.min(180, Math.max(5, Math.round(num("pickupMinutes", current.pickupMinutes)))),
   };
   await saveOrderSettings(next);
-  const changed = (Object.keys(next) as (keyof OrderSettings)[]).filter((k) => JSON.stringify(next[k]) !== JSON.stringify(current[k]));
-  if (changed.length) await audit(me, "settings", "Bestell-Einstellungen geändert", changed.join(", "), Object.fromEntries(changed.map((k) => [k, next[k]])));
+  const changed = (Object.keys(next) as (keyof OrderSettings)[]).filter(
+    (k) => JSON.stringify(next[k]) !== JSON.stringify(current[k]),
+  );
+  if (changed.length)
+    await audit(
+      me,
+      "settings",
+      "Bestell-Einstellungen geändert",
+      changed.join(", "),
+      Object.fromEntries(changed.map((k) => [k, next[k]])),
+    );
   revalidatePath("/admin/bestellungen");
   return { ok: "Gespeichert." };
 }

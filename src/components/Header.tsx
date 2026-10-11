@@ -12,7 +12,6 @@ import { useIntro } from "./intro/IntroState";
 import LanguageToggle from "./LanguageToggle";
 import { useHtmlLang, useLanguage } from "@/lib/language";
 
-
 const spring = [0.32, 0.72, 0, 1] as const;
 
 export default function Header() {
@@ -23,7 +22,8 @@ export default function Header() {
   const me = useAccount();
   const accountHref = me ? homeFor(me.role) : "/login";
   // The team gets a labelled button to their screen; guests the account icon.
-  const staffLabel = me && me.role !== "guest" ? { owner: "Verwaltung", kitchen: "Küche", driver: "Lieferungen" }[me.role] : null;
+  const staffLabel =
+    me && me.role !== "guest" ? { owner: "Verwaltung", kitchen: "Küche", driver: "Lieferungen" }[me.role] : null;
   const accountLabel = staffLabel ?? (me ? t.account.myAccount : t.account.signIn);
   const links = [
     { href: "#platte", label: t.nav.links.platte },
@@ -72,12 +72,20 @@ export default function Header() {
 
           <div className="hidden items-center gap-3 lg:flex">
             {staffLabel ? (
-              <Link href={accountHref} className="flex items-center gap-2 rounded-full border border-gold/60 py-1.5 pl-2.5 pr-4 text-sm font-semibold text-gold-soft transition-colors hover:bg-gold hover:text-ink">
+              <Link
+                href={accountHref}
+                className="flex items-center gap-2 rounded-full border border-gold/60 py-1.5 pl-2.5 pr-4 text-sm font-semibold text-gold-soft transition-colors hover:bg-gold hover:text-ink"
+              >
                 <UserCircle size={20} weight="fill" />
                 {staffLabel}
               </Link>
             ) : (
-              <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="flex h-9 w-9 items-center justify-center rounded-full text-cream/80 transition-colors hover:bg-cream/[0.06] hover:text-gold-soft">
+              <Link
+                href={accountHref}
+                aria-label={accountLabel}
+                title={accountLabel}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-cream/80 transition-colors hover:bg-cream/[0.06] hover:text-gold-soft"
+              >
                 <UserCircle size={24} weight={me ? "fill" : "light"} />
               </Link>
             )}
@@ -142,7 +150,11 @@ export default function Header() {
                 </li>
               ))}
             </ul>
-            <Link href={accountHref} onClick={() => setOpen(false)} className="mt-8 flex items-center gap-3 text-lg text-cream/85">
+            <Link
+              href={accountHref}
+              onClick={() => setOpen(false)}
+              className="mt-8 flex items-center gap-3 text-lg text-cream/85"
+            >
               <UserCircle size={26} weight={me ? "fill" : "light"} className="text-gold-soft" />
               {accountLabel}
             </Link>

@@ -59,7 +59,10 @@ export const ADDITIVES: { code: number; label: L }[] = [
   { code: 7, label: { de: "gewachst", en: "waxed", am: "ሰም የተቀባ" } },
   { code: 8, label: { de: "mit Phosphat", en: "with phosphate", am: "ፎስፌት ያለው" } },
   { code: 9, label: { de: "mit Süßungsmittel", en: "with sweetener", am: "ጣፋጭ ማድረጊያ ያለው" } },
-  { code: 10, label: { de: "enthält eine Phenylalaninquelle", en: "contains a source of phenylalanine", am: "ፌኒላላኒን ያለው" } },
+  {
+    code: 10,
+    label: { de: "enthält eine Phenylalaninquelle", en: "contains a source of phenylalanine", am: "ፌኒላላኒን ያለው" },
+  },
   { code: 11, label: { de: "koffeinhaltig", en: "contains caffeine", am: "ካፌይን ያለው" } },
   { code: 12, label: { de: "chininhaltig", en: "contains quinine", am: "ኪኒን ያለው" } },
 ];
@@ -71,10 +74,15 @@ export type Catalog = ReturnType<typeof catalogOf>;
 
 /** The tags to show, including the gluten wording. */
 export const tagsOf = (dish: Dish): (DishTag | "glutenfree" | "noGluten")[] =>
-  dish.gluten === "free" ? [...dish.tags, "glutenfree"] : dish.gluten === "noGluten" ? [...dish.tags, "noGluten"] : dish.tags;
+  dish.gluten === "free"
+    ? [...dish.tags, "glutenfree"]
+    : dish.gluten === "noGluten"
+      ? [...dish.tags, "noGluten"]
+      : dish.tags;
 
 /** Whether any allergen or additive has been entered at all (switches the menu's note and shows the legend). */
-export const hasAllergenData = (menu: Menu) => menu.some((c) => c.items.some((i) => i.allergens.length || i.additives.length));
+export const hasAllergenData = (menu: Menu) =>
+  menu.some((c) => c.items.some((i) => i.allergens.length || i.additives.length));
 
 /** "18,00" style price for the menu card. */
 export const priceText = (n: number) => n.toFixed(2).replace(".", ",");

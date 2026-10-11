@@ -24,7 +24,14 @@ type Props = {
   today: string;
   /** false for accounts that only sign in with Google */
   hasPassword: boolean;
-  orders: { reference: string; status: OrderStatus; total: number; createdAt: string; method: "delivery" | "pickup"; url: string }[];
+  orders: {
+    reference: string;
+    status: OrderStatus;
+    total: number;
+    createdAt: string;
+    method: "delivery" | "pickup";
+    url: string;
+  }[];
 };
 
 const tone: Record<ProfileBooking["status"], string> = {
@@ -50,10 +57,18 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
   const [pwState, pwAction, pwPending] = useActionState(changePassword, null);
   const [delState, delAction, delPending] = useActionState(deleteAccount, null);
 
-  const upcoming = bookings.filter((b) => b.date >= today).sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time));
+  const upcoming = bookings
+    .filter((b) => b.date >= today)
+    .sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time));
   const past = bookings.filter((b) => b.date < today);
   const dateLabel = (iso: string) =>
-    new Date(`${iso}T12:00:00Z`).toLocaleDateString(t.dateLocale, { weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    new Date(`${iso}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
+      weekday: "short",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
 
   const renderList = (items: ProfileBooking[], canCancel: boolean) =>
     items.length === 0 ? (
@@ -61,7 +76,10 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
     ) : (
       <ul className="space-y-3">
         {items.map((b) => (
-          <li key={b.id} className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4">
+          <li
+            key={b.id}
+            className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4"
+          >
             <div>
               <p className="font-display text-xl text-cream">
                 {dateLabel(b.date)}, {t.clock(b.time)}
@@ -71,11 +89,15 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${tone[b.status]}`}>{a.status[b.status]}</span>
+              <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${tone[b.status]}`}>
+                {a.status[b.status]}
+              </span>
               {canCancel && (b.status === "pending" || b.status === "confirmed") && (
                 <form action={cancelMyBooking}>
                   <input type="hidden" name="id" value={b.id} />
-                  <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-[#f0a080]">{a.cancel}</button>
+                  <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-[#f0a080]">
+                    {a.cancel}
+                  </button>
                 </form>
               )}
             </div>
@@ -93,7 +115,10 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
         </div>
         <div className="flex flex-wrap items-center gap-4">
           {user.role !== "guest" && (
-            <Link href={homeFor(user.role)} className="rounded-full border border-gold/60 px-5 py-2 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink">
+            <Link
+              href={homeFor(user.role)}
+              className="rounded-full border border-gold/60 px-5 py-2 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink"
+            >
               {user.role === "owner" ? a.adminLink : user.role === "kitchen" ? "Zur Küche" : "Zu den Lieferungen"}
             </Link>
           )}
@@ -105,7 +130,10 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
 
       <Section title={a.upcoming}>
         {renderList(upcoming, true)}
-        <Link href="/#reservieren" className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4">
+        <Link
+          href="/#reservieren"
+          className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
+        >
           {a.bookNow}
         </Link>
       </Section>
@@ -114,16 +142,28 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
         <Section title={t.order.orders}>
           <ul className="space-y-3">
             {orders.map((o) => (
-              <li key={o.reference} className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4">
+              <li
+                key={o.reference}
+                className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4"
+              >
                 <div>
                   <p className="font-display text-xl text-cream">
-                    {new Date(o.createdAt).toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })} · {formatEuro(o.total, t.dateLocale)}
+                    {new Date(o.createdAt).toLocaleDateString(t.dateLocale, {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    · {formatEuro(o.total, t.dateLocale)}
                   </p>
                   <p className="text-sm text-cream/65">
-                    {o.method === "delivery" ? t.order.delivery : t.order.pickup} · {o.reference} · {t.order.status[o.status]}
+                    {o.method === "delivery" ? t.order.delivery : t.order.pickup} · {o.reference} ·{" "}
+                    {t.order.status[o.status]}
                   </p>
                 </div>
-                <a href={o.url} className="text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4">
+                <a
+                  href={o.url}
+                  className="text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
+                >
                   {t.order.viewStatus}
                 </a>
               </li>
@@ -132,11 +172,7 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
         </Section>
       )}
 
-      {past.length > 0 && (
-        <Section title={a.past}>
-          {renderList(past, false)}
-        </Section>
-      )}
+      {past.length > 0 && <Section title={a.past}>{renderList(past, false)}</Section>}
 
       <Section title={a.details}>
         <form action={profileAction} className="grid gap-8 md:grid-cols-2">
@@ -146,7 +182,12 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
             <label htmlFor="locale" className="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
               {a.language}
             </label>
-            <select id="locale" name="locale" defaultValue={user.locale} className={`${fieldClass} [color-scheme:dark]`}>
+            <select
+              id="locale"
+              name="locale"
+              defaultValue={user.locale}
+              className={`${fieldClass} [color-scheme:dark]`}
+            >
               {LOCALES.map((l) => (
                 <option key={l} value={l} className="bg-coal text-base">
                   {content[l].langName}
@@ -155,7 +196,10 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
             </select>
           </div>
           <div className="flex flex-col items-start justify-end gap-3">
-            <FormMessage error={profileState?.error && a.errors[profileState.error]} ok={profileState?.ok ? a.saved : undefined} />
+            <FormMessage
+              error={profileState?.error && a.errors[profileState.error]}
+              ok={profileState?.ok ? a.saved : undefined}
+            />
             <SubmitButton pending={profilePending}>{a.save}</SubmitButton>
           </div>
         </form>
@@ -164,8 +208,18 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
       <Section title={a.changePw}>
         {!hasPassword && <p className="mb-6 text-cream/75">{a.noPassword}</p>}
         <form action={pwAction} className="grid gap-8 md:grid-cols-2">
-          {hasPassword && <AuthField id="current" label={a.currentPw} type="password" autoComplete="current-password" required />}
-          <AuthField id="password" label={a.newPassword} type="password" autoComplete="new-password" minLength={8} required hint={a.passwordHint} />
+          {hasPassword && (
+            <AuthField id="current" label={a.currentPw} type="password" autoComplete="current-password" required />
+          )}
+          <AuthField
+            id="password"
+            label={a.newPassword}
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+            hint={a.passwordHint}
+          />
           <div className="flex flex-col items-start gap-3 md:col-span-2">
             <FormMessage error={pwState?.error && a.errors[pwState.error]} ok={pwState?.ok ? a.pwChanged : undefined} />
             <SubmitButton pending={pwPending}>{a.changePw}</SubmitButton>
@@ -175,7 +229,10 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
 
       <Section title={a.data}>
         <p className="text-cream/75">{a.dataText}</p>
-        <a href="/api/me/export" className="mt-4 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4">
+        <a
+          href="/api/me/export"
+          className="mt-4 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
+        >
           {a.export}
         </a>
       </Section>

@@ -11,7 +11,8 @@ import LiveRefresh from "@/components/LiveRefresh";
 import { AddBlockForm, SettingsForm } from "./OrderClient";
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-const time = (iso: string) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
+const time = (iso: string) =>
+  new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
 const STATUS: Record<OrderStatus, { label: string; tone: string }> = {
   new: { label: "Neu", tone: "border-gold bg-gold text-ink" },
@@ -30,7 +31,11 @@ function Button({ status, children, primary }: { status: OrderStatus; children: 
     <button
       name="status"
       value={status}
-      className={primary ? "rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink" : "rounded-full border border-cream/30 px-5 py-2 text-sm font-semibold text-cream hover:border-gold"}
+      className={
+        primary
+          ? "rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink"
+          : "rounded-full border border-cream/30 px-5 py-2 text-sm font-semibold text-cream hover:border-gold"
+      }
     >
       {children}
     </button>
@@ -64,7 +69,12 @@ function RiskLabels({ o }: { o: Order }) {
 /** Rejects or cancels the order (if still open) and blocks the guest's phone, email and device. */
 function BlockForm({ o }: { o: Order }) {
   if (o.status === "completed" || o.risk?.blocked) return null;
-  const label = o.status === "new" ? "Ablehnen & sperren" : OPEN_STATUSES.includes(o.status) ? "Stornieren & sperren" : "Gast sperren";
+  const label =
+    o.status === "new"
+      ? "Ablehnen & sperren"
+      : OPEN_STATUSES.includes(o.status)
+        ? "Stornieren & sperren"
+        : "Gast sperren";
   return (
     <details className="mt-4 text-sm">
       <summary className="cursor-pointer text-cream/55 hover:text-[#f0a080]">Scherzbestellung? Gast sperren</summary>
@@ -78,7 +88,9 @@ function BlockForm({ o }: { o: Order }) {
           aria-label="Grund für die Sperre"
           className="w-full border-0 border-b border-[#f0a080]/40 bg-transparent px-0 pb-2 text-sm text-cream placeholder:text-cream/40 focus:border-[#f0a080] focus:outline-none"
         />
-        <p className="text-xs text-cream/55">Sperrt Telefonnummer, E-Mail und Gerät für Online-Bestellungen (ein Jahr, jederzeit aufhebbar).</p>
+        <p className="text-xs text-cream/55">
+          Sperrt Telefonnummer, E-Mail und Gerät für Online-Bestellungen (ein Jahr, jederzeit aufhebbar).
+        </p>
         <button className="rounded-full border border-[#f0a080]/70 px-5 py-2 text-sm font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink">
           {label}
         </button>
@@ -94,10 +106,10 @@ function BlockList({ blocks }: { blocks: Block[] }) {
     <section className="mt-10 border border-gold/20 bg-ink/40 p-6 md:p-8">
       <h2 className="font-display text-2xl font-semibold text-gold-soft">Gesperrte Gäste</h2>
       <p className="mb-6 mt-2 text-sm text-cream/65">
-        Gesperrte Telefonnummern, E-Mail-Adressen und Geräte können nicht online bestellen und werden gebeten anzurufen. Automatisch gilt
-        außerdem: höchstens {LIMITS.perPhonePerHour} Bestellungen pro Telefonnummer und {LIMITS.perDevicePerHour} pro Gerät in der Stunde,
-        höchstens {LIMITS.maxUnconfirmed} unbestätigte Bestellungen gleichzeitig, und Erstbestellungen über {euro(LIMITS.largeFirstOrder)} nur
-        telefonisch.
+        Gesperrte Telefonnummern, E-Mail-Adressen und Geräte können nicht online bestellen und werden gebeten anzurufen.
+        Automatisch gilt außerdem: höchstens {LIMITS.perPhonePerHour} Bestellungen pro Telefonnummer und{" "}
+        {LIMITS.perDevicePerHour} pro Gerät in der Stunde, höchstens {LIMITS.maxUnconfirmed} unbestätigte Bestellungen
+        gleichzeitig, und Erstbestellungen über {euro(LIMITS.largeFirstOrder)} nur telefonisch.
       </p>
       {blocks.length === 0 ? (
         <p className="text-cream/60">Niemand gesperrt.</p>
@@ -109,11 +121,16 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                 <span className="mr-2 text-xs uppercase tracking-[0.2em] text-gold">{BLOCK_KIND[b.kind]}</span>
                 {b.label}
                 {b.reason && <span className="text-cream/55"> · {b.reason}</span>}
-                <span className="text-cream/40"> · seit {new Date(b.createdAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}</span>
+                <span className="text-cream/40">
+                  {" "}
+                  · seit {new Date(b.createdAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+                </span>
               </span>
               <form action={unblock}>
                 <input type="hidden" name="id" value={b.id} />
-                <button className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold">Entsperren</button>
+                <button className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold">
+                  Entsperren
+                </button>
               </form>
             </li>
           ))}
@@ -145,7 +162,10 @@ function Progress({ o }: { o: Order }) {
   if (o.status === "new" || o.status === "rejected") return null;
   return (
     <p className="mt-2 text-xs text-cream/55">
-      {steps.map(([label, at]) => (at ? `${label} ${time(at)}` : null)).filter(Boolean).join(" · ") || "Küche bereitet zu"}
+      {steps
+        .map(([label, at]) => (at ? `${label} ${time(at)}` : null))
+        .filter(Boolean)
+        .join(" · ") || "Küche bereitet zu"}
       {o.driverName && <span className="text-cream/75"> · Fahrer: {o.driverName}</span>}
     </p>
   );
@@ -155,7 +175,9 @@ function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
   const s = STATUS[o.status];
   const delivery = o.method === "delivery";
   return (
-    <li className={`border p-5 md:p-6 ${o.status === "new" || o.status === "packed" ? "border-gold bg-gold/[0.06]" : "border-gold/25 bg-ink/60"}`}>
+    <li
+      className={`border p-5 md:p-6 ${o.status === "new" || o.status === "packed" ? "border-gold bg-gold/[0.06]" : "border-gold/25 bg-ink/60"}`}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <p className="font-display text-2xl text-cream">
           {o.reference} · {delivery ? "Lieferung" : "Abholung"}
@@ -163,7 +185,8 @@ function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
         <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${s.tone}`}>{s.label}</span>
       </div>
       <p className="mt-1 text-sm text-cream/65">
-        Eingang {time(o.createdAt)} · {o.wanted === "asap" ? "so schnell wie möglich" : `gewünscht ${o.wanted} Uhr`} · {o.payment === "cash" ? "bar" : "Karte"}
+        Eingang {time(o.createdAt)} · {o.wanted === "asap" ? "so schnell wie möglich" : `gewünscht ${o.wanted} Uhr`} ·{" "}
+        {o.payment === "cash" ? "bar" : "Karte"}
         {o.etaMinutes && o.status !== "new" ? ` · ca. ${o.etaMinutes} Min.` : ""}
       </p>
       <Progress o={o} />
@@ -215,7 +238,12 @@ function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
             <label className="text-xs uppercase tracking-[0.2em] text-gold" htmlFor={`eta-${o.id}`}>
               Fertig in
             </label>
-            <select id={`eta-${o.id}`} name="eta" defaultValue={delivery ? "45" : "20"} className="border-0 border-b border-gold/30 bg-transparent text-cream [color-scheme:dark] focus:outline-none">
+            <select
+              id={`eta-${o.id}`}
+              name="eta"
+              defaultValue={delivery ? "45" : "20"}
+              className="border-0 border-b border-gold/30 bg-transparent text-cream [color-scheme:dark] focus:outline-none"
+            >
               {[15, 20, 30, 45, 60, 75, 90].map((m) => (
                 <option key={m} value={m} className="bg-coal">
                   {m} Min.
@@ -246,7 +274,12 @@ function OrderCard({ o, drivers }: { o: Order; drivers: User[] }) {
               <label className="text-xs uppercase tracking-[0.2em] text-gold" htmlFor={`driver-${o.id}`}>
                 Fahrer
               </label>
-              <select id={`driver-${o.id}`} name="driver" defaultValue={drivers[0]?.id ?? ""} className="border-0 border-b border-gold/30 bg-transparent text-cream [color-scheme:dark] focus:outline-none">
+              <select
+                id={`driver-${o.id}`}
+                name="driver"
+                defaultValue={drivers[0]?.id ?? ""}
+                className="border-0 border-b border-gold/30 bg-transparent text-cream [color-scheme:dark] focus:outline-none"
+              >
                 {drivers.map((d) => (
                   <option key={d.id} value={d.id} className="bg-coal">
                     {d.name}
@@ -290,7 +323,12 @@ async function Board() {
   await connection();
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const [orders, settings, blocks, drivers] = await Promise.all([listActiveOrders(), getOrderSettings(), listBlocks(), listDrivers()]);
+  const [orders, settings, blocks, drivers] = await Promise.all([
+    listActiveOrders(),
+    getOrderSettings(),
+    listBlocks(),
+    listDrivers(),
+  ]);
   const open = orders.filter((o) => OPEN_STATUSES.includes(o.status));
   const done = orders.filter((o) => !open.includes(o));
   const revenue = orders.filter((o) => o.status === "completed").reduce((n, o) => n + o.total, 0);
@@ -300,28 +338,44 @@ async function Board() {
       <LiveRefresh />
       <div className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm text-cream/75">
         <p>
-          <span className="font-display text-3xl text-gold-soft">{orders.filter((o) => o.status === "new").length}</span> neu
+          <span className="font-display text-3xl text-gold-soft">
+            {orders.filter((o) => o.status === "new").length}
+          </span>{" "}
+          neu
         </p>
         <p>
           <span className="font-display text-3xl text-gold-soft">{open.length}</span> in Arbeit
         </p>
         <p>
-          <span className="font-display text-3xl text-gold-soft">{orders.filter((o) => o.status === "packed").length}</span> bereit zur Übergabe
+          <span className="font-display text-3xl text-gold-soft">
+            {orders.filter((o) => o.status === "packed").length}
+          </span>{" "}
+          bereit zur Übergabe
         </p>
         <p>
           <span className="font-display text-3xl text-gold-soft">{euro(revenue)}</span> heute abgeschlossen
         </p>
         {settings.paused && <p className="self-end font-semibold text-[#f0a080]">Online-Bestellungen sind pausiert.</p>}
-        {settings.ignoreHours && <p className="self-end font-semibold text-[#f0a080]">Bestellungen auch außerhalb der Öffnungszeiten an (vorübergehend).</p>}
+        {settings.ignoreHours && (
+          <p className="self-end font-semibold text-[#f0a080]">
+            Bestellungen auch außerhalb der Öffnungszeiten an (vorübergehend).
+          </p>
+        )}
       </div>
 
       <p className="mt-4 text-sm text-cream/60">
-        Tipp: Bei <span className="text-cream/85">Erste Bestellung</span> oder roten Hinweisen kurz zurückrufen, bevor ihr kocht.
-        Angenommene Bestellungen erscheinen in der <a href="/kueche" className="text-cream/85 underline underline-offset-4">Küche</a>; verpackte
-        übergebt ihr hier an einen Fahrer{drivers.length === 0 && " (Fahrer-Konten legt ihr unter Team an)"}.
+        Tipp: Bei <span className="text-cream/85">Erste Bestellung</span> oder roten Hinweisen kurz zurückrufen, bevor
+        ihr kocht. Angenommene Bestellungen erscheinen in der{" "}
+        <a href="/kueche" className="text-cream/85 underline underline-offset-4">
+          Küche
+        </a>
+        ; verpackte übergebt ihr hier an einen Fahrer{drivers.length === 0 && " (Fahrer-Konten legt ihr unter Team an)"}
+        .
       </p>
 
-      {open.length === 0 && <p className="mt-12 font-display text-2xl italic text-cream/70">Gerade keine offenen Bestellungen.</p>}
+      {open.length === 0 && (
+        <p className="mt-12 font-display text-2xl italic text-cream/70">Gerade keine offenen Bestellungen.</p>
+      )}
       <ul className="mt-10 grid gap-4 md:grid-cols-2">
         {open.map((o) => (
           <OrderCard key={o.id} o={o} drivers={drivers} />
@@ -341,7 +395,9 @@ async function Board() {
 
       <section className="mt-16 border border-gold/20 bg-ink/40 p-6 md:p-8">
         <h2 className="font-display text-2xl font-semibold text-gold-soft">Einstellungen für Bestellungen</h2>
-        <p className="mb-6 mt-2 text-sm text-cream/65">Bestellungen sind während der Öffnungszeiten bis 30 Minuten vor Schluss möglich und an Schließtagen gesperrt.</p>
+        <p className="mb-6 mt-2 text-sm text-cream/65">
+          Bestellungen sind während der Öffnungszeiten bis 30 Minuten vor Schluss möglich und an Schließtagen gesperrt.
+        </p>
         <SettingsForm settings={settings} />
       </section>
 

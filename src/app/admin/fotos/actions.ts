@@ -4,7 +4,14 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { SLOT_KEYS } from "@/lib/photos";
 import { requireOwner } from "@/lib/server/auth";
-import { blurPreview, destroy, findResource, FOLDER, isCloudinaryConfigured, uploadTicket } from "@/lib/server/cloudinary";
+import {
+  blurPreview,
+  destroy,
+  findResource,
+  FOLDER,
+  isCloudinaryConfigured,
+  uploadTicket,
+} from "@/lib/server/cloudinary";
 import { clearPhoto, setPhoto } from "@/lib/server/photos";
 import { audit } from "@/lib/server/audit";
 
@@ -22,7 +29,8 @@ export async function startUpload(slot: string): Promise<{ ticket?: Ticket; erro
 /** After the upload: checks the file is in our Cloudinary folder, stores it for the slot, refreshes the website. */
 export async function finishUpload(slot: string, publicId: string): Promise<{ ok?: boolean; error?: string }> {
   const me = await requireOwner();
-  if (!SLOT_KEYS.has(slot) || !new RegExp(`^${FOLDER}/[a-z-]+-[0-9a-f]{8}$`).test(publicId)) return { error: "Ungültiges Foto." };
+  if (!SLOT_KEYS.has(slot) || !new RegExp(`^${FOLDER}/[a-z-]+-[0-9a-f]{8}$`).test(publicId))
+    return { error: "Ungültiges Foto." };
   const res = await findResource(publicId);
   if (!res) return { error: "Das Foto ist bei Cloudinary nicht angekommen. Bitte noch einmal versuchen." };
   const previous = await setPhoto(slot, {

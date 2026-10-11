@@ -77,18 +77,34 @@ export default function Buna() {
   return (
     <motion.section ref={root} id="kaffee" className="relative h-[330vh]">
       <div className="sticky top-0 flex h-[100dvh] flex-col overflow-hidden px-5 pb-8 pt-24 md:px-8 md:pt-28">
-        <motion.div aria-hidden style={{ opacity: warmth }} className="pointer-events-none absolute inset-0 bg-[#2e1f12] will-change-[opacity]" />
+        <motion.div
+          aria-hidden
+          style={{ opacity: warmth }}
+          className="pointer-events-none absolute inset-0 bg-[#2e1f12] will-change-[opacity]"
+        />
         <Embers count={18} />
         <div className="pointer-events-none absolute left-[28%] top-[55%] h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.2),rgba(218,90,26,0.06)_45%,transparent_70%)]" />
 
         <div className="relative mx-auto w-full max-w-7xl">
-          <Heading key={locale} label={t.buna.label} labelAm={locale === "am" ? undefined : "ጀበና ቡና"} title={t.buna.title} em={t.buna.em} size="md" />
+          <Heading
+            key={locale}
+            label={t.buna.label}
+            labelAm={locale === "am" ? undefined : "ጀበና ቡና"}
+            title={t.buna.title}
+            em={t.buna.em}
+            size="md"
+          />
         </div>
 
         <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-6 md:grid-cols-12 md:gap-10">
           {/* Dial with the cup */}
           <div className="flex justify-center md:col-span-5">
-            <svg viewBox="0 0 200 200" className="w-[min(62vw,34vh)] md:w-[min(36vw,56vh)]" role="img" aria-label={`Runde ${round + 1} von 3: ${r.name}`}>
+            <svg
+              viewBox="0 0 200 200"
+              className="w-[min(62vw,34vh)] md:w-[min(36vw,56vh)]"
+              role="img"
+              aria-label={`Runde ${round + 1} von 3: ${r.name}`}
+            >
               <defs>
                 <clipPath id="sini">
                   <path d={CUP} />
@@ -101,9 +117,22 @@ export default function Buna() {
 
               {/* three round segments */}
               {[0, 1, 2].map((i) => (
-                <path key={i} d={arc(i * 120 + 4, i * 120 + 116, 92)} fill="none" stroke="rgba(244,236,220,0.12)" strokeWidth="1.5" />
+                <path
+                  key={i}
+                  d={arc(i * 120 + 4, i * 120 + 116, 92)}
+                  fill="none"
+                  stroke="rgba(244,236,220,0.12)"
+                  strokeWidth="1.5"
+                />
               ))}
-              <motion.path d={arc(0.01, 359.99, 92)} fill="none" stroke="#c9a24a" strokeWidth="2.5" strokeLinecap="round" style={{ pathLength: progress }} />
+              <motion.path
+                d={arc(0.01, 359.99, 92)}
+                fill="none"
+                stroke="#c9a24a"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                style={{ pathLength: progress }}
+              />
               {rounds.map((rd, i) => {
                 const p = polar(i * 120 + 60, 80);
                 return (
@@ -129,7 +158,15 @@ export default function Buna() {
               })}
 
               {/* pour stream from above */}
-              <motion.rect x="98.6" y="40" width="2.8" height="62" rx="1.4" fill="url(#brew)" style={{ opacity: stream }} />
+              <motion.rect
+                x="98.6"
+                y="40"
+                width="2.8"
+                height="62"
+                rx="1.4"
+                fill="url(#brew)"
+                style={{ opacity: stream }}
+              />
 
               {/* cup and coffee */}
               <g clipPath="url(#sini)">
@@ -162,7 +199,14 @@ export default function Buna() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 1.1, ease }}
                 >
-                  <Photo src={r.photo} alt={r.alt} fill sizes="(min-width: 768px) 26vw, 45vw" placeholder="blur" className="object-cover" />
+                  <Photo
+                    src={r.photo}
+                    alt={r.alt}
+                    fill
+                    sizes="(min-width: 768px) 26vw, 45vw"
+                    placeholder="blur"
+                    className="object-cover"
+                  />
                 </motion.div>
               </AnimatePresence>
             </AksumFrame>
@@ -176,14 +220,21 @@ export default function Buna() {
                   exit={{ opacity: 0, y: -16, filter: "blur(6px)" }}
                   transition={{ duration: 0.55, ease }}
                 >
-                  <p className="flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/60">{t.buna.roundOf(round + 1)}<span lang="am" className="font-ethiopic text-sm normal-case tracking-normal text-gold/80">{geez(round + 1)}</span></p>
+                  <p className="flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-cream/60">
+                    {t.buna.roundOf(round + 1)}
+                    <span lang="am" className="font-ethiopic text-sm normal-case tracking-normal text-gold/80">
+                      {geez(round + 1)}
+                    </span>
+                  </p>
                   <p className="mt-3 font-ethiopic text-lg text-gold/90" lang="am">
                     {r.am}
                   </p>
                   <h3 className="bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text pb-1 font-display text-[clamp(2.75rem,6vw,5.5rem)] font-bold uppercase leading-[0.95] tracking-[0.04em] text-transparent">
                     {r.name}
                   </h3>
-                  <p className="mt-4 max-w-sm font-display text-lg italic leading-snug text-cream/85 md:text-2xl">{t.buna.rounds[round]}</p>
+                  <p className="mt-4 max-w-sm font-display text-lg italic leading-snug text-cream/85 md:text-2xl">
+                    {t.buna.rounds[round]}
+                  </p>
                 </motion.div>
               </AnimatePresence>
             </div>

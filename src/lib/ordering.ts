@@ -74,7 +74,13 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const hhmm = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
 /** Whether orders are accepted right now, and the times that can be chosen for later today. */
-export function orderWindow(method: Method, s: OrderSettings, closedToday = false, now = new Date(), week: DayHours[] = WEEK) {
+export function orderWindow(
+  method: Method,
+  s: OrderSettings,
+  closedToday = false,
+  now = new Date(),
+  week: DayHours[] = WEEK,
+) {
   const { day, minutes } = berlinNow(now);
   if (s.paused) return { open: false, asap: false, slots: [] as string[] };
   const lead = method === "delivery" ? s.deliveryMinutes : s.pickupMinutes;
@@ -109,12 +115,22 @@ export type OrderErrorCode =
   | "phone"
   | "email"
   | "note";
-export type OrderErrors = Partial<Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>>;
+export type OrderErrors = Partial<
+  Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>
+>;
 
-export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog, closedToday = false, now = new Date(), week: DayHours[] = WEEK): OrderErrors {
+export function validateOrder(
+  o: OrderInput,
+  s: OrderSettings,
+  catalog: Catalog,
+  closedToday = false,
+  now = new Date(),
+  week: DayHours[] = WEEK,
+): OrderErrors {
   const e: OrderErrors = {};
   if (!o.items.length) e.items = "empty";
-  else if (o.items.some((l) => !catalog.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY)) e.items = "item";
+  else if (o.items.some((l) => !catalog.has(l.id) || !Number.isInteger(l.qty) || l.qty < 1 || l.qty > MAX_QTY))
+    e.items = "item";
 
   if (o.method !== "delivery" && o.method !== "pickup") e.method = "method";
   else if ((o.method === "delivery" && !s.delivery) || (o.method === "pickup" && !s.pickup)) e.method = "method";
@@ -142,7 +158,16 @@ export function validateOrder(o: OrderInput, s: OrderSettings, catalog: Catalog,
   Order flow. Delivery: new → accepted (owner) → cooked → packed (kitchen) → on_the_way (owner hands it to a driver)
   → completed (driver, "delivered"). Pickup: … → packed → ready (owner) → completed (owner, "picked up").
 */
-export type OrderStatus = "new" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
+export type OrderStatus =
+  | "new"
+  | "accepted"
+  | "cooked"
+  | "packed"
+  | "ready"
+  | "on_the_way"
+  | "completed"
+  | "rejected"
+  | "cancelled";
 
 /** Orders that are still being worked on. */
 export const OPEN_STATUSES: OrderStatus[] = ["new", "accepted", "cooked", "packed", "ready", "on_the_way"];
@@ -167,4 +192,6 @@ export function canMove(role: StaffRole, from: OrderStatus, to: OrderStatus, met
 }
 
 export const formatEuro = (n: number, dateLocale: string) =>
-  new Intl.NumberFormat(dateLocale === "am-ET" ? "de-DE" : dateLocale, { style: "currency", currency: "EUR" }).format(n);
+  new Intl.NumberFormat(dateLocale === "am-ET" ? "de-DE" : dateLocale, { style: "currency", currency: "EUR" }).format(
+    n,
+  );

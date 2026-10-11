@@ -51,7 +51,8 @@ const NAV: Group[] = [
   },
 ];
 
-const isActive = (path: string, href: string) => (href === "/admin" ? path === "/admin" : path === href || path.startsWith(`${href}/`));
+const isActive = (path: string, href: string) =>
+  href === "/admin" ? path === "/admin" : path === href || path.startsWith(`${href}/`);
 
 function Nav({ path, pulse, onNavigate }: { path: string; pulse: Pulse | null; onNavigate?: () => void }) {
   return (
@@ -70,14 +71,20 @@ function Nav({ path, pulse, onNavigate }: { path: string; pulse: Pulse | null; o
                     onClick={onNavigate}
                     aria-current={on ? "page" : undefined}
                     className={`flex items-center justify-between rounded-md px-3 py-2 text-[0.92rem] transition-colors ${
-                      on ? "bg-gold/15 font-semibold text-gold-soft" : "text-cream/75 hover:bg-cream/[0.05] hover:text-cream"
+                      on
+                        ? "bg-gold/15 font-semibold text-gold-soft"
+                        : "text-cream/75 hover:bg-cream/[0.05] hover:text-cream"
                     }`}
                   >
                     <span>
                       {it.label}
                       {it.external && <span className="ml-1.5 text-xs text-cream/35">↗</span>}
                     </span>
-                    {n > 0 && <span className="min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-semibold tabular-nums text-ink">{n}</span>}
+                    {n > 0 && (
+                      <span className="min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-semibold tabular-nums text-ink">
+                        {n}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -163,12 +170,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         >
           Menü
           {pulse && pulse.newOrders + pulse.pendingReservations > 0 && (
-            <span className="rounded-full bg-gold px-1.5 text-xs text-ink">{pulse.newOrders + pulse.pendingReservations}</span>
+            <span className="rounded-full bg-gold px-1.5 text-xs text-ink">
+              {pulse.newOrders + pulse.pendingReservations}
+            </span>
           )}
         </button>
       </header>
       {open && (
-        <div id="admin-menu" className="fixed inset-x-0 bottom-0 top-[61px] z-40 overflow-y-auto bg-[#120e0b] px-3 pb-28 pt-6 lg:hidden">
+        <div
+          id="admin-menu"
+          className="fixed inset-x-0 bottom-0 top-[61px] z-40 overflow-y-auto bg-[#120e0b] px-3 pb-28 pt-6 lg:hidden"
+        >
           <Suspense fallback={<Nav path="" pulse={pulse} onNavigate={() => setOpen(false)} />}>
             <CurrentNav pulse={pulse} onNavigate={() => setOpen(false)} />
           </Suspense>

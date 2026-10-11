@@ -14,14 +14,32 @@ export const metadata: Metadata = { title: "Mein Konto", robots: { index: false 
 async function ProfileData() {
   await connection();
   const user = await requireUser();
-  const [bookings, hash, orders] = await Promise.all([listForUser(user.id), getPasswordHash(user.id), listOrdersForUser(user.id)]);
+  const [bookings, hash, orders] = await Promise.all([
+    listForUser(user.id),
+    getPasswordHash(user.id),
+    listOrdersForUser(user.id),
+  ]);
   return (
     <ProfileView
       user={{ name: user.name, email: user.email, phone: user.phone, role: user.role, locale: user.locale }}
-      bookings={bookings.map((b) => ({ id: b.id, reference: b.reference, date: b.date, time: b.time, guests: b.guests, status: b.status }))}
+      bookings={bookings.map((b) => ({
+        id: b.id,
+        reference: b.reference,
+        date: b.date,
+        time: b.time,
+        guests: b.guests,
+        status: b.status,
+      }))}
       today={todayISO()}
       hasPassword={hash !== "none"}
-      orders={orders.map((o) => ({ reference: o.reference, status: o.status, total: o.total, createdAt: o.createdAt, method: o.method, url: `/bestellung?r=${o.reference}&t=${o.statusToken}` }))}
+      orders={orders.map((o) => ({
+        reference: o.reference,
+        status: o.status,
+        total: o.total,
+        createdAt: o.createdAt,
+        method: o.method,
+        url: `/bestellung?r=${o.reference}&t=${o.statusToken}`,
+      }))}
     />
   );
 }

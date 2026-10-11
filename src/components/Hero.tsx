@@ -141,7 +141,9 @@ export default function Hero() {
             >
               <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
               <span className="relative">{t.hero.cta}</span>
-              <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px"><ArrowRight size={14} weight="bold" /></span>
+              <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-px">
+                <ArrowRight size={14} weight="bold" />
+              </span>
             </a>
           </Magnetic>
           <Magnetic>

@@ -7,7 +7,10 @@ export async function GET() {
   await connection();
   if (!hasDatabase()) return Response.json({ closures: [] });
   try {
-    return Response.json({ closures: await upcomingClosures() }, { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } });
+    return Response.json(
+      { closures: await upcomingClosures() },
+      { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } },
+    );
   } catch {
     return Response.json({ closures: [] });
   }

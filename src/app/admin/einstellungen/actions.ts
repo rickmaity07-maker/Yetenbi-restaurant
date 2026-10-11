@@ -24,18 +24,26 @@ export async function saveBusinessSettings(_: SettingsState, form: FormData): Pr
     const open = String(form.get(`from-${d}`) ?? "");
     const close = String(form.get(`to-${d}`) ?? "");
     if (!TIME.test(open) || !TIME.test(close)) return { error: `${DAY_NAMES[d]}: bitte Uhrzeiten wie 11:00 eingeben.` };
-    if (open >= close) return { error: `${DAY_NAMES[d]}: Schluss muss nach der Öffnung liegen (über Mitternacht geht nicht).` };
+    if (open >= close)
+      return { error: `${DAY_NAMES[d]}: Schluss muss nach der Öffnung liegen (über Mitternacht geht nicht).` };
     hours.push({ open, close });
   }
   if (hours.every((h) => !h)) return { error: "Mindestens ein Tag muss geöffnet sein." };
 
-  const contactEmail = String(form.get("contactEmail") ?? "").trim().toLowerCase();
+  const contactEmail = String(form.get("contactEmail") ?? "")
+    .trim()
+    .toLowerCase();
   if (contactEmail && !isEmail(contactEmail)) return { error: "Die E-Mail-Adresse ist ungültig." };
   const next: Business = {
     hours,
-    ownerName: String(form.get("ownerName") ?? "").trim().slice(0, 120),
+    ownerName: String(form.get("ownerName") ?? "")
+      .trim()
+      .slice(0, 120),
     contactEmail,
-    vatId: String(form.get("vatId") ?? "").trim().toUpperCase().slice(0, 20),
+    vatId: String(form.get("vatId") ?? "")
+      .trim()
+      .toUpperCase()
+      .slice(0, 20),
   };
   const before = await readBusiness();
   await saveBusiness(next);
@@ -47,5 +55,7 @@ export async function saveBusinessSettings(_: SettingsState, form: FormData): Pr
   if (changed.length) await audit(me, "settings", "Betriebsdaten geändert", changed.join(", "));
   updateTag("business");
   revalidatePath("/admin/einstellungen");
-  return { ok: changed.length ? `Gespeichert: ${changed.join(", ")}. Auf der Website sofort gültig.` : "Keine Änderungen." };
+  return {
+    ok: changed.length ? `Gespeichert: ${changed.join(", ")}. Auf der Website sofort gültig.` : "Keine Änderungen.",
+  };
 }

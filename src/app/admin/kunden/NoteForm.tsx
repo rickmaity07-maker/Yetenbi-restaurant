@@ -17,16 +17,27 @@ export default function NoteForm({ customer, note }: { customer: string; note: s
         className="w-full resize-y border border-gold/25 bg-transparent p-3 text-sm text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none"
       />
       <div className="flex items-center gap-4">
-        <button disabled={pending} className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink disabled:opacity-60">
+        <button
+          disabled={pending}
+          className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-ink disabled:opacity-60"
+        >
           {pending ? "Speichern …" : "Notiz speichern"}
         </button>
-        {state?.ok && <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>}
-        {state?.error && <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>}
+        {state?.ok && (
+          <p role="status" className="text-sm text-[#9fe0b6]">
+            {state.ok}
+          </p>
+        )}
+        {state?.error && (
+          <p role="alert" className="text-sm text-[#f0a080]">
+            {state.error}
+          </p>
+        )}
       </div>
       <p className="text-xs text-cream/45">
         Nur für das Team sichtbar. Bitte nur Sachliches notieren: keine Allergien, Krankheiten, Religion oder andere
         Gesundheitsangaben (Art. 9 DSGVO) und keine Wertungen. Der Gast sieht diese Notiz in seinem Datenexport.
-</p>
+      </p>
     </form>
   );
 }

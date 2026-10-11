@@ -147,7 +147,7 @@ function word(count: number, family: string) {
   for (let i = 0; i < count; i++) {
     const k = Math.floor(r() * n) * 2;
     out[i * 3] = ((pts[k] + r() * 2) / W - 0.5) * 12.5;
-    out[i * 3 + 1] = -((pts[k + 1] + r() * 2) / H - 0.5) * (12.5 * H) / W;
+    out[i * 3 + 1] = (-((pts[k + 1] + r() * 2) / H - 0.5) * (12.5 * H)) / W;
     out[i * 3 + 2] = (r() - 0.5) * 0.1;
   }
   return out;
@@ -302,7 +302,17 @@ function Particles({
     const p = progress.get();
     // galaxy → bean (.1-.2) hold → jebena (.34-.44) hold → word (.58-.68) hold → explode after .86
     const stage =
-      p < 0.1 ? 0 : p < 0.2 ? (p - 0.1) / 0.1 : p < 0.34 ? 1 : p < 0.44 ? 1 + (p - 0.34) / 0.1 : p < 0.58 ? 2 : Math.min(3, 2 + (p - 0.58) / 0.1);
+      p < 0.1
+        ? 0
+        : p < 0.2
+          ? (p - 0.1) / 0.1
+          : p < 0.34
+            ? 1
+            : p < 0.44
+              ? 1 + (p - 0.34) / 0.1
+              : p < 0.58
+                ? 2
+                : Math.min(3, 2 + (p - 0.58) / 0.1);
     u.uStage.value = THREE.MathUtils.lerp(u.uStage.value, stage, 0.11);
     u.uScatter.value = THREE.MathUtils.lerp(u.uScatter.value, Math.max(0, (p - 0.86) / 0.14), 0.1);
     u.uTime.value += delta;

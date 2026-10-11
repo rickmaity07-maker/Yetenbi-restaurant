@@ -9,7 +9,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
   in the tab title. Sound needs one click per browser (autoplay rules); the choice is remembered on this device.
 */
 
-export type Pulse = { newOrders: number; lastOrderId: number; pendingReservations: number; lastReservationId: number; kitchenQueue: number; lastAccepted: number };
+export type Pulse = {
+  newOrders: number;
+  lastOrderId: number;
+  pendingReservations: number;
+  lastReservationId: number;
+  kitchenQueue: number;
+  lastAccepted: number;
+};
 
 const SOUND_KEY = "yt-alert-sound";
 const read = (k: string) => {
@@ -113,7 +120,11 @@ export default function LiveAlerts({ mode, onPulse }: { mode: "owner" | "kitchen
             alert("Neue Bestellung", `${p.newOrders} warten auf Annahme`);
             changed = true;
           }
-          if (mode === "owner" && p.lastReservationId > was.lastReservationId && p.pendingReservations > was.pendingReservations) {
+          if (
+            mode === "owner" &&
+            p.lastReservationId > was.lastReservationId &&
+            p.pendingReservations > was.pendingReservations
+          ) {
             alert("Neue Reservierungsanfrage", `${p.pendingReservations} offen`);
             changed = true;
           }
@@ -159,18 +170,32 @@ export default function LiveAlerts({ mode, onPulse }: { mode: "owner" | "kitchen
   return (
     <div className="fixed bottom-4 right-4 z-50 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2">
       {latest && (
-        <button type="button" onClick={() => setLatest(null)} role="status" className="rounded border border-gold bg-coal px-4 py-2.5 text-left text-sm text-cream shadow-xl">
+        <button
+          type="button"
+          onClick={() => setLatest(null)}
+          role="status"
+          className="rounded border border-gold bg-coal px-4 py-2.5 text-left text-sm text-cream shadow-xl"
+        >
           {latest}
         </button>
       )}
       <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-coal/95 px-2 py-1.5 text-xs shadow-lg backdrop-blur">
         <span className="pl-1 text-cream/55">Live</span>
         <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-[#7fcf9c]" />
-        <button type="button" onClick={toggleSound} aria-pressed={sound} className={`rounded-full px-3 py-1 font-semibold ${sound ? "bg-gold text-ink" : "border border-cream/25 text-cream/80"}`}>
+        <button
+          type="button"
+          onClick={toggleSound}
+          aria-pressed={sound}
+          className={`rounded-full px-3 py-1 font-semibold ${sound ? "bg-gold text-ink" : "border border-cream/25 text-cream/80"}`}
+        >
           {sound ? "Ton an" : "Ton aus"}
         </button>
         {perm === "default" && (
-          <button type="button" onClick={askNotifications} className="rounded-full border border-cream/25 px-3 py-1 font-semibold text-cream/80">
+          <button
+            type="button"
+            onClick={askNotifications}
+            className="rounded-full border border-cream/25 px-3 py-1 font-semibold text-cream/80"
+          >
             Benachrichtigungen erlauben
           </button>
         )}

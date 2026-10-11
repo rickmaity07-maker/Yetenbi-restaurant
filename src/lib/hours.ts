@@ -60,7 +60,8 @@ export const toMinutes = (time: string) => {
 export function openState(now = new Date(), week: DayHours[] = WEEK) {
   const { day, minutes } = berlinNow(now);
   const today = week[day];
-  if (today && minutes >= toMinutes(today.open) && minutes < toMinutes(today.close)) return { open: true as const, until: today.close };
+  if (today && minutes >= toMinutes(today.open) && minutes < toMinutes(today.close))
+    return { open: true as const, until: today.close };
   if (today && minutes < toMinutes(today.open)) return { open: false as const, day, at: today.open };
   for (let k = 1; k <= 7; k++) {
     const d = (day + k) % 7;

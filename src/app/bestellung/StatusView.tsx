@@ -39,7 +39,9 @@ export default function StatusView() {
     let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
       try {
-        const res = await fetch(`/api/order/status?r=${encodeURIComponent(r)}&t=${encodeURIComponent(tok)}`, { cache: "no-store" });
+        const res = await fetch(`/api/order/status?r=${encodeURIComponent(r)}&t=${encodeURIComponent(tok)}`, {
+          cache: "no-store",
+        });
         if (res.status === 404) {
           setMissing(true);
           return;
@@ -62,11 +64,17 @@ export default function StatusView() {
   if (missing) return <p className="font-display text-2xl italic text-cream/80">{o.notFound}</p>;
   if (!data) return <div className="h-80" aria-busy />;
 
-  const steps: OrderStatus[] = ["new", "accepted", "cooked", "packed", data.method === "delivery" ? "on_the_way" : "ready", "completed"];
+  const steps: OrderStatus[] = [
+    "new",
+    "accepted",
+    "cooked",
+    "packed",
+    data.method === "delivery" ? "on_the_way" : "ready",
+    "completed",
+  ];
   const reached = steps.indexOf(data.status);
   const failed = data.status === "rejected" || data.status === "cancelled";
   const euro = (n: number) => formatEuro(n, t.dateLocale);
-
 
   const message = failed
     ? data.status === "rejected"
@@ -114,7 +122,8 @@ export default function StatusView() {
 
       <div className="mt-10 border border-gold/25 bg-ink/40 p-5">
         <p className="text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold">
-          {data.method === "delivery" ? o.delivery : o.pickup} · {data.wanted === "asap" ? o.asap(0).split(" (")[0] : t.clock(data.wanted)}
+          {data.method === "delivery" ? o.delivery : o.pickup} ·{" "}
+          {data.wanted === "asap" ? o.asap(0).split(" (")[0] : t.clock(data.wanted)}
         </p>
         <ul className="mt-4 space-y-2 text-sm">
           {data.items.map((l) => (
@@ -147,7 +156,10 @@ export default function StatusView() {
       </div>
 
       <p className="mt-6 text-sm text-cream/60">{o.keepPage}</p>
-      <Link href="/bestellen" className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4">
+      <Link
+        href="/bestellen"
+        className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
+      >
         {o.again}
       </Link>
     </div>

@@ -10,14 +10,40 @@ import { blockCustomer } from "../actions";
 import NoteForm from "../NoteForm";
 
 const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
-const when = (iso: string) => new Date(iso).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
-const date = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" });
+const when = (iso: string) =>
+  new Date(iso).toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin",
+  });
+const date = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    timeZone: "UTC",
+  });
 
 const ORDER_STATUS: Record<string, string> = {
-  new: "neu", accepted: "angenommen", cooked: "zubereitet", packed: "verpackt", ready: "abholbereit",
-  on_the_way: "unterwegs", completed: "abgeschlossen", rejected: "abgelehnt", cancelled: "storniert",
+  new: "neu",
+  accepted: "angenommen",
+  cooked: "zubereitet",
+  packed: "verpackt",
+  ready: "abholbereit",
+  on_the_way: "unterwegs",
+  completed: "abgeschlossen",
+  rejected: "abgelehnt",
+  cancelled: "storniert",
 };
-const BOOKING_STATUS: Record<string, string> = { pending: "offen", confirmed: "bestätigt", declined: "abgelehnt", cancelled: "storniert" };
+const BOOKING_STATUS: Record<string, string> = {
+  pending: "offen",
+  confirmed: "bestätigt",
+  declined: "abgelehnt",
+  cancelled: "storniert",
+};
 
 async function Detail({ params }: { params: Promise<{ key: string }> }) {
   await connection();
@@ -29,7 +55,10 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
 
   return (
     <>
-      <Link href="/admin/kunden" className="mt-6 inline-block text-sm text-cream/60 underline underline-offset-4 hover:text-cream">
+      <Link
+        href="/admin/kunden"
+        className="mt-6 inline-block text-sm text-cream/60 underline underline-offset-4 hover:text-cream"
+      >
         ← Alle Kunden
       </Link>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
@@ -49,8 +78,14 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
             )}
           </p>
           <p className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full border border-cream/20 px-2.5 py-0.5 text-cream/65">{c.hasAccount ? "Mit Kundenkonto" : "Ohne Konto"}</span>
-            {c.blocked && <span className="rounded-full border border-[#f0a080]/70 px-2.5 py-0.5 text-[#f0a080]">Für Online-Bestellungen gesperrt</span>}
+            <span className="rounded-full border border-cream/20 px-2.5 py-0.5 text-cream/65">
+              {c.hasAccount ? "Mit Kundenkonto" : "Ohne Konto"}
+            </span>
+            {c.blocked && (
+              <span className="rounded-full border border-[#f0a080]/70 px-2.5 py-0.5 text-[#f0a080]">
+                Für Online-Bestellungen gesperrt
+              </span>
+            )}
           </p>
         </div>
         <dl className="grid grid-cols-3 gap-6 text-right">
@@ -79,7 +114,8 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
               {c.orders.map((o) => (
                 <li key={o.reference} className="flex flex-wrap justify-between gap-3 py-2">
                   <span className="text-cream">
-                    {o.reference} <span className="text-cream/50">· {o.method === "delivery" ? "Lieferung" : "Abholung"}</span>
+                    {o.reference}{" "}
+                    <span className="text-cream/50">· {o.method === "delivery" ? "Lieferung" : "Abholung"}</span>
                   </span>
                   <span className="tabular-nums text-cream/65">
                     {when(o.createdAt)} · {ORDER_STATUS[o.status] ?? o.status} · {euro(o.total)}

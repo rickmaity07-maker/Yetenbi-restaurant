@@ -12,7 +12,9 @@ type NoteState = { ok?: string; error?: string } | null;
 export async function saveCustomerNote(_: NoteState, form: FormData): Promise<NoteState> {
   const me = await requireOwner();
   const key = decodeKey(String(form.get("key") ?? ""));
-  const note = String(form.get("note") ?? "").slice(0, 1000).trim();
+  const note = String(form.get("note") ?? "")
+    .slice(0, 1000)
+    .trim();
   if (!key || !(await getCustomer(key))) return { error: "Gast nicht gefunden." };
   await saveNote(key, note, me.name);
   await audit(me, "customers", note ? "Notiz gespeichert" : "Notiz gelöscht", key);

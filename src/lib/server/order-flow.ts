@@ -37,7 +37,8 @@ export async function moveOrder(
 
   const restaurant = process.env.RESERVATION_NOTIFY_EMAIL;
   const mails: Promise<unknown>[] = [sendOrderEmail(to === "new" ? "received" : to, order)];
-  if (to === "accepted") mails.push(staffEmails("kitchen").then((emails) => notifyStaffOrder("kitchen", order, emails)));
+  if (to === "accepted")
+    mails.push(staffEmails("kitchen").then((emails) => notifyStaffOrder("kitchen", order, emails)));
   if (to === "packed" && role !== "owner") mails.push(notifyStaffOrder("packed", order, [restaurant]));
   if (to === "on_the_way" && driver) mails.push(notifyStaffOrder("driver", order, [driver.email]));
   if (to === "completed" && role !== "owner") {

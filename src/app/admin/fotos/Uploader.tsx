@@ -14,7 +14,8 @@ export default function Uploader({ slot, replace }: { slot: string; replace: boo
   const [state, setState] = useState<{ busy?: string; error?: string; ok?: boolean }>({});
 
   const upload = async (file: File) => {
-    if (!TYPES.includes(file.type) && !/\.(heic|heif)$/i.test(file.name)) return setState({ error: "Bitte ein Foto (JPG, PNG, WebP, AVIF oder HEIC) wählen." });
+    if (!TYPES.includes(file.type) && !/\.(heic|heif)$/i.test(file.name))
+      return setState({ error: "Bitte ein Foto (JPG, PNG, WebP, AVIF oder HEIC) wählen." });
     if (file.size > MAX_MB * 1024 * 1024) return setState({ error: `Das Foto ist größer als ${MAX_MB} MB.` });
     setState({ busy: "Hochladen …" });
     try {
@@ -61,8 +62,16 @@ export default function Uploader({ slot, replace }: { slot: string; replace: boo
       >
         {state.busy ?? (replace ? "Anderes Foto hochladen" : "Foto hochladen")}
       </label>
-      {state.ok && <span role="status" className="text-sm text-[#9fe0b6]">Gespeichert, auf der Website sichtbar.</span>}
-      {state.error && <span role="alert" className="text-sm text-[#f0a080]">{state.error}</span>}
+      {state.ok && (
+        <span role="status" className="text-sm text-[#9fe0b6]">
+          Gespeichert, auf der Website sichtbar.
+        </span>
+      )}
+      {state.error && (
+        <span role="alert" className="text-sm text-[#f0a080]">
+          {state.error}
+        </span>
+      )}
     </div>
   );
 }

@@ -19,10 +19,35 @@ const COOKIE = "yt_session";
 const SESSION_DAYS = 30;
 
 export type { Role };
-export type User = { id: number; email: string; name: string; phone: string; role: Role; locale: Locale; createdAt: string };
+export type User = {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+  role: Role;
+  locale: Locale;
+  createdAt: string;
+};
 
-type UserRow = { id: string; email: string; name: string; phone: string; role: Role; locale: Locale; created_at: string; password_hash?: string };
-const toUser = (r: UserRow): User => ({ id: Number(r.id), email: r.email, name: r.name, phone: r.phone, role: r.role, locale: r.locale, createdAt: String(r.created_at) });
+type UserRow = {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  role: Role;
+  locale: Locale;
+  created_at: string;
+  password_hash?: string;
+};
+const toUser = (r: UserRow): User => ({
+  id: Number(r.id),
+  email: r.email,
+  name: r.name,
+  phone: r.phone,
+  role: r.role,
+  locale: r.locale,
+  createdAt: String(r.created_at),
+});
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 
@@ -52,7 +77,14 @@ export async function findUserByEmail(email: string) {
   return row ?? null;
 }
 
-export async function createUser(input: { email: string; name: string; phone: string; password: string; locale: Locale; role?: Role }) {
+export async function createUser(input: {
+  email: string;
+  name: string;
+  phone: string;
+  password: string;
+  locale: Locale;
+  role?: Role;
+}) {
   const hash = await hashPassword(input.password);
   const [row] = (await db()`
     insert into users (email, name, phone, password_hash, locale, role, email_verified)

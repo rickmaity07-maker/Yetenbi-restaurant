@@ -12,7 +12,19 @@ import { cancelByReference, findByReference } from "@/lib/server/reservations";
 export const metadata: Metadata = { title: "Reservierung stornieren", robots: { index: false } };
 
 /* Text in the language the guest booked in. */
-const copy: Record<Locale, { title: string; lead: string; button: string; done: string; invalid: string; closed: string; home: string; dateLocale: string }> = {
+const copy: Record<
+  Locale,
+  {
+    title: string;
+    lead: string;
+    button: string;
+    done: string;
+    invalid: string;
+    closed: string;
+    home: string;
+    dateLocale: string;
+  }
+> = {
   de: {
     title: "Reservierung stornieren",
     lead: "Möchtet ihr diese Reservierung wirklich stornieren?",
@@ -55,7 +67,11 @@ async function cancelViaLink(form: FormData) {
   redirect(`/stornieren?r=${encodeURIComponent(reference)}&s=${signature}&done=1`);
 }
 
-async function CancelContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function CancelContent({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const params = await searchParams;
   const reference = String(params.r ?? "");
   const signature = String(params.s ?? "");
@@ -106,7 +122,11 @@ async function CancelContent({ searchParams }: { searchParams: Promise<Record<st
   );
 }
 
-export default function CancelPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default function CancelPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   return (
     <main id="main" className="mx-auto min-h-[100dvh] max-w-xl px-5 py-24">
       <LalibelaCross className="h-9 w-9 text-gold" />

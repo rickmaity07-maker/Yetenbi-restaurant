@@ -30,7 +30,9 @@ export async function POST(request: Request) {
 
   const input: OrderInput = {
     method: body.method === "pickup" ? "pickup" : "delivery",
-    items: Array.isArray(body.items) ? body.items.slice(0, 60).map((l) => ({ id: String(l?.id ?? ""), qty: Number(l?.qty) })) : [],
+    items: Array.isArray(body.items)
+      ? body.items.slice(0, 60).map((l) => ({ id: String(l?.id ?? ""), qty: Number(l?.qty) }))
+      : [],
     name: String(body.name ?? ""),
     phone: String(body.phone ?? ""),
     email: me.email,
@@ -44,7 +46,12 @@ export async function POST(request: Request) {
   };
   const locale: Locale = (LOCALES as readonly string[]).includes(body.locale ?? "") ? (body.locale as Locale) : "de";
 
-  const [settings, closures, menu, business] = await Promise.all([getOrderSettings(), upcomingClosures(), getMenu(), getBusiness()]);
+  const [settings, closures, menu, business] = await Promise.all([
+    getOrderSettings(),
+    upcomingClosures(),
+    getMenu(),
+    getBusiness(),
+  ]);
   const catalog = catalogOf(menu);
   const closedToday = closures.some((c) => c.date === todayISO());
   const errors = validateOrder(input, settings, catalog, closedToday, new Date(), business.hours);
@@ -52,7 +59,11 @@ export async function POST(request: Request) {
 
   // Each order rings the kitchen: blocked guests, floods and very large first orders are stopped here (see order-guard).
   const guard = { phoneKey: phoneKey(input.phone), clientHash: clientHash(request) };
-  const blockedBy = await checkOrder({ ...guard, email: input.email, total: totals(input.items, input.method, settings, catalog).total });
+  const blockedBy = await checkOrder({
+    ...guard,
+    email: input.email,
+    total: totals(input.items, input.method, settings, catalog).total,
+  });
   if (blockedBy) {
     const status = { blocked: 403, busy: 429, kitchen: 429, large: 422 }[blockedBy];
     return Response.json({ code: blockedBy }, { status });

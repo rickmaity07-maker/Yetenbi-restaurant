@@ -17,7 +17,15 @@ export default function ResetView() {
       <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{a.newPassword}</h1>
       <form action={action} className="mt-10 space-y-8">
         <input type="hidden" name="token" value={token} />
-        <AuthField id="password" label={a.newPassword} type="password" autoComplete="new-password" minLength={8} required hint={a.passwordHint} />
+        <AuthField
+          id="password"
+          label={a.newPassword}
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+          hint={a.passwordHint}
+        />
         <FormMessage error={state?.error && a.errors[state.error]} />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <SubmitButton pending={pending}>{a.savePassword}</SubmitButton>

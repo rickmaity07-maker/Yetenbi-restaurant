@@ -32,7 +32,12 @@ const account = (role) => {
   const password = process.env[`TEST_${role}_PASSWORD`];
   return email && password ? [email, password] : null;
 };
-const ACC = { admin: account("ADMIN"), kitchen: account("KITCHEN"), driver: account("DRIVER"), guest: account("GUEST") };
+const ACC = {
+  admin: account("ADMIN"),
+  kitchen: account("KITCHEN"),
+  driver: account("DRIVER"),
+  guest: account("GUEST"),
+};
 
 const results = [];
 const check = (device, area, ok, msg) => {
@@ -89,7 +94,11 @@ for (const name of ONLY === "flow" ? [] : Object.keys(DEVICES)) {
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e).slice(0, 160)));
-  page.on("console", (m) => m.type() === "error" && !/favicon|Failed to load resource/.test(m.text()) && errors.push(m.text().slice(0, 160)));
+  page.on(
+    "console",
+    (m) =>
+      m.type() === "error" && !/favicon|Failed to load resource/.test(m.text()) && errors.push(m.text().slice(0, 160)),
+  );
   try {
     const t0 = Date.now();
     const res = await page.goto(SITE, { waitUntil: "domcontentloaded" });
@@ -104,21 +113,42 @@ for (const name of ONLY === "flow" ? [] : Object.keys(DEVICES)) {
 
     const [first, second] = categories;
     await page.locator("#speisekarte").scrollIntoViewIfNeeded();
-    check(name, "menu card", has(await page.locator("#speisekarte").innerText(), first.dish), `shows the menu from the database (${first.dish})`);
+    check(
+      name,
+      "menu card",
+      has(await page.locator("#speisekarte").innerText(), first.dish),
+      `shows the menu from the database (${first.dish})`,
+    );
     if (second) {
       await page.getByRole("tab", { name: second.title }).first().click();
       await page.waitForTimeout(d.engine === "webkit" ? 3000 : 1200);
-      check(name, "menu card", has(await page.locator("#speisekarte").innerText(), second.dish), `category tabs switch (${second.title})`);
+      check(
+        name,
+        "menu card",
+        has(await page.locator("#speisekarte").innerText(), second.dish),
+        `category tabs switch (${second.title})`,
+      );
     }
     await shot(page, `${short(name)}_menu`);
-    const broken = await page.$$eval("img", (list) => list.filter((i) => i.complete && i.naturalWidth === 0 && i.getAttribute("src")).length);
+    const broken = await page.$$eval(
+      "img",
+      (list) => list.filter((i) => i.complete && i.naturalWidth === 0 && i.getAttribute("src")).length,
+    );
     check(name, "images", broken === 0, `no broken images (${broken})`);
 
     if (d.phone) {
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.getByRole("button", { name: /Menü öffnen/ }).click();
       await page.waitForTimeout(600);
-      check(name, "phone menu", await page.getByRole("link", { name: /Speisekarte/ }).first().isVisible(), "navigation opens");
+      check(
+        name,
+        "phone menu",
+        await page
+          .getByRole("link", { name: /Speisekarte/ })
+          .first()
+          .isVisible(),
+        "navigation opens",
+      );
       await shot(page, `${short(name)}_nav`);
     }
 
@@ -126,7 +156,12 @@ for (const name of ONLY === "flow" ? [] : Object.keys(DEVICES)) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator('button[lang="en"]:visible').first().click({ timeout: 8000 });
     await page.waitForTimeout(d.engine === "webkit" ? 2500 : 1000);
-    check(name, "languages", /main dishes/i.test(await page.locator("#speisekarte").innerText()), "English switch translates the menu");
+    check(
+      name,
+      "languages",
+      /main dishes/i.test(await page.locator("#speisekarte").innerText()),
+      "English switch translates the menu",
+    );
     await page.locator('button[lang="de"]:visible').first().click({ timeout: 8000 });
     await page.waitForTimeout(800);
     if (d.phone) await page.keyboard.press("Escape");
@@ -136,9 +171,19 @@ for (const name of ONLY === "flow" ? [] : Object.keys(DEVICES)) {
       check(name, "pages", r.status() === 200 && (await overflow(page)) <= 1, `${path} loads, fits the screen`);
     }
     await page.goto(`${SITE}/bestellen`, { waitUntil: "networkidle" });
-    check(name, "ordering", await page.getByText("Zum Bestellen anmelden").isVisible(), "signed-out visitors are asked to sign in");
+    check(
+      name,
+      "ordering",
+      await page.getByText("Zum Bestellen anmelden").isVisible(),
+      "signed-out visitors are asked to sign in",
+    );
     check(name, "ordering", (await overflow(page)) <= 1, "order page fits the screen");
-    check(name, "console", errors.length === 0, `no script errors${errors.length ? `: ${errors.slice(0, 2).join(" | ")}` : ""}`);
+    check(
+      name,
+      "console",
+      errors.length === 0,
+      `no script errors${errors.length ? `: ${errors.slice(0, 2).join(" | ")}` : ""}`,
+    );
   } catch (e) {
     check(name, "public", false, `stopped: ${String(e).split("\n")[0]}`);
   }
@@ -151,24 +196,37 @@ for (const name of ONLY === "flow" ? [] : ["Desktop 1440 (Chrome)", "Pixel 7 (Ch
   const page = await ctx.newPage();
   for (const path of ["/", "/bestellen", "/login", "/impressum"]) {
     await page.goto(`${SITE}${path}`, { waitUntil: "networkidle" });
-    await page.getByRole("button", { name: /Intro überspringen/ }).click({ timeout: 1500 }).catch(() => {});
+    await page
+      .getByRole("button", { name: /Intro überspringen/ })
+      .click({ timeout: 1500 })
+      .catch(() => {});
     await page.waitForTimeout(800);
     await page.addScriptTag({ content: AXE });
     const found = await page.evaluate(async () => {
       const res = await window.axe.run(document, { resultTypes: ["violations"] });
-      return res.violations.filter((v) => v.impact === "critical" || v.impact === "serious").map((v) => `${v.id} (${v.nodes.length})`);
+      return res.violations
+        .filter((v) => v.impact === "critical" || v.impact === "serious")
+        .map((v) => `${v.id} (${v.nodes.length})`);
     });
     // known and intended: the welcome sentence on "/" lights up word by word while scrolling (screen readers get the full text)
     const real = path === "/" ? found.filter((f) => !f.startsWith("color-contrast")) : found;
-    check(name, "accessibility", real.length === 0, `${path}: ${found.length ? found.join(", ") : "no serious or critical issues"}`);
+    check(
+      name,
+      "accessibility",
+      real.length === 0,
+      `${path}: ${found.length ? found.join(", ") : "no serious or critical issues"}`,
+    );
   }
   await ctx.close();
 }
 
 /* ===================== C. order flow across devices ===================== */
-const missing = Object.entries(ACC).filter(([, a]) => !a).map(([role]) => role);
+const missing = Object.entries(ACC)
+  .filter(([, a]) => !a)
+  .map(([role]) => role);
 const runFlow = ONLY !== "public" && !missing.length;
-if (ONLY !== "public" && missing.length) console.log(`\nOrder flow skipped: set TEST_<ROLE>_EMAIL and TEST_<ROLE>_PASSWORD for ${missing.join(", ")}.`);
+if (ONLY !== "public" && missing.length)
+  console.log(`\nOrder flow skipped: set TEST_<ROLE>_EMAIL and TEST_<ROLE>_PASSWORD for ${missing.join(", ")}.`);
 
 const started = new Date();
 const refs = [];
@@ -203,7 +261,11 @@ if (runFlow) {
       await page.evaluate((c) => localStorage.setItem("yt-cart", JSON.stringify(c)), cart);
       await page.reload({ waitUntil: "networkidle" });
       await page.locator("#checkout").waitFor();
-      if (method === "pickup") await page.locator("#checkout").getByRole("button", { name: /Abholung/ }).click();
+      if (method === "pickup")
+        await page
+          .locator("#checkout")
+          .getByRole("button", { name: /Abholung/ })
+          .click();
       if (method === "delivery") {
         await page.locator("#street").waitFor({ state: "visible", timeout: 20000 });
         await page.locator("#street").fill("Theaterstraße 6");
@@ -248,10 +310,18 @@ if (runFlow) {
     const kitchen = await kctx.newPage();
     await signIn(kitchen, ACC.kitchen, /\/kueche/);
     const kText = await kitchen.locator("main").innerText();
-    check("Pixel 7 (Chrome)", "kitchen", kText.includes(delivery) && !kText.includes("Theaterstraße 6") && !kText.includes("5550111"), "kitchen sees the orders, no address or phone");
+    check(
+      "Pixel 7 (Chrome)",
+      "kitchen",
+      kText.includes(delivery) && !kText.includes("Theaterstraße 6") && !kText.includes("5550111"),
+      "kitchen sees the orders, no address or phone",
+    );
     await shot(kitchen, "pixel_kitchen");
     for (const ref of [delivery, pickup]) {
-      for (const [btn, status] of [["Essen fertig", "cooked"], ["Verpackt", "packed"]]) {
+      for (const [btn, status] of [
+        ["Essen fertig", "cooked"],
+        ["Verpackt", "packed"],
+      ]) {
         await kitchen.goto(`${SITE}/kueche`, { waitUntil: "networkidle" });
         await kitchen.locator("li", { hasText: ref }).first().getByRole("button", { name: btn }).click();
         check("Pixel 7 (Chrome)", "kitchen", await waitStatus(ref, status), `${btn} → ${ref}`);
@@ -266,8 +336,16 @@ if (runFlow) {
     const card = desk.locator("li", { hasText: delivery }).first();
     await card.locator('select[name="driver"]').selectOption({ label: driverRow.name });
     await card.getByRole("button", { name: "Zur Lieferung übergeben" }).click();
-    check("Desktop 1440 (Chrome)", "admin", await waitStatus(delivery, "on_the_way"), `hands ${delivery} to ${driverRow.name}`);
-    for (const [btn, status] of [["Abholbereit", "ready"], ["Abgeholt", "completed"]]) {
+    check(
+      "Desktop 1440 (Chrome)",
+      "admin",
+      await waitStatus(delivery, "on_the_way"),
+      `hands ${delivery} to ${driverRow.name}`,
+    );
+    for (const [btn, status] of [
+      ["Abholbereit", "ready"],
+      ["Abgeholt", "completed"],
+    ]) {
       await desk.goto(`${SITE}/admin/bestellungen`, { waitUntil: "networkidle" });
       await desk.locator("li", { hasText: pickup }).first().getByRole("button", { name: btn }).click();
       check("Desktop 1440 (Chrome)", "admin", await waitStatus(pickup, status), `${btn} → ${pickup}`);
@@ -278,7 +356,12 @@ if (runFlow) {
     const driver = await rctx.newPage();
     await signIn(driver, ACC.driver, /\/lieferung/);
     const dText = await driver.locator("main").innerText();
-    check("iPhone 14 (Safari)", "driver", dText.includes(delivery) && dText.includes("Theaterstraße 6") && !dText.includes(pickup), "driver sees own delivery with address, not the pickup");
+    check(
+      "iPhone 14 (Safari)",
+      "driver",
+      dText.includes(delivery) && dText.includes("Theaterstraße 6") && !dText.includes(pickup),
+      "driver sees own delivery with address, not the pickup",
+    );
     await shot(driver, "iphone_driver");
     await driver.locator("li", { hasText: delivery }).first().getByRole("button", { name: "Zugestellt" }).click();
     check("iPhone 14 (Safari)", "driver", await waitStatus(delivery, "completed"), `marks ${delivery} delivered`);
@@ -286,21 +369,48 @@ if (runFlow) {
     // the guest sees it on the status page
     await guest.reload({ waitUntil: "networkidle" });
     await guest.waitForTimeout(1500);
-    check("iPhone 14 (Safari)", "order", has(await guest.locator("body").innerText(), "Abgeschlossen"), "status page shows the finished order");
+    check(
+      "iPhone 14 (Safari)",
+      "order",
+      has(await guest.locator("body").innerText(), "Abgeschlossen"),
+      "status page shows the finished order",
+    );
 
     await desk.goto(`${SITE}/admin`, { waitUntil: "networkidle" });
-    check("Desktop 1440 (Chrome)", "dashboard", has(await desk.locator("main").innerText(), "Umsatz heute"), "dashboard loads after the orders");
-    const [steps] = await sql`select cooked_at is not null and packed_at is not null and out_at is not null and completed_at is not null as all_steps from orders where reference = ${delivery}`;
+    check(
+      "Desktop 1440 (Chrome)",
+      "dashboard",
+      has(await desk.locator("main").innerText(), "Umsatz heute"),
+      "dashboard loads after the orders",
+    );
+    const [steps] =
+      await sql`select cooked_at is not null and packed_at is not null and out_at is not null and completed_at is not null as all_steps from orders where reference = ${delivery}`;
     check("Desktop 1440 (Chrome)", "order", steps?.all_steps, "every step has its time stamp");
 
     // every admin page on a phone
     const mctx = await context("Pixel 7 (Chrome)");
     const mob = await mctx.newPage();
     await signIn(mob, ACC.admin, /\/admin/);
-    for (const path of ["/admin", "/admin/bestellungen", "/admin/reservierungen", "/admin/speisekarte", "/admin/fotos", "/admin/berichte", "/admin/kunden", "/admin/protokoll", "/admin/einstellungen", "/admin/team"]) {
+    for (const path of [
+      "/admin",
+      "/admin/bestellungen",
+      "/admin/reservierungen",
+      "/admin/speisekarte",
+      "/admin/fotos",
+      "/admin/berichte",
+      "/admin/kunden",
+      "/admin/protokoll",
+      "/admin/einstellungen",
+      "/admin/team",
+    ]) {
       const r = await mob.goto(`${SITE}${path}`, { waitUntil: "networkidle" });
       const ov = await overflow(mob);
-      check("Pixel 7 (Chrome)", "admin on phone", r.status() === 200 && (await mob.getByText("This page couldn't load").count()) === 0 && ov <= 1, `${path} (overflow ${ov} px)`);
+      check(
+        "Pixel 7 (Chrome)",
+        "admin on phone",
+        r.status() === 200 && (await mob.getByText("This page couldn't load").count()) === 0 && ov <= 1,
+        `${path} (overflow ${ov} px)`,
+      );
     }
     await shot(mob, "pixel_admin");
     for (const c of [gctx, pctx, actx, kctx, dctx, rctx, mctx]) await c.close();
@@ -313,7 +423,10 @@ if (runFlow) {
     const ctx = await context("iPhone 14 (Safari)");
     const page = await ctx.newPage();
     await page.goto(SITE, { waitUntil: "networkidle" });
-    await page.getByRole("button", { name: /Intro überspringen/ }).click({ timeout: 2000 }).catch(() => {});
+    await page
+      .getByRole("button", { name: /Intro überspringen/ })
+      .click({ timeout: 2000 })
+      .catch(() => {});
     await page.locator("#reservieren").scrollIntoViewIfNeeded();
     await page.locator("#res-name").fill("Suite Test Reservierung");
     await page.locator("#res-email").fill(ACC.guest[0]);
@@ -328,14 +441,24 @@ if (runFlow) {
     await page.locator("#res-time").selectOption({ index: 1 });
     await page.locator('#reservieren button[type="submit"]').click();
     await page.waitForTimeout(4000);
-    const [r] = await sql`select reference, status from reservations where name = 'Suite Test Reservierung' order by id desc limit 1`;
+    const [r] =
+      await sql`select reference, status from reservations where name = 'Suite Test Reservierung' order by id desc limit 1`;
     if (r) refs.push(r.reference);
-    check("iPhone 14 (Safari)", "reservation", r?.status === "pending", `request sent for ${picked} (${r?.reference ?? "none"})`);
+    check(
+      "iPhone 14 (Safari)",
+      "reservation",
+      r?.status === "pending",
+      `request sent for ${picked} (${r?.reference ?? "none"})`,
+    );
     const dctx = await context("Desktop 1440 (Chrome)");
     const desk = await dctx.newPage();
     await signIn(desk, ACC.admin, /\/admin/);
     await desk.goto(`${SITE}/admin/reservierungen`, { waitUntil: "networkidle" });
-    await desk.locator("li", { hasText: "Suite Test Reservierung" }).first().getByRole("button", { name: "Annehmen" }).click();
+    await desk
+      .locator("li", { hasText: "Suite Test Reservierung" })
+      .first()
+      .getByRole("button", { name: "Annehmen" })
+      .click();
     await desk.waitForTimeout(3000);
     const [r2] = await sql`select status from reservations where reference = ${r?.reference ?? ""}`;
     check("Desktop 1440 (Chrome)", "reservation", r2?.status === "confirmed", "owner confirms the request");
@@ -358,5 +481,7 @@ if (runFlow) {
 for (const b of Object.values(browsers)) await b.close();
 const failed = results.filter((r) => !r.ok);
 writeFileSync(`${OUT}/results.json`, JSON.stringify(results, null, 1));
-console.log(`\n${results.length - failed.length}/${results.length} checks passed${runFlow ? "; test data removed" : ""}. Screenshots: ${OUT}`);
+console.log(
+  `\n${results.length - failed.length}/${results.length} checks passed${runFlow ? "; test data removed" : ""}. Screenshots: ${OUT}`,
+);
 process.exit(failed.length ? 1 : 0);

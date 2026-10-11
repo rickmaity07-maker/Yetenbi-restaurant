@@ -31,19 +31,26 @@ export default function StructuredData({ menu, hours }: { menu: Menu; hours: Day
     hasMenu: {
       "@type": "Menu",
       inLanguage: "de",
-      hasMenuSection: menu.filter((c) => c.items.length).map((c) => ({
-        "@type": "MenuSection",
-        name: c.title.de,
-        hasMenuItem: c.items.map((item) => ({
-          "@type": "MenuItem",
-          name: item.name.de,
-          ...(item.description ? { description: item.description.de } : {}),
-          offers: { "@type": "Offer", price: item.price.toFixed(2), priceCurrency: "EUR" },
-          ...(item.tags.includes("vegan") ? { suitableForDiet: "https://schema.org/VeganDiet" } : {}),
+      hasMenuSection: menu
+        .filter((c) => c.items.length)
+        .map((c) => ({
+          "@type": "MenuSection",
+          name: c.title.de,
+          hasMenuItem: c.items.map((item) => ({
+            "@type": "MenuItem",
+            name: item.name.de,
+            ...(item.description ? { description: item.description.de } : {}),
+            offers: { "@type": "Offer", price: item.price.toFixed(2), priceCurrency: "EUR" },
+            ...(item.tags.includes("vegan") ? { suitableForDiet: "https://schema.org/VeganDiet" } : {}),
+          })),
         })),
-      })),
     },
   };
   // JSON.stringify output with "<" escaped cannot break out of the script tag.
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+    />
+  );
 }

@@ -25,9 +25,7 @@ export default function Footer() {
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
         <div className="flex flex-col gap-8 py-14 md:flex-row md:items-end md:justify-between">
-          <p className="max-w-sm font-display text-2xl italic leading-snug text-cream/85">
-            {t.footer.thanks}
-          </p>
+          <p className="max-w-sm font-display text-2xl italic leading-snug text-cream/85">{t.footer.thanks}</p>
           <div className="flex flex-col gap-1 text-sm text-cream/68 md:items-end">
             <span>
               {restaurant.street}, {restaurant.city}
@@ -50,12 +48,20 @@ export default function Footer() {
         </div>
       </div>
       <div className="relative">
-        <Stela className="pointer-events-none absolute bottom-0 left-[2%] hidden h-[160%] w-auto text-gold/40 md:block" glow={false} />
-        <Stela className="pointer-events-none absolute bottom-0 right-[2%] hidden h-[160%] w-auto text-gold/40 md:block" glow={false} />
+        <Stela
+          className="pointer-events-none absolute bottom-0 left-[2%] hidden h-[160%] w-auto text-gold/40 md:block"
+          glow={false}
+        />
+        <Stela
+          className="pointer-events-none absolute bottom-0 right-[2%] hidden h-[160%] w-auto text-gold/40 md:block"
+          glow={false}
+        />
         <FooterWordmark />
       </div>
       <Tibeb className="opacity-70" />
-      <p className="pb-6 pt-2 text-center text-xs text-cream/45">© 2026 Yetenbi Äthiopisches Restaurant & Café, Würzburg</p>
+      <p className="pb-6 pt-2 text-center text-xs text-cream/45">
+        © 2026 Yetenbi Äthiopisches Restaurant & Café, Würzburg
+      </p>
     </footer>
   );
 }

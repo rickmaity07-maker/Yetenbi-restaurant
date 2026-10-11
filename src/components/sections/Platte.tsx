@@ -1,6 +1,14 @@
 "use client";
 
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { useRef, useState } from "react";
 import hero from "../../../public/img/hero.jpg";
 import { Ambient, ease, Heading } from "../ui/primitives";
@@ -88,7 +96,10 @@ export default function Platte() {
   const dishUrl = useDishUrl();
   const { t, locale } = useLanguage();
   const { scrollYProgress } = useScroll({ target: root, offset: ["start start", "end end"] });
-  const turn = useSpring(useTransform(scrollYProgress, [0.06, 0.94], [0, -(N - 1) * STEP]), { stiffness: 90, damping: 24 });
+  const turn = useSpring(useTransform(scrollYProgress, [0.06, 0.94], [0, -(N - 1) * STEP]), {
+    stiffness: 90,
+    damping: 24,
+  });
   const bar = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
@@ -104,7 +115,14 @@ export default function Platte() {
         <div className="pointer-events-none absolute left-[25%] top-1/2 h-[90vmin] w-[90vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(201,162,74,0.18),transparent_62%)]" />
 
         <div className="relative mx-auto w-full max-w-7xl">
-          <Heading key={locale} label={t.platte.label} labelAm={locale === "am" ? undefined : "መሶብ"} title={t.platte.title} em={t.platte.em} size="md" />
+          <Heading
+            key={locale}
+            label={t.platte.label}
+            labelAm={locale === "am" ? undefined : "መሶብ"}
+            title={t.platte.title}
+            em={t.platte.em}
+            size="md"
+          />
         </div>
 
         <div className="relative mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-center gap-6 md:grid-cols-12 md:gap-10">
@@ -117,7 +135,10 @@ export default function Platte() {
                 <span className="h-3 w-px bg-gold" />
               </div>
 
-              <motion.div style={reduce ? undefined : { rotate: turn }} className="absolute inset-0 will-change-transform">
+              <motion.div
+                style={reduce ? undefined : { rotate: turn }}
+                className="absolute inset-0 will-change-transform"
+              >
                 {/* woven mesob rim */}
                 <div className="absolute inset-0 rounded-full bg-[repeating-conic-gradient(#3a2416_0deg_5deg,#c9a24a_5deg_6.5deg,#2a1a10_6.5deg_11deg,#8a2e1c_11deg_12.5deg)] shadow-[0_50px_120px_-30px_rgba(0,0,0,0.9),0_0_0_1px_rgba(201,162,74,0.4)]" />
                 <div className="absolute inset-[3.2%] rounded-full bg-[repeating-radial-gradient(circle,#2a1a10_0_2px,#3a2416_2px_5px)] opacity-90" />
@@ -142,7 +163,9 @@ export default function Platte() {
                     >
                       <div
                         className={`h-full w-full rounded-full shadow-[0_8px_18px_rgba(40,20,8,0.55),inset_0_0_14px_rgba(0,0,0,0.35)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                          on ? "scale-[1.12] ring-2 ring-gold-soft ring-offset-2 ring-offset-[#c9a272]" : "scale-95 brightness-[0.8] saturate-[0.85]"
+                          on
+                            ? "scale-[1.12] ring-2 ring-gold-soft ring-offset-2 ring-offset-[#c9a272]"
+                            : "scale-95 brightness-[0.8] saturate-[0.85]"
                         }`}
                         style={{
                           backgroundImage: `url(${dishUrl(d.photo)})`,
@@ -173,22 +196,29 @@ export default function Platte() {
                   {dish.amharic}
                 </p>
                 <h3 className="mt-1 flex overflow-hidden pb-2 font-display text-[clamp(2.75rem,6.5vw,6rem)] font-bold leading-[0.95] tracking-[0.02em]">
-                  {dish.name.toUpperCase().split("").map((l, i) => (
-                    <motion.span
-                      key={i}
-                      className="inline-block whitespace-pre bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text text-transparent"
-                      initial={{ y: "105%", rotate: 8 }}
-                      animate={{ y: "0%", rotate: 0 }}
-                      transition={{ duration: 0.9, ease, delay: i * 0.035 }}
-                    >
-                      {l}
-                    </motion.span>
-                  ))}
+                  {dish.name
+                    .toUpperCase()
+                    .split("")
+                    .map((l, i) => (
+                      <motion.span
+                        key={i}
+                        className="inline-block whitespace-pre bg-gradient-to-b from-[#f6e2a8] via-gold-soft to-gold bg-clip-text text-transparent"
+                        initial={{ y: "105%", rotate: 8 }}
+                        animate={{ y: "0%", rotate: 0 }}
+                        transition={{ duration: 0.9, ease, delay: i * 0.035 }}
+                      >
+                        {l}
+                      </motion.span>
+                    ))}
                 </h3>
-                <p className="mt-3 max-w-md font-display text-lg italic leading-snug text-cream/85 md:mt-4 md:text-2xl">{t.platte.dishes[dish.slug]}</p>
+                <p className="mt-3 max-w-md font-display text-lg italic leading-snug text-cream/85 md:mt-4 md:text-2xl">
+                  {t.platte.dishes[dish.slug]}
+                </p>
                 <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
                   <span className="font-display text-3xl text-gold-soft md:text-4xl">{dish.price} €</span>
-                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-cream/68">{dish.tags.map((g) => t.tags[g]).join(" / ")}</span>
+                  <span className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-cream/68">
+                    {dish.tags.map((g) => t.tags[g]).join(" / ")}
+                  </span>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -199,11 +229,21 @@ export default function Platte() {
         <div className="relative mx-auto w-full max-w-7xl">
           <ol className="hidden grid-cols-6 gap-3 md:grid">
             {dishes.map((d, i) => (
-              <li key={d.name} className={`text-sm transition-colors duration-500 ${i === active ? "text-cream" : "text-cream/45"}`}>
+              <li
+                key={d.name}
+                className={`text-sm transition-colors duration-500 ${i === active ? "text-cream" : "text-cream/45"}`}
+              >
                 <span className="block h-px overflow-hidden bg-cream/15">
-                  <span className={`block h-full bg-gold transition-[width] duration-700 ${i <= active ? "w-full" : "w-0"}`} />
+                  <span
+                    className={`block h-full bg-gold transition-[width] duration-700 ${i <= active ? "w-full" : "w-0"}`}
+                  />
                 </span>
-                <span className="mt-2 flex items-baseline gap-2 font-display text-base"><span lang="am" className="font-ethiopic text-xs text-gold/70">{geez(i + 1)}</span>{d.name}</span>
+                <span className="mt-2 flex items-baseline gap-2 font-display text-base">
+                  <span lang="am" className="font-ethiopic text-xs text-gold/70">
+                    {geez(i + 1)}
+                  </span>
+                  {d.name}
+                </span>
               </li>
             ))}
           </ol>

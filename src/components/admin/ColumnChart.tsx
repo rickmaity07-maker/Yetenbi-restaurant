@@ -13,7 +13,8 @@ type Column = { key: string; label: string; value: number; detail?: string };
 /** How values read: whole euros or plain counts (a string, so server pages can pass it). */
 type Unit = "euro" | "count";
 const FORMAT: Record<Unit, (n: number) => string> = {
-  euro: (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n),
+  euro: (n) =>
+    new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n),
   count: (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(n),
 };
 
@@ -48,7 +49,11 @@ export default function ColumnChart({
     <figure className="w-full">
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <figcaption className="text-sm text-cream/75">{title}</figcaption>
-        <button type="button" onClick={() => setTable((t) => !t)} className="text-xs text-cream/50 underline underline-offset-4 hover:text-cream">
+        <button
+          type="button"
+          onClick={() => setTable((t) => !t)}
+          className="text-xs text-cream/50 underline underline-offset-4 hover:text-cream"
+        >
           {table ? "Als Diagramm" : "Als Tabelle"}
         </button>
       </div>
@@ -68,8 +73,14 @@ export default function ColumnChart({
         <div className="relative pl-12" style={{ height: height + 22 }} onMouseLeave={() => setHover(null)}>
           {/* hairline grid with three ticks */}
           {ticks.map((t) => (
-            <div key={t} className="pointer-events-none absolute left-12 right-0 border-t border-cream/10" style={{ top: height - (t / max) * height }}>
-              <span className="absolute -left-12 -translate-y-1/2 pr-2 text-[0.65rem] tabular-nums text-cream/45">{format(t)}</span>
+            <div
+              key={t}
+              className="pointer-events-none absolute left-12 right-0 border-t border-cream/10"
+              style={{ top: height - (t / max) * height }}
+            >
+              <span className="absolute -left-12 -translate-y-1/2 pr-2 text-[0.65rem] tabular-nums text-cream/45">
+                {format(t)}
+              </span>
             </div>
           ))}
           <div className="absolute inset-x-0 left-12 top-0 flex items-end" style={{ height }}>
@@ -88,7 +99,9 @@ export default function ColumnChart({
                   style={{ height: d.value > 0 ? Math.max(2, (d.value / max) * height) : 0 }}
                 />
                 {(data.length - 1 - i) % labelEvery === 0 && (
-                  <span className="pointer-events-none absolute -bottom-5 whitespace-nowrap text-[0.65rem] text-cream/45">{d.label}</span>
+                  <span className="pointer-events-none absolute -bottom-5 whitespace-nowrap text-[0.65rem] text-cream/45">
+                    {d.label}
+                  </span>
                 )}
               </button>
             ))}
@@ -97,7 +110,10 @@ export default function ColumnChart({
             <div
               role="status"
               className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded border border-gold/30 bg-coal px-2.5 py-1.5 text-xs shadow-lg"
-              style={{ left: `calc(3rem + (100% - 3rem) * ${(hover + 0.5) / data.length})`, top: Math.max(0, height - (h.value / max) * height - 44) }}
+              style={{
+                left: `calc(3rem + (100% - 3rem) * ${(hover + 0.5) / data.length})`,
+                top: Math.max(0, height - (h.value / max) * height - 44),
+              }}
             >
               <p className="text-cream/60">{h.label}</p>
               <p className="font-semibold tabular-nums text-cream">

@@ -15,7 +15,8 @@ export function MenuProvider({ menu, children }: { menu: Menu; children: React.R
 
 export const useMenu = () => useContext(MenuContext);
 
-const litres = (v: number, dateLocale: string) => `${v.toLocaleString(dateLocale === "am-ET" ? "de-DE" : dateLocale, { maximumFractionDigits: 2 })} l`;
+const litres = (v: number, dateLocale: string) =>
+  `${v.toLocaleString(dateLocale === "am-ET" ? "de-DE" : dateLocale, { maximumFractionDigits: 2 })} l`;
 
 /** "0,33 l · 7,58 €/l · zzgl. 0,25 € Pfand" for drinks; nothing when no volume or deposit was entered. */
 export function DrinkFacts({ dish }: { dish: Dish }) {
@@ -65,7 +66,9 @@ export function FactsLegend({ className = "" }: { className?: string }) {
   const { t, locale } = useLanguage();
   return (
     <details className={`text-xs text-cream/60 ${className}`}>
-      <summary className="cursor-pointer underline decoration-gold/40 underline-offset-4 hover:text-cream">{t.menu.legend}</summary>
+      <summary className="cursor-pointer underline decoration-gold/40 underline-offset-4 hover:text-cream">
+        {t.menu.legend}
+      </summary>
       <div className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
         <ul className="space-y-0.5">
           {ALLERGENS.map((a) => (

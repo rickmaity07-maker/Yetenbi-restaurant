@@ -33,7 +33,10 @@ export default function HoursTable() {
         {rows.map((r) => {
           const today = now && r.days.includes(now.day);
           return (
-            <div key={r.days.join()} className={`flex justify-between gap-6 font-display text-lg md:text-xl ${today ? "text-gold-soft" : "text-cream/85"}`}>
+            <div
+              key={r.days.join()}
+              className={`flex justify-between gap-6 font-display text-lg md:text-xl ${today ? "text-gold-soft" : "text-cream/85"}`}
+            >
               <dt>{label(r.days)}</dt>
               <dd className="tabular-nums">{r.hours ? `${t.clock(r.hours.open)} - ${t.clock(r.hours.close)}` : "-"}</dd>
             </div>
@@ -43,7 +46,10 @@ export default function HoursTable() {
       <p className="mt-3 flex min-h-5 items-center gap-2 text-sm text-cream/70" aria-live="polite">
         {now && (
           <>
-            <span className={`h-1.5 w-1.5 rounded-full ${now.state.open ? "bg-[#7fcf9c]" : "bg-[#f0a080]"}`} aria-hidden />
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${now.state.open ? "bg-[#7fcf9c]" : "bg-[#f0a080]"}`}
+              aria-hidden
+            />
             {now.state.open
               ? t.visit.openNow(now.state.until)
               : t.visit.opensAt(now.state.day === now.day ? t.visit.today : t.days[now.state.day], now.state.at)}
@@ -52,7 +58,15 @@ export default function HoursTable() {
       </p>
       {closures.map((c) => (
         <p key={c.date} className="mt-1 text-sm text-[#f0a080]">
-          {t.visit.closedOn(new Date(`${c.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" }), c.note)}
+          {t.visit.closedOn(
+            new Date(`${c.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
+              weekday: "short",
+              day: "numeric",
+              month: "long",
+              timeZone: "UTC",
+            }),
+            c.note,
+          )}
         </p>
       ))}
     </div>

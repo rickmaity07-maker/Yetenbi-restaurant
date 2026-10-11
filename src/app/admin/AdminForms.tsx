@@ -8,12 +8,26 @@ const field =
 const label = "text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold";
 
 function Message({ state }: { state: AdminState }) {
-  if (state?.error) return <p role="alert" className="text-sm text-[#f0a080]">{state.error}</p>;
-  if (state?.ok) return <p role="status" className="text-sm text-[#9fe0b6]">{state.ok}</p>;
+  if (state?.error)
+    return (
+      <p role="alert" className="text-sm text-[#f0a080]">
+        {state.error}
+      </p>
+    );
+  if (state?.ok)
+    return (
+      <p role="status" className="text-sm text-[#9fe0b6]">
+        {state.ok}
+      </p>
+    );
   return null;
 }
 
-function Input({ name, title, ...rest }: { name: string; title: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Input({
+  name,
+  title,
+  ...rest
+}: { name: string; title: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex flex-col gap-1.5">
       <span className={label}>{title}</span>
@@ -36,7 +50,10 @@ export function PhoneBookingForm() {
         <Input name="note" title="Anmerkung (optional)" maxLength={280} />
       </div>
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2 lg:col-span-3">
-        <button disabled={pending} className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60">
+        <button
+          disabled={pending}
+          className="rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-ink disabled:opacity-60"
+        >
           {pending ? "Speichern …" : "Reservierung eintragen"}
         </button>
         <Message state={state} />
@@ -53,9 +70,16 @@ export function ClosedDayForm() {
         <Input name="date" title="Datum" type="date" required />
       </div>
       <div className="min-w-48 flex-1">
-        <Input name="note" title="Grund (optional, auf der Website sichtbar – keine Namen)" placeholder="z. B. Feiertag, geschlossene Gesellschaft" />
+        <Input
+          name="note"
+          title="Grund (optional, auf der Website sichtbar – keine Namen)"
+          placeholder="z. B. Feiertag, geschlossene Gesellschaft"
+        />
       </div>
-      <button disabled={pending} className="rounded-full border border-gold/60 px-5 py-2.5 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink disabled:opacity-60">
+      <button
+        disabled={pending}
+        className="rounded-full border border-gold/60 px-5 py-2.5 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink disabled:opacity-60"
+      >
         Schließen
       </button>
       <div className="basis-full">

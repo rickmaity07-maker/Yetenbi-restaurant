@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Bag, Minus, Moped, Plus, Storefront } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
-import { formatEuro, totals, validateOrder, type CartLine, type Method, type OrderErrors, type OrderInput, type OrderSettings, type Payment } from "@/lib/ordering";
+import {
+  formatEuro,
+  totals,
+  validateOrder,
+  type CartLine,
+  type Method,
+  type OrderErrors,
+  type OrderInput,
+  type OrderSettings,
+  type Payment,
+} from "@/lib/ordering";
 import { useLanguage } from "@/lib/language";
 import { useAccount } from "@/lib/account-client";
 import { fieldClass } from "@/components/account/AccountShell";
@@ -14,7 +24,15 @@ import { catalogOf, hasAllergenData, type Menu } from "@/lib/menu";
 import type { DayHours } from "@/lib/hours";
 
 type Window = { open: boolean; asap: boolean; slots: string[] };
-type Availability = { available: boolean; settings: OrderSettings; menu?: Menu; hours?: DayHours[]; closedToday?: boolean; delivery?: Window; pickup?: Window };
+type Availability = {
+  available: boolean;
+  settings: OrderSettings;
+  menu?: Menu;
+  hours?: DayHours[];
+  closedToday?: boolean;
+  delivery?: Window;
+  pickup?: Window;
+};
 
 const CART_KEY = "yt-cart";
 const readCart = (): CartLine[] => {
@@ -26,23 +44,53 @@ const readCart = (): CartLine[] => {
   }
 };
 
-function Stepper({ qty, onChange, less, more }: { qty: number; onChange: (q: number) => void; less: string; more: string }) {
+function Stepper({
+  qty,
+  onChange,
+  less,
+  more,
+}: {
+  qty: number;
+  onChange: (q: number) => void;
+  less: string;
+  more: string;
+}) {
   return (
     <div className="flex items-center gap-3">
-      <button type="button" aria-label={less} onClick={() => onChange(qty - 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 text-gold-soft hover:bg-gold hover:text-ink">
+      <button
+        type="button"
+        aria-label={less}
+        onClick={() => onChange(qty - 1)}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 text-gold-soft hover:bg-gold hover:text-ink"
+      >
         <Minus size={14} />
       </button>
       <span className="w-5 text-center font-display text-xl tabular-nums text-cream" aria-live="polite">
         {qty}
       </span>
-      <button type="button" aria-label={more} onClick={() => onChange(qty + 1)} className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 text-gold-soft hover:bg-gold hover:text-ink">
+      <button
+        type="button"
+        aria-label={more}
+        onClick={() => onChange(qty + 1)}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/40 text-gold-soft hover:bg-gold hover:text-ink"
+      >
         <Plus size={14} />
       </button>
     </div>
   );
 }
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold">
@@ -69,7 +117,16 @@ export default function OrderView() {
   const [method, setMethod] = useState<Method>("delivery");
   const [payment, setPayment] = useState<Payment>("cash");
   const [wanted, setWanted] = useState("asap");
-  const [form, setForm] = useState({ name: "", phone: "", email: "", street: "", postcode: "", city: "Würzburg", addressNote: "", note: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    street: "",
+    postcode: "",
+    city: "Würzburg",
+    addressNote: "",
+    note: "",
+  });
   const [errors, setErrors] = useState<OrderErrors>({});
   const [serverError, setServerError] = useState<string>();
   const [sending, setSending] = useState(false);
@@ -108,7 +165,10 @@ export default function OrderView() {
   const euro = (n: number) => formatEuro(n, t.dateLocale);
   const menu = useMemo(() => info?.menu ?? [], [info]);
   const catalog = useMemo(() => catalogOf(menu), [menu]);
-  const sum = useMemo(() => (s ? totals(cart, method, s, catalog) : { subtotal: 0, deposit: 0, fee: 0, total: 0 }), [cart, method, s, catalog]);
+  const sum = useMemo(
+    () => (s ? totals(cart, method, s, catalog) : { subtotal: 0, deposit: 0, fee: 0, total: 0 }),
+    [cart, method, s, catalog],
+  );
 
   // drop basket lines that are no longer on the menu (deleted, sold out, not orderable) once it has loaded
   useEffect(() => {
@@ -119,13 +179,29 @@ export default function OrderView() {
   const count = cart.reduce((n, l) => n + l.qty, 0);
   const qtyOf = (id: string) => cart.find((l) => l.id === id)?.qty ?? 0;
   const setQty = (id: string, qty: number) =>
-    setCart((c) => (qty <= 0 ? c.filter((l) => l.id !== id) : c.some((l) => l.id === id) ? c.map((l) => (l.id === id ? { ...l, qty: Math.min(20, qty) } : l)) : [...c, { id, qty: 1 }]));
+    setCart((c) =>
+      qty <= 0
+        ? c.filter((l) => l.id !== id)
+        : c.some((l) => l.id === id)
+          ? c.map((l) => (l.id === id ? { ...l, qty: Math.min(20, qty) } : l))
+          : [...c, { id, qty: 1 }],
+    );
 
   // keep the chosen time valid when the window changes
   useEffect(() => {
     if (!win) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setWanted((w) => (w === "asap" ? (win.asap ? "asap" : (win.slots[0] ?? "asap")) : win.slots.includes(w) ? w : win.asap ? "asap" : (win.slots[0] ?? "asap")));
+    setWanted((w) =>
+      w === "asap"
+        ? win.asap
+          ? "asap"
+          : (win.slots[0] ?? "asap")
+        : win.slots.includes(w)
+          ? w
+          : win.asap
+            ? "asap"
+            : (win.slots[0] ?? "asap"),
+    );
   }, [win]);
 
   const set = (k: keyof typeof form, v: string) => {
@@ -133,7 +209,9 @@ export default function OrderView() {
     setServerError(undefined);
   };
 
-  const canOrder = Boolean(info?.available && s && !s.paused && win?.open && (method === "delivery" ? s.delivery : s.pickup));
+  const canOrder = Boolean(
+    info?.available && s && !s.paused && win?.open && (method === "delivery" ? s.delivery : s.pickup),
+  );
   const err = (code?: keyof typeof o.errors) => (code ? o.errors[code] : undefined);
 
   const submit = async (e: React.FormEvent) => {
@@ -167,7 +245,9 @@ export default function OrderView() {
   };
 
   // only what can be ordered right now (orderable and not sold out)
-  const categories = menu.map((c) => ({ ...c, items: c.items.filter((i) => catalog.has(i.id)) })).filter((c) => c.items.length > 0);
+  const categories = menu
+    .map((c) => ({ ...c, items: c.items.filter((i) => catalog.has(i.id)) }))
+    .filter((c) => c.items.length > 0);
   const current = categories.find((c) => c.id === category) ?? categories[0];
   const items = current?.items ?? [];
 
@@ -185,7 +265,11 @@ export default function OrderView() {
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
         {/* Menu */}
         <div className="lg:col-span-7">
-          <div role="tablist" aria-label={t.menu.categories} className="-mx-1 flex flex-wrap gap-x-6 gap-y-3 border-b border-gold/20 pb-3">
+          <div
+            role="tablist"
+            aria-label={t.menu.categories}
+            className="-mx-1 flex flex-wrap gap-x-6 gap-y-3 border-b border-gold/20 pb-3"
+          >
             {categories.map((c) => (
               <button
                 key={c.id}
@@ -211,11 +295,14 @@ export default function OrderView() {
                         {item.amharic}
                       </p>
                     )}
-                    {item.description && <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-cream/60">{item.description[locale]}</p>}
+                    {item.description && (
+                      <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-cream/60">
+                        {item.description[locale]}
+                      </p>
+                    )}
                     <AllergenFacts dish={item} className="mt-1" />
                     <p className="mt-2 font-display text-lg text-gold-soft">
-                      {euro(item.price)}{" "}
-                      {current?.drinks && <DrinkFacts dish={item} />}
+                      {euro(item.price)} {current?.drinks && <DrinkFacts dish={item} />}
                     </p>
                   </div>
                   <div className="shrink-0 pt-1">
@@ -329,7 +416,13 @@ export default function OrderView() {
 
             {/* When */}
             <Field id="wanted" label={o.when} error={err(errors.wanted)}>
-              <select id="wanted" value={wanted} onChange={(e) => setWanted(e.target.value)} className={`${fieldClass} text-xl [color-scheme:dark]`} disabled={!win?.open}>
+              <select
+                id="wanted"
+                value={wanted}
+                onChange={(e) => setWanted(e.target.value)}
+                className={`${fieldClass} text-xl [color-scheme:dark]`}
+                disabled={!win?.open}
+              >
                 {win?.asap && (
                   <option value="asap" className="bg-coal text-base">
                     {o.asap(method === "delivery" ? (s?.deliveryMinutes ?? 45) : (s?.pickupMinutes ?? 20))}
@@ -345,21 +438,52 @@ export default function OrderView() {
 
             <AnimatePresence initial={false}>
               {method === "delivery" && (
-                <motion.fieldset initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-6 overflow-hidden">
+                <motion.fieldset
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-6 overflow-hidden"
+                >
                   <legend className="mb-2 font-display text-2xl text-cream">{o.address}</legend>
                   <Field id="street" label={o.street} error={err(errors.street)}>
-                    <input id="street" autoComplete="street-address" value={form.street} onChange={(e) => set("street", e.target.value)} className={`${fieldClass} text-xl`} />
+                    <input
+                      id="street"
+                      autoComplete="street-address"
+                      value={form.street}
+                      onChange={(e) => set("street", e.target.value)}
+                      className={`${fieldClass} text-xl`}
+                    />
                   </Field>
                   <div className="grid grid-cols-[0.8fr_1.2fr] gap-6">
                     <Field id="postcode" label={o.postcode} error={err(errors.postcode)}>
-                      <input id="postcode" inputMode="numeric" autoComplete="postal-code" maxLength={5} value={form.postcode} onChange={(e) => set("postcode", e.target.value)} className={`${fieldClass} text-xl`} />
+                      <input
+                        id="postcode"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                        maxLength={5}
+                        value={form.postcode}
+                        onChange={(e) => set("postcode", e.target.value)}
+                        className={`${fieldClass} text-xl`}
+                      />
                     </Field>
                     <Field id="city" label={o.city}>
-                      <input id="city" autoComplete="address-level2" value={form.city} onChange={(e) => set("city", e.target.value)} className={`${fieldClass} text-xl`} />
+                      <input
+                        id="city"
+                        autoComplete="address-level2"
+                        value={form.city}
+                        onChange={(e) => set("city", e.target.value)}
+                        className={`${fieldClass} text-xl`}
+                      />
                     </Field>
                   </div>
                   <Field id="addressNote" label={o.addressNote}>
-                    <input id="addressNote" maxLength={200} value={form.addressNote} onChange={(e) => set("addressNote", e.target.value)} className={`${fieldClass} text-lg`} />
+                    <input
+                      id="addressNote"
+                      maxLength={200}
+                      value={form.addressNote}
+                      onChange={(e) => set("addressNote", e.target.value)}
+                      className={`${fieldClass} text-lg`}
+                    />
                   </Field>
                 </motion.fieldset>
               )}
@@ -370,60 +494,111 @@ export default function OrderView() {
                 <p className="font-display text-2xl text-cream">{o.loginTitle}</p>
                 <p className="mt-2 text-sm leading-relaxed text-cream/75">{o.loginText}</p>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <Link href="/login?next=/bestellen" className="rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink">
+                  <Link
+                    href="/login?next=/bestellen"
+                    className="rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink"
+                  >
                     {o.loginButton}
                   </Link>
-                  <Link href="/login?mode=register&next=/bestellen" className="rounded-full border border-gold/60 px-6 py-3 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink">
+                  <Link
+                    href="/login?mode=register&next=/bestellen"
+                    className="rounded-full border border-gold/60 px-6 py-3 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink"
+                  >
                     {o.registerButton}
                   </Link>
                 </div>
               </div>
             ) : (
               <>
-              <fieldset className="space-y-6">
-                <legend className="mb-2 font-display text-2xl text-cream">{o.contact}</legend>
-                <Field id="name" label={o.name} error={err(errors.name)}>
-                  <input id="name" autoComplete="name" value={form.name} onChange={(e) => set("name", e.target.value)} className={`${fieldClass} text-xl`} />
-                </Field>
-                <Field id="phone" label={o.phone} error={err(errors.phone)}>
-                  <input id="phone" type="tel" autoComplete="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} className={`${fieldClass} text-xl`} />
-                </Field>
-                {me && <p className="text-sm text-cream/65">{o.accountEmail(me.email)}</p>}
-                <Field id="note" label={o.note} error={err(errors.note)}>
-                  <input id="note" maxLength={400} value={form.note} onChange={(e) => set("note", e.target.value)} aria-describedby="note-hint" className={`${fieldClass} text-lg`} />
-                </Field>
-                <p id="note-hint" className="-mt-2 text-xs text-cream/55">{o.noteHint}</p>
-              </fieldset>
+                <fieldset className="space-y-6">
+                  <legend className="mb-2 font-display text-2xl text-cream">{o.contact}</legend>
+                  <Field id="name" label={o.name} error={err(errors.name)}>
+                    <input
+                      id="name"
+                      autoComplete="name"
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                      className={`${fieldClass} text-xl`}
+                    />
+                  </Field>
+                  <Field id="phone" label={o.phone} error={err(errors.phone)}>
+                    <input
+                      id="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      value={form.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      className={`${fieldClass} text-xl`}
+                    />
+                  </Field>
+                  {me && <p className="text-sm text-cream/65">{o.accountEmail(me.email)}</p>}
+                  <Field id="note" label={o.note} error={err(errors.note)}>
+                    <input
+                      id="note"
+                      maxLength={400}
+                      value={form.note}
+                      onChange={(e) => set("note", e.target.value)}
+                      aria-describedby="note-hint"
+                      className={`${fieldClass} text-lg`}
+                    />
+                  </Field>
+                  <p id="note-hint" className="-mt-2 text-xs text-cream/55">
+                    {o.noteHint}
+                  </p>
+                </fieldset>
 
-              {s?.reusable === "offer" && <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOffer}</p>}
-              {s?.reusable === "own" && method === "pickup" && <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOwn}</p>}
-              <fieldset>
-                <legend className="mb-3 font-display text-2xl text-cream">{o.payment}</legend>
-                <div className="grid grid-cols-2 gap-3">
-                  {(["cash", "card"] as const).map((p) => (
-                    <label key={p} className={`cursor-pointer rounded-full border px-4 py-2.5 text-center text-sm font-semibold transition-colors ${payment === p ? "border-gold bg-gold/15 text-gold-soft" : "border-cream/20 text-cream/70"}`}>
-                      <input type="radio" name="payment" value={p} checked={payment === p} onChange={() => setPayment(p)} className="sr-only" />
-                      {p === "cash" ? o.cash : o.card}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+                {s?.reusable === "offer" && (
+                  <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOffer}</p>
+                )}
+                {s?.reusable === "own" && method === "pickup" && (
+                  <p className="border-l-2 border-[#7fcf9c]/60 pl-4 text-sm text-cream/75">{o.reusableOwn}</p>
+                )}
+                <fieldset>
+                  <legend className="mb-3 font-display text-2xl text-cream">{o.payment}</legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["cash", "card"] as const).map((p) => (
+                      <label
+                        key={p}
+                        className={`cursor-pointer rounded-full border px-4 py-2.5 text-center text-sm font-semibold transition-colors ${payment === p ? "border-gold bg-gold/15 text-gold-soft" : "border-cream/20 text-cream/70"}`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={p}
+                          checked={payment === p}
+                          onChange={() => setPayment(p)}
+                          className="sr-only"
+                        />
+                        {p === "cash" ? o.cash : o.card}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
 
-              <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden value={honeypot} onChange={(e) => setHoneypot(e.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" />
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                />
 
-              {serverError && (
-                <p role="alert" className="text-sm text-[#f0a080]">
-                  {serverError}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={!me || !canOrder || sending || cart.length === 0}
-                className="group relative w-full overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink active:scale-[0.99] disabled:opacity-50"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
-                <span className="relative">{sending ? o.placing : o.place(euro(sum.total))}</span>
-              </button>
+                {serverError && (
+                  <p role="alert" className="text-sm text-[#f0a080]">
+                    {serverError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={!me || !canOrder || sending || cart.length === 0}
+                  className="group relative w-full overflow-hidden rounded-full bg-gold px-8 py-4 font-semibold text-ink active:scale-[0.99] disabled:opacity-50"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-cream transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0" />
+                  <span className="relative">{sending ? o.placing : o.place(euro(sum.total))}</span>
+                </button>
               </>
             )}
             <p className="text-center text-xs leading-relaxed text-cream/55">

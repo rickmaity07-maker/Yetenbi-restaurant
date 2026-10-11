@@ -17,7 +17,8 @@
   --font-ethiopic: var(--font-noto-ethiopic);
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 .lenis.lenis-smooth {
@@ -58,9 +59,17 @@ body {
 }
 
 @keyframes rise {
-  0% { transform: translateY(0) scaleX(1); opacity: 0; }
-  20% { opacity: 0.7; }
-  100% { transform: translateY(-36px) scaleX(1.6); opacity: 0; }
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-36px) scaleX(1.6);
+    opacity: 0;
+  }
 }
 
 .steam {
@@ -69,12 +78,19 @@ body {
 }
 
 @keyframes marquee {
-  to { transform: translateX(-50%); }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes nudge {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(8px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
 }
 
 .text-outline {
@@ -83,7 +99,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
@@ -91,10 +109,20 @@ body {
 
 /* Rising embers in the hero */
 @keyframes ember-rise {
-  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
-  10% { opacity: var(--o, 0.8); }
-  70% { opacity: calc(var(--o, 0.8) * 0.6); }
-  100% { transform: translate3d(var(--drift, 0px), -105vh, 0) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--o, 0.8);
+  }
+  70% {
+    opacity: calc(var(--o, 0.8) * 0.6);
+  }
+  100% {
+    transform: translate3d(var(--drift, 0px), -105vh, 0) scale(0.3);
+    opacity: 0;
+  }
 }
 
 .ember {
@@ -102,10 +130,11 @@ body {
   animation: ember-rise linear infinite;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   text-wrap: balance;
 }
-
 
 :focus-visible {
   outline: 1.5px solid var(--color-gold-soft);
@@ -131,11 +160,22 @@ h1, h2, h3 {
 
 /* Candle glow behind the stelae: opacity only, so it stays on the compositor */
 @keyframes breathe {
-  0%, 100% { opacity: 0.75; }
-  22% { opacity: 0.55; }
-  40% { opacity: 0.95; }
-  63% { opacity: 0.65; }
-  80% { opacity: 0.9; }
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  22% {
+    opacity: 0.55;
+  }
+  40% {
+    opacity: 0.95;
+  }
+  63% {
+    opacity: 0.65;
+  }
+  80% {
+    opacity: 0.9;
+  }
 }
 .glow-breathe {
   animation: breathe 3.2s ease-in-out infinite;
@@ -153,7 +193,12 @@ h1, h2, h3 {
     radial-gradient(ellipse 50% 50% at 0% 100%, rgba(70, 126, 87, 0.08), transparent 70%),
     radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(8, 5, 3, 0.45)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cg transform='translate(64 0)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(128 0)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(192 0)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(0 64)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(64 64)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(128 64)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(192 64)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(0 128)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(64 128)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(192 128)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(0 192)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(64 192)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(128 192)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Cg transform='translate(192 192)'%3E%3Cpath d='M32 6L58 32L32 58L6 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.07' stroke-width='1'/%3E%3Cpath d='M32 18L46 32L32 46L18 32Z' fill='none' stroke='%23c9a24a' stroke-opacity='0.05' stroke-width='0.8'/%3E%3Cpath d='M30.6 27h2.8v3.6H37v2.8h-3.6V37h-2.8v-3.6H27v-2.8h3.6z' fill='%23c9a24a' fill-opacity='0.09'/%3E%3C/g%3E%3Ccircle cx='0' cy='0' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='0' cy='64' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='0' cy='128' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='0' cy='192' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='0' cy='256' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='64' cy='0' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='64' cy='64' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='64' cy='128' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='64' cy='192' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='64' cy='256' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='128' cy='0' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='128' cy='64' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='128' cy='128' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='128' cy='192' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='128' cy='256' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='192' cy='0' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='192' cy='64' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='192' cy='128' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='192' cy='192' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='192' cy='256' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='256' cy='0' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='256' cy='64' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='256' cy='128' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='256' cy='192' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3Ccircle cx='256' cy='256' r='1.4' fill='%23c9a24a' fill-opacity='0.1'/%3E%3C/svg%3E");
-  background-size: auto, auto, auto, auto, 256px 256px;
+  background-size:
+    auto,
+    auto,
+    auto,
+    auto,
+    256px 256px;
 }
 
 /* The admin is a work tool: no lattice, lamps or grain behind it (also saves the GPU on the restaurant's devices). */

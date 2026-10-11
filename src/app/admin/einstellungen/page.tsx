@@ -46,8 +46,8 @@ async function Settings() {
             {restaurant.street}, {restaurant.city} · {restaurant.phone}
           </p>
           <p className="mt-2 text-xs text-cream/50">
-            Stehen fest in der Website, weil Karte, E-Mails und Google-Daten daran hängen. Bei einem Umzug oder einer neuen Nummer bitte den
-            Entwickler informieren.
+            Stehen fest in der Website, weil Karte, E-Mails und Google-Daten daran hängen. Bei einem Umzug oder einer
+            neuen Nummer bitte den Entwickler informieren.
           </p>
         </div>
       </section>

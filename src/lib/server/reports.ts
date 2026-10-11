@@ -12,13 +12,29 @@ type Row = Record<string, unknown>;
 type Range = { from: string; to: string };
 
 type Report = {
-  orders: { completed: number; revenue: number; average: number; deposit: number; fees: number; rejected: number; cancelled: number; all: number };
+  orders: {
+    completed: number;
+    revenue: number;
+    average: number;
+    deposit: number;
+    fees: number;
+    rejected: number;
+    cancelled: number;
+    all: number;
+  };
   byMethod: { method: string; count: number; revenue: number }[];
   byPayment: { payment: string; count: number; revenue: number }[];
   perDay: { day: string; revenue: number; orders: number }[];
   perHour: { hour: number; orders: number }[];
   topDishes: { id: string; name: string; qty: number; revenue: number }[];
-  reservations: { confirmed: number; guests: number; declined: number; cancelled: number; website: number; phone: number };
+  reservations: {
+    confirmed: number;
+    guests: number;
+    declined: number;
+    cancelled: number;
+    website: number;
+    phone: number;
+  };
 };
 
 const inRange = (col: string) => `(${col} at time zone 'Europe/Berlin')::date between $1::date and $2::date`;
@@ -82,7 +98,12 @@ export async function getReport({ from, to }: Range): Promise<Report> {
     byPayment: payment.map((p) => ({ payment: String(p.payment), count: Number(p.count), revenue: Number(p.revenue) })),
     perDay: days.map((d) => ({ day: String(d.day), revenue: Number(d.revenue), orders: Number(d.orders) })),
     perHour: hours.map((h) => ({ hour: Number(h.hour), orders: Number(h.orders) })),
-    topDishes: dishes.map((d) => ({ id: String(d.id), name: String(d.name), qty: Number(d.qty), revenue: Number(d.revenue) })),
+    topDishes: dishes.map((d) => ({
+      id: String(d.id),
+      name: String(d.name),
+      qty: Number(d.qty),
+      revenue: Number(d.revenue),
+    })),
     reservations: {
       confirmed: Number(res[0].confirmed),
       guests: Number(res[0].guests),
@@ -104,8 +125,15 @@ const csvCell = (v: string | number) => {
 const toCsv = (rows: (string | number)[][]) => "﻿" + rows.map((r) => r.map(csvCell).join(";")).join("\r\n") + "\r\n";
 
 const STATUS_DE: Record<string, string> = {
-  new: "neu", accepted: "angenommen", cooked: "zubereitet", packed: "verpackt", ready: "abholbereit",
-  on_the_way: "unterwegs", completed: "abgeschlossen", rejected: "abgelehnt", cancelled: "storniert",
+  new: "neu",
+  accepted: "angenommen",
+  cooked: "zubereitet",
+  packed: "verpackt",
+  ready: "abholbereit",
+  on_the_way: "unterwegs",
+  completed: "abgeschlossen",
+  rejected: "abgelehnt",
+  cancelled: "storniert",
 };
 
 export async function ordersCsv({ from, to }: Range, menu: Menu) {
@@ -117,15 +145,35 @@ export async function ordersCsv({ from, to }: Range, menu: Menu) {
      from orders where ${inRange("created_at")} order by created_at`,
     [from, to],
   )) as Row[];
-  const head = ["Datum", "Uhrzeit", "Nummer", "Status", "Art", "Zahlung", "Speisen (7 %)", "Getränke (19 %)", "Pfand", "Liefergebühr", "Summe"];
+  const head = [
+    "Datum",
+    "Uhrzeit",
+    "Nummer",
+    "Status",
+    "Art",
+    "Zahlung",
+    "Speisen (7 %)",
+    "Getränke (19 %)",
+    "Pfand",
+    "Liefergebühr",
+    "Summe",
+  ];
   const body = rows.map((r) => {
     const lines = r.items as { id: string; qty: number; unit: number }[];
     const food = lines.filter((l) => !drinks.has(l.id)).reduce((n, l) => n + l.qty * l.unit, 0);
     const drink = lines.filter((l) => drinks.has(l.id)).reduce((n, l) => n + l.qty * l.unit, 0);
     return [
-      String(r.day), String(r.time), String(r.reference), STATUS_DE[String(r.status)] ?? String(r.status),
-      r.method === "delivery" ? "Lieferung" : "Abholung", r.payment === "cash" ? "bar" : "Karte",
-      food, drink, Number(r.deposit), Number(r.delivery_fee), Number(r.total),
+      String(r.day),
+      String(r.time),
+      String(r.reference),
+      STATUS_DE[String(r.status)] ?? String(r.status),
+      r.method === "delivery" ? "Lieferung" : "Abholung",
+      r.payment === "cash" ? "bar" : "Karte",
+      food,
+      drink,
+      Number(r.deposit),
+      Number(r.delivery_fee),
+      Number(r.total),
     ];
   });
   return toCsv([head, ...body]);
@@ -137,9 +185,21 @@ export async function reservationsCsv({ from, to }: Range) {
      from reservations where date between $1::date and $2::date order by date, time`,
     [from, to],
   )) as Row[];
-  const status: Record<string, string> = { pending: "offen", confirmed: "bestätigt", declined: "abgelehnt", cancelled: "storniert" };
+  const status: Record<string, string> = {
+    pending: "offen",
+    confirmed: "bestätigt",
+    declined: "abgelehnt",
+    cancelled: "storniert",
+  };
   return toCsv([
     ["Datum", "Uhrzeit", "Personen", "Status", "Quelle", "Nummer"],
-    ...rows.map((r) => [String(r.day), String(r.time), String(r.guests), status[String(r.status)] ?? String(r.status), r.source === "phone" ? "Telefon" : "Website", String(r.reference)]),
+    ...rows.map((r) => [
+      String(r.day),
+      String(r.time),
+      String(r.guests),
+      status[String(r.status)] ?? String(r.status),
+      r.source === "phone" ? "Telefon" : "Website",
+      String(r.reference),
+    ]),
   ]);
 }

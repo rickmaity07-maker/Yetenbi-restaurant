@@ -9,7 +9,13 @@ import { db } from "./db";
 
 type Area = "orders" | "reservations" | "menu" | "photos" | "settings" | "team" | "login" | "customers";
 
-export async function audit(user: Pick<User, "id" | "name" | "role"> | null, area: Area, action: string, target = "", details?: Record<string, unknown>) {
+export async function audit(
+  user: Pick<User, "id" | "name" | "role"> | null,
+  area: Area,
+  action: string,
+  target = "",
+  details?: Record<string, unknown>,
+) {
   try {
     await db()`
       insert into audit_log (user_id, actor, role, area, action, target, details)
@@ -21,7 +27,16 @@ export async function audit(user: Pick<User, "id" | "name" | "role"> | null, are
   }
 }
 
-type AuditEntry = { id: number; at: string; actor: string; role: string; area: Area; action: string; target: string; details: Record<string, unknown> | null };
+type AuditEntry = {
+  id: number;
+  at: string;
+  actor: string;
+  role: string;
+  area: Area;
+  action: string;
+  target: string;
+  details: Record<string, unknown> | null;
+};
 
 export async function listAudit(filter: { area?: string; actor?: string; q?: string; limit?: number }) {
   const rows = (await db()`
@@ -44,7 +59,10 @@ export async function listAudit(filter: { area?: string; actor?: string; q?: str
 }
 
 export async function auditActors() {
-  const rows = (await db()`select distinct actor from audit_log where at > now() - interval '1 year' order by actor`) as { actor: string }[];
+  const rows =
+    (await db()`select distinct actor from audit_log where at > now() - interval '1 year' order by actor`) as {
+      actor: string;
+    }[];
   return rows.map((r) => r.actor);
 }
 
