@@ -123,15 +123,7 @@ export const verificationTexts: Record<Locale, { subject: string; intro: string;
 
 /** Every step of an order is emailed to the guest (if they gave an email address). */
 export type OrderEmailKind =
-  | "received"
-  | "accepted"
-  | "cooked"
-  | "packed"
-  | "ready"
-  | "on_the_way"
-  | "completed"
-  | "rejected"
-  | "cancelled";
+  "received" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
 
 export const orderTexts: Record<
   Locale,

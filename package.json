@@ -33,19 +33,19 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@types/leaflet": "1.9.12",
-    "@types/node": "^20",
+    "@types/leaflet": "1.9.22",
+    "@types/node": "24.19.2",
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.186.0",
-    "axe-core": "4.13.0",
+    "axe-core": "4.14.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
-    "playwright": "1.62.1",
-    "prettier": "3.6.2",
+    "playwright": "1.64.0",
+    "prettier": "3.9.10",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "3.2.4"
+    "vitest": "5.0.3"
   }
 }

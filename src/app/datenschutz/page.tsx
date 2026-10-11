@@ -251,10 +251,10 @@ function German({ owner }: { owner: Owner }) {
       <H>11. Karte</H>
       <p>
         Die Karte im Bereich „Anfahrt“ wird vollständig von unserem eigenen Server geladen. Sie beruht auf Kartendaten
-        von OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL), die wir einmalig heruntergeladen haben. Beim Anzeigen
-        der Karte werden daher keine Daten an Google, OpenStreetMap oder andere Dritte übertragen und keine Cookies
-        gesetzt. Erst der Link „Route planen“ öffnet Google Maps in einem neuen Fenster; dort gelten die
-        Datenschutzbestimmungen von Google.
+        von OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL), die wir einmalig heruntergeladen haben. Beim Anzeigen der
+        Karte werden daher keine Daten an Google, OpenStreetMap oder andere Dritte übertragen und keine Cookies gesetzt.
+        Erst der Link „Route planen“ öffnet Google Maps in einem neuen Fenster; dort gelten die Datenschutzbestimmungen
+        von Google.
       </p>
 
       <H>12. Schriften, Cookies und lokale Speicherung</H>

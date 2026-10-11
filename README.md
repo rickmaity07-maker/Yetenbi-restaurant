@@ -156,6 +156,10 @@ which step, booking slots and validation, opening hours, email and redirect chec
 
 Every push runs types, lint, formatting and the unit tests on GitHub (`.github/workflows/checks.yml`).
 
+`npm audit` shows one known warning ("high", counted five times): `braces` via Next's ESLint plugin
+(`eslint-config-next` → `fast-glob` → `micromatch` → `braces`). No fixed version exists yet; it only affects lint runs on
+our own config, never the website (`npm audit --omit=dev` is clean). It goes away when Next updates its plugin.
+
 
 `npm run test:devices` tests the live site on emulated devices: iPhone 14 and iPad Pro 11 on WebKit (Safari's engine),
 Pixel 7 and a 1440 px desktop on Chromium. It checks the public pages, the menu card, languages, accessibility (axe),

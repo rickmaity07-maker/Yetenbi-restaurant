@@ -133,18 +133,7 @@ export function orderWindow(
 }
 
 export type OrderErrorCode =
-  | "empty"
-  | "item"
-  | "method"
-  | "closed"
-  | "time"
-  | "min"
-  | "postcode"
-  | "street"
-  | "name"
-  | "phone"
-  | "email"
-  | "note";
+  "empty" | "item" | "method" | "closed" | "time" | "min" | "postcode" | "street" | "name" | "phone" | "email" | "note";
 export type OrderErrors = Partial<
   Record<"items" | "method" | "wanted" | "street" | "postcode" | "name" | "phone" | "email" | "note", OrderErrorCode>
 >;
@@ -196,15 +185,7 @@ export function validateOrder(
   → completed (driver, "delivered"). Pickup: … → packed → ready (owner) → completed (owner, "picked up").
 */
 export type OrderStatus =
-  | "new"
-  | "accepted"
-  | "cooked"
-  | "packed"
-  | "ready"
-  | "on_the_way"
-  | "completed"
-  | "rejected"
-  | "cancelled";
+  "new" | "accepted" | "cooked" | "packed" | "ready" | "on_the_way" | "completed" | "rejected" | "cancelled";
 
 /** Orders that are still being worked on. */
 export const OPEN_STATUSES: OrderStatus[] = ["new", "accepted", "cooked", "packed", "ready", "on_the_way"];

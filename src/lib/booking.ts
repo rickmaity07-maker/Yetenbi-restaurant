@@ -25,18 +25,7 @@ export type BookingRequest = {
 };
 
 export type BookingErrorCode =
-  | "date"
-  | "past"
-  | "far"
-  | "closed"
-  | "time"
-  | "slot"
-  | "guests"
-  | "tooMany"
-  | "name"
-  | "email"
-  | "phone"
-  | "note";
+  "date" | "past" | "far" | "closed" | "time" | "slot" | "guests" | "tooMany" | "name" | "email" | "phone" | "note";
 export type BookingErrors = Partial<Record<keyof BookingRequest, BookingErrorCode>>;
 
 /** 1110 → "18:30" (minutes since midnight to a clock time). */
