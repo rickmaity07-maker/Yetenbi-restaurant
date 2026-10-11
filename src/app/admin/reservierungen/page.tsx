@@ -26,41 +26,45 @@ const dayLabel = (iso: string) =>
     timeZone: "UTC",
   });
 
-function Card({ r, past }: { r: Reservation; past: boolean }) {
-  const s = STATUS[r.status];
+function Card({ reservation, past }: { reservation: Reservation; past: boolean }) {
+  const status = STATUS[reservation.status];
   return (
     <li className="border border-gold/25 bg-ink/60 p-5 md:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <p className="font-display text-2xl text-cream">
-          {r.time} Uhr · {r.guests} {r.guests === 1 ? "Person" : "Personen"}
+          {reservation.time} Uhr · {reservation.guests} {reservation.guests === 1 ? "Person" : "Personen"}
         </p>
-        <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${s.tone}`}>{s.label}</span>
+        <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${status.tone}`}>{status.label}</span>
       </div>
       <p className="mt-2 text-lg text-cream/90">
-        {r.name}
-        {r.source === "phone" && <span className="ml-2 text-xs uppercase tracking-[0.2em] text-cream/50">Telefon</span>}
+        {reservation.name}
+        {reservation.source === "phone" && (
+          <span className="ml-2 text-xs uppercase tracking-[0.2em] text-cream/50">Telefon</span>
+        )}
       </p>
       <p className="mt-1 text-sm text-cream/70">
-        <a className="underline decoration-gold/40 underline-offset-4" href={`tel:${r.phone}`}>
-          {r.phone}
+        <a className="underline decoration-gold/40 underline-offset-4" href={`tel:${reservation.phone}`}>
+          {reservation.phone}
         </a>
-        {r.email && (
+        {reservation.email && (
           <>
             {"  ·  "}
-            <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${r.email}`}>
-              {r.email}
+            <a className="underline decoration-gold/40 underline-offset-4" href={`mailto:${reservation.email}`}>
+              {reservation.email}
             </a>
           </>
         )}
         {"  ·  "}
-        {r.reference} · {r.locale.toUpperCase()}
+        {reservation.reference} · {reservation.locale.toUpperCase()}
       </p>
-      {r.note && <p className="mt-3 border-l-2 border-gold/50 pl-3 text-sm italic text-cream/80">{r.note}</p>}
-      {r.staffNote && <p className="mt-2 text-xs text-cream/55">Eure Nachricht: {r.staffNote}</p>}
+      {reservation.note && (
+        <p className="mt-3 border-l-2 border-gold/50 pl-3 text-sm italic text-cream/80">{reservation.note}</p>
+      )}
+      {reservation.staffNote && <p className="mt-2 text-xs text-cream/55">Eure Nachricht: {reservation.staffNote}</p>}
 
-      {!past && r.status === "pending" && (
+      {!past && reservation.status === "pending" && (
         <form action={decide} className="mt-5 space-y-3">
-          <input type="hidden" name="id" value={r.id} />
+          <input type="hidden" name="id" value={reservation.id} />
           <input
             name="note"
             maxLength={400}
@@ -86,10 +90,10 @@ function Card({ r, past }: { r: Reservation; past: boolean }) {
           </div>
         </form>
       )}
-      {!past && r.status === "confirmed" && (
+      {!past && reservation.status === "confirmed" && (
         <form action={decide} className="mt-4">
-          <input type="hidden" name="id" value={r.id} />
-          <input type="hidden" name="note" value={r.staffNote} />
+          <input type="hidden" name="id" value={reservation.id} />
+          <input type="hidden" name="note" value={reservation.staffNote} />
           <button
             name="status"
             value="cancelled"
@@ -125,9 +129,10 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
     upcomingClosures(),
   ]);
   const ordered = past ? [...list].reverse() : list;
-  const pending = list.filter((r) => r.status === "pending");
+  const pending = list.filter((reservation) => reservation.status === "pending");
   const byDate = new Map<string, Reservation[]>();
-  for (const r of ordered) byDate.set(r.date, [...(byDate.get(r.date) ?? []), r]);
+  for (const reservation of ordered)
+    byDate.set(reservation.date, [...(byDate.get(reservation.date) ?? []), reservation]);
 
   return (
     <>
@@ -142,7 +147,7 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
           </p>
           <p>
             <span className="font-display text-3xl text-gold-soft">
-              {list.filter((r) => r.status === "confirmed").length}
+              {list.filter((reservation) => reservation.status === "confirmed").length}
             </span>{" "}
             bestätigt (ab heute)
           </p>
@@ -179,12 +184,15 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
             <h2 className="font-display text-3xl font-semibold text-gold-soft">
               {dayLabel(date)}
               <span className="ml-3 text-base text-cream/55">
-                {items.filter((r) => r.status === "confirmed").reduce((n, r) => n + r.guests, 0)} Gäste bestätigt
+                {items
+                  .filter((reservation) => reservation.status === "confirmed")
+                  .reduce((sum, reservation) => sum + reservation.guests, 0)}{" "}
+                Gäste bestätigt
               </span>
             </h2>
             <ul className="mt-5 grid gap-4 md:grid-cols-2">
-              {items.map((r) => (
-                <Card key={r.id} r={r} past={past} />
+              {items.map((reservation) => (
+                <Card key={reservation.id} reservation={reservation} past={past} />
               ))}
             </ul>
           </section>
@@ -202,17 +210,17 @@ async function Board({ searchParams }: { searchParams: Promise<Record<string, st
             </p>
             {closures.length > 0 && (
               <ul className="mb-6 space-y-2">
-                {closures.map((c) => (
+                {closures.map((closure) => (
                   <li
-                    key={c.date}
+                    key={closure.date}
                     className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 pb-2"
                   >
                     <span className="text-cream">
-                      {dayLabel(c.date)}
-                      {c.note && <span className="text-cream/60"> · {c.note}</span>}
+                      {dayLabel(closure.date)}
+                      {closure.note && <span className="text-cream/60"> · {closure.note}</span>}
                     </span>
                     <form action={removeClosedDay}>
-                      <input type="hidden" name="date" value={c.date} />
+                      <input type="hidden" name="date" value={closure.date} />
                       <button className="text-xs text-cream/60 underline underline-offset-4 hover:text-[#f0a080]">
                         Entfernen
                       </button>

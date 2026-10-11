@@ -15,51 +15,51 @@ const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
 /** The time the food should be done: accepted + the minutes the team promised, or the guest's chosen time. */
-function dueBy(o: Order) {
-  if (o.wanted !== "asap") return `${o.wanted} Uhr ${o.method === "delivery" ? "beim Gast" : "Abholung"}`;
-  if (o.acceptedAt && o.etaMinutes)
-    return `fertig bis ${time(new Date(new Date(o.acceptedAt).getTime() + o.etaMinutes * 60_000).toISOString())}`;
+function dueBy(order: Order) {
+  if (order.wanted !== "asap") return `${order.wanted} Uhr ${order.method === "delivery" ? "beim Gast" : "Abholung"}`;
+  if (order.acceptedAt && order.etaMinutes)
+    return `fertig bis ${time(new Date(new Date(order.acceptedAt).getTime() + order.etaMinutes * 60_000).toISOString())}`;
   return "so schnell wie möglich";
 }
 
 /** Only the food: no prices, no guest details. */
-function Ticket({ o }: { o: Order }) {
+function Ticket({ order }: { order: Order }) {
   const next =
-    o.status === "accepted"
+    order.status === "accepted"
       ? { status: "cooked", label: "Essen fertig" }
-      : o.status === "cooked"
+      : order.status === "cooked"
         ? { status: "packed", label: "Verpackt" }
         : null;
   return (
     <li
-      className={`flex flex-col border p-5 ${o.status === "packed" ? "border-cream/15 opacity-60" : o.status === "cooked" ? "border-[#7fcf9c]/60 bg-[#7fcf9c]/[0.05]" : "border-gold bg-gold/[0.05]"}`}
+      className={`flex flex-col border p-5 ${order.status === "packed" ? "border-cream/15 opacity-60" : order.status === "cooked" ? "border-[#7fcf9c]/60 bg-[#7fcf9c]/[0.05]" : "border-gold bg-gold/[0.05]"}`}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <p className="font-display text-3xl text-cream">{o.reference}</p>
+        <p className="font-display text-3xl text-cream">{order.reference}</p>
         <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
-          {o.method === "delivery" ? "Lieferung" : "Abholung"}
+          {order.method === "delivery" ? "Lieferung" : "Abholung"}
         </span>
       </div>
       <p className="mt-1 text-sm text-cream/65">
-        Eingang {time(o.createdAt)} · {dueBy(o)}
+        Eingang {time(order.createdAt)} · {dueBy(order)}
       </p>
       <ul className="mt-4 space-y-2 border-t border-gold/15 pt-4">
-        {o.items.map((l) => (
-          <li key={l.id} className="flex gap-3 text-lg text-cream">
+        {order.items.map((line) => (
+          <li key={line.id} className="flex gap-3 text-lg text-cream">
             <span className="w-10 shrink-0 font-display text-2xl leading-none text-gold-soft tabular-nums">
-              {l.qty}×
+              {line.qty}×
             </span>
-            <span>{l.name}</span>
+            <span>{line.name}</span>
           </li>
         ))}
       </ul>
-      {o.note && (
-        <p className="mt-4 border-l-2 border-[#f0a080] pl-3 text-base text-cream">Hinweis vom Gast: {o.note}</p>
+      {order.note && (
+        <p className="mt-4 border-l-2 border-[#f0a080] pl-3 text-base text-cream">Hinweis vom Gast: {order.note}</p>
       )}
       {next ? (
         <form action={kitchenStep} className="mt-auto pt-6">
-          <input type="hidden" name="id" value={o.id} />
-          <input type="hidden" name="from" value={o.status} />
+          <input type="hidden" name="id" value={order.id} />
+          <input type="hidden" name="from" value={order.status} />
           <button
             name="status"
             value={next.status}
@@ -70,7 +70,7 @@ function Ticket({ o }: { o: Order }) {
         </form>
       ) : (
         <p className="mt-auto pt-6 text-sm text-cream/60">
-          Verpackt um {o.packedAt ? time(o.packedAt) : "–"} · wartet auf Übergabe
+          Verpackt um {order.packedAt ? time(order.packedAt) : "–"} · wartet auf Übergabe
         </p>
       )}
     </li>
@@ -88,8 +88,8 @@ function Column({ title, hint, orders }: { title: string; hint: string; orders: 
         <p className="mt-6 font-display text-xl italic text-cream/50">Nichts offen.</p>
       ) : (
         <ul className="mt-5 grid gap-4">
-          {orders.map((o) => (
-            <Ticket key={o.id} o={o} />
+          {orders.map((order) => (
+            <Ticket key={order.id} order={order} />
           ))}
         </ul>
       )}
@@ -111,17 +111,17 @@ async function Board() {
         <Column
           title="Zubereiten"
           hint="Angenommene Bestellungen, älteste zuerst."
-          orders={orders.filter((o) => o.status === "accepted")}
+          orders={orders.filter((order) => order.status === "accepted")}
         />
         <Column
           title="Verpacken"
           hint="Essen ist fertig, jetzt einpacken."
-          orders={orders.filter((o) => o.status === "cooked")}
+          orders={orders.filter((order) => order.status === "cooked")}
         />
         <Column
           title="Verpackt"
           hint="Wartet auf Fahrer oder Abholung."
-          orders={orders.filter((o) => o.status === "packed")}
+          orders={orders.filter((order) => order.status === "packed")}
         />
       </div>
     </>

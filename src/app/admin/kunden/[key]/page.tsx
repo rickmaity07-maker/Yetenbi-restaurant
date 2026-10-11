@@ -50,8 +50,8 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
   const key = decodeKey((await params).key);
-  const c = key ? await getCustomer(key) : null;
-  if (!c) notFound();
+  const customer = key ? await getCustomer(key) : null;
+  if (!customer) notFound();
 
   return (
     <>
@@ -63,25 +63,25 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
       </Link>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
         <div>
-          <h2 className="font-display text-3xl font-semibold text-cream">{c.name || "Ohne Namen"}</h2>
+          <h2 className="font-display text-3xl font-semibold text-cream">{customer.name || "Ohne Namen"}</h2>
           <p className="mt-1 text-cream/70">
-            {c.email && (
-              <a href={`mailto:${c.email}`} className="underline decoration-gold/40 underline-offset-4">
-                {c.email}
+            {customer.email && (
+              <a href={`mailto:${customer.email}`} className="underline decoration-gold/40 underline-offset-4">
+                {customer.email}
               </a>
             )}
-            {c.email && c.phone && " · "}
-            {c.phone && (
-              <a href={`tel:${c.phone}`} className="underline decoration-gold/40 underline-offset-4">
-                {c.phone}
+            {customer.email && customer.phone && " · "}
+            {customer.phone && (
+              <a href={`tel:${customer.phone}`} className="underline decoration-gold/40 underline-offset-4">
+                {customer.phone}
               </a>
             )}
           </p>
           <p className="mt-2 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full border border-cream/20 px-2.5 py-0.5 text-cream/65">
-              {c.hasAccount ? "Mit Kundenkonto" : "Ohne Konto"}
+              {customer.hasAccount ? "Mit Kundenkonto" : "Ohne Konto"}
             </span>
-            {c.blocked && (
+            {customer.blocked && (
               <span className="rounded-full border border-[#f0a080]/70 px-2.5 py-0.5 text-[#f0a080]">
                 Für Online-Bestellungen gesperrt
               </span>
@@ -91,15 +91,15 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
         <dl className="grid grid-cols-3 gap-6 text-right">
           <div>
             <dt className="text-[0.62rem] uppercase tracking-[0.22em] text-gold">Bestellungen</dt>
-            <dd className="font-display text-3xl tabular-nums text-cream">{c.completed}</dd>
+            <dd className="font-display text-3xl tabular-nums text-cream">{customer.completed}</dd>
           </div>
           <div>
             <dt className="text-[0.62rem] uppercase tracking-[0.22em] text-gold">Umsatz</dt>
-            <dd className="font-display text-3xl tabular-nums text-cream">{euro(c.revenue)}</dd>
+            <dd className="font-display text-3xl tabular-nums text-cream">{euro(customer.revenue)}</dd>
           </div>
           <div>
             <dt className="text-[0.62rem] uppercase tracking-[0.22em] text-gold">Reservierungen</dt>
-            <dd className="font-display text-3xl tabular-nums text-cream">{c.bookings.length}</dd>
+            <dd className="font-display text-3xl tabular-nums text-cream">{customer.bookings.length}</dd>
           </div>
         </dl>
       </div>
@@ -107,18 +107,18 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
       <div className="mt-10 grid gap-10 lg:grid-cols-2">
         <section>
           <h3 className="font-display text-xl font-semibold text-gold-soft">Bestellungen</h3>
-          {c.orders.length === 0 ? (
+          {customer.orders.length === 0 ? (
             <p className="mt-3 text-sm text-cream/55">Keine.</p>
           ) : (
             <ul className="mt-3 divide-y divide-gold/10 border-y border-gold/10 text-sm">
-              {c.orders.map((o) => (
-                <li key={o.reference} className="flex flex-wrap justify-between gap-3 py-2">
+              {customer.orders.map((order) => (
+                <li key={order.reference} className="flex flex-wrap justify-between gap-3 py-2">
                   <span className="text-cream">
-                    {o.reference}{" "}
-                    <span className="text-cream/50">· {o.method === "delivery" ? "Lieferung" : "Abholung"}</span>
+                    {order.reference}{" "}
+                    <span className="text-cream/50">· {order.method === "delivery" ? "Lieferung" : "Abholung"}</span>
                   </span>
                   <span className="tabular-nums text-cream/65">
-                    {when(o.createdAt)} · {ORDER_STATUS[o.status] ?? o.status} · {euro(o.total)}
+                    {when(order.createdAt)} · {ORDER_STATUS[order.status] ?? order.status} · {euro(order.total)}
                   </span>
                 </li>
               ))}
@@ -127,18 +127,18 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
         </section>
         <section>
           <h3 className="font-display text-xl font-semibold text-gold-soft">Reservierungen</h3>
-          {c.bookings.length === 0 ? (
+          {customer.bookings.length === 0 ? (
             <p className="mt-3 text-sm text-cream/55">Keine.</p>
           ) : (
             <ul className="mt-3 divide-y divide-gold/10 border-y border-gold/10 text-sm">
-              {c.bookings.map((b) => (
-                <li key={b.reference} className="flex flex-wrap justify-between gap-3 py-2">
+              {customer.bookings.map((booking) => (
+                <li key={booking.reference} className="flex flex-wrap justify-between gap-3 py-2">
                   <span className="text-cream">
-                    {date(b.date)} · {b.time} Uhr · {b.guests} P.
+                    {date(booking.date)} · {booking.time} Uhr · {booking.guests} P.
                   </span>
                   <span className="text-cream/65">
-                    {BOOKING_STATUS[b.status] ?? b.status}
-                    {b.source === "phone" && " · telefonisch"}
+                    {BOOKING_STATUS[booking.status] ?? booking.status}
+                    {booking.source === "phone" && " · telefonisch"}
                   </span>
                 </li>
               ))}
@@ -150,13 +150,13 @@ async function Detail({ params }: { params: Promise<{ key: string }> }) {
       <section className="mt-10 max-w-2xl">
         <h3 className="font-display text-xl font-semibold text-gold-soft">Notiz des Teams</h3>
         <div className="mt-3">
-          <NoteForm customer={encodeKey(c.key)} note={c.note} />
+          <NoteForm customer={encodeKey(customer.key)} note={customer.note} />
         </div>
       </section>
 
-      {c.phone && !c.blocked && (
+      {customer.phone && !customer.blocked && (
         <form action={blockCustomer} className="mt-8">
-          <input type="hidden" name="key" value={encodeKey(c.key)} />
+          <input type="hidden" name="key" value={encodeKey(customer.key)} />
           <button className="rounded-full border border-[#f0a080]/70 px-4 py-1.5 text-xs font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink">
             Telefonnummer für Online-Bestellungen sperren
           </button>

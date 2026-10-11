@@ -27,9 +27,9 @@ type Status = {
 /** Live order status: polls every 15 seconds until the order is finished. */
 export default function StatusView() {
   const { t, locale } = useLanguage();
-  const o = t.order;
+  const text = t.order;
   const params = useSearchParams();
-  const r = params.get("r") ?? "";
+  const reference = params.get("r") ?? "";
   const tok = params.get("t") ?? "";
   const [data, setData] = useState<Status | null>(null);
   const [missing, setMissing] = useState(false);
@@ -39,17 +39,17 @@ export default function StatusView() {
     let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
       try {
-        const res = await fetch(`/api/order/status?r=${encodeURIComponent(r)}&t=${encodeURIComponent(tok)}`, {
+        const res = await fetch(`/api/order/status?r=${encodeURIComponent(reference)}&t=${encodeURIComponent(tok)}`, {
           cache: "no-store",
         });
         if (res.status === 404) {
           setMissing(true);
           return;
         }
-        const d = (await res.json()) as Status;
+        const latest = (await res.json()) as Status;
         if (stop) return;
-        setData(d);
-        if (!["completed", "rejected", "cancelled"].includes(d.status)) timer = setTimeout(load, 15000);
+        setData(latest);
+        if (!["completed", "rejected", "cancelled"].includes(latest.status)) timer = setTimeout(load, 15000);
       } catch {
         timer = setTimeout(load, 20000);
       }
@@ -59,9 +59,9 @@ export default function StatusView() {
       stop = true;
       clearTimeout(timer);
     };
-  }, [r, tok]);
+  }, [reference, tok]);
 
-  if (missing) return <p className="font-display text-2xl italic text-cream/80">{o.notFound}</p>;
+  if (missing) return <p className="font-display text-2xl italic text-cream/80">{text.notFound}</p>;
   if (!data) return <div className="h-80" aria-busy />;
 
   const steps: OrderStatus[] = [
@@ -78,22 +78,22 @@ export default function StatusView() {
 
   const message = failed
     ? data.status === "rejected"
-      ? o.rejectedText
-      : o.cancelledText
+      ? text.rejectedText
+      : text.cancelledText
     : data.status === "completed"
-      ? o.doneText
+      ? text.doneText
       : data.status === "new"
-        ? o.waiting
+        ? text.waiting
         : data.etaMinutes
-          ? o.eta(data.etaMinutes, data.method === "delivery")
-          : o.status[data.status];
+          ? text.eta(data.etaMinutes, data.method === "delivery")
+          : text.status[data.status];
 
   return (
     <div>
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
-        {o.reference} {data.reference}
+        {text.reference} {data.reference}
       </p>
-      <h1 className="mt-3 font-display text-4xl font-semibold text-cream md:text-5xl">{o.statusTitle}</h1>
+      <h1 className="mt-3 font-display text-4xl font-semibold text-cream md:text-5xl">{text.statusTitle}</h1>
       <p className="mt-4 font-display text-2xl italic text-cream/85" aria-live="polite">
         {message}
       </p>
@@ -113,7 +113,7 @@ export default function StatusView() {
                 >
                   {done ? <Check size={18} weight="bold" /> : i + 1}
                 </motion.span>
-                <span className={`text-xs ${done ? "text-cream" : "text-cream/45"}`}>{o.status[step]}</span>
+                <span className={`text-xs ${done ? "text-cream" : "text-cream/45"}`}>{text.status[step]}</span>
               </li>
             );
           })}
@@ -122,45 +122,45 @@ export default function StatusView() {
 
       <div className="mt-10 border border-gold/25 bg-ink/40 p-5">
         <p className="text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-gold">
-          {data.method === "delivery" ? o.delivery : o.pickup} ·{" "}
-          {data.wanted === "asap" ? o.asap(0).split(" (")[0] : t.clock(data.wanted)}
+          {data.method === "delivery" ? text.delivery : text.pickup} ·{" "}
+          {data.wanted === "asap" ? text.asap(0).split(" (")[0] : t.clock(data.wanted)}
         </p>
         <ul className="mt-4 space-y-2 text-sm">
-          {data.items.map((l) => (
-            <li key={l.id} className="flex justify-between gap-3">
+          {data.items.map((line) => (
+            <li key={line.id} className="flex justify-between gap-3">
               <span className="text-cream">
-                {l.qty} × {l.names?.[locale] ?? l.name}
+                {line.qty} × {line.names?.[locale] ?? line.name}
               </span>
-              <span className="tabular-nums text-cream/80">{euro(l.qty * l.unit)}</span>
+              <span className="tabular-nums text-cream/80">{euro(line.qty * line.unit)}</span>
             </li>
           ))}
         </ul>
         <dl className="mt-4 space-y-1 border-t border-gold/20 pt-4 text-sm">
           {(data.deposit ?? 0) > 0 && (
             <div className="flex justify-between text-cream/75">
-              <dt>{o.deposit}</dt>
+              <dt>{text.deposit}</dt>
               <dd className="tabular-nums">{euro(data.deposit ?? 0)}</dd>
             </div>
           )}
           {data.deliveryFee > 0 && (
             <div className="flex justify-between text-cream/75">
-              <dt>{o.deliveryFee}</dt>
+              <dt>{text.deliveryFee}</dt>
               <dd className="tabular-nums">{euro(data.deliveryFee)}</dd>
             </div>
           )}
           <div className="flex justify-between font-display text-2xl text-gold-soft">
-            <dt>{o.total}</dt>
+            <dt>{text.total}</dt>
             <dd className="tabular-nums">{euro(data.total)}</dd>
           </div>
         </dl>
       </div>
 
-      <p className="mt-6 text-sm text-cream/60">{o.keepPage}</p>
+      <p className="mt-6 text-sm text-cream/60">{text.keepPage}</p>
       <Link
         href="/bestellen"
         className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
       >
-        {o.again}
+        {text.again}
       </Link>
     </div>
   );

@@ -10,49 +10,50 @@ import { markDelivered } from "./actions";
 
 export const metadata: Metadata = { title: "Lieferungen | Yetenbi", robots: { index: false, follow: false } };
 
-const euro = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+const euro = (sum: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(sum);
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
-const mapsUrl = (o: Order) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.street}, ${o.postcode} ${o.city}`)}`;
+const mapsUrl = (order: Order) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.street}, ${order.postcode} ${order.city}`)}`;
 
-function Delivery({ o, showDriver }: { o: Order; showDriver: boolean }) {
-  const pieces = o.items.reduce((n, l) => n + l.qty, 0);
+function Delivery({ order, showDriver }: { order: Order; showDriver: boolean }) {
+  const pieces = order.items.reduce((sum, line) => sum + line.qty, 0);
   return (
     <li className="border border-gold bg-gold/[0.05] p-5">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="font-display text-3xl text-cream">{o.reference}</p>
-        <span className="text-sm text-cream/60">los {o.outAt ? time(o.outAt) : "–"}</span>
+        <p className="font-display text-3xl text-cream">{order.reference}</p>
+        <span className="text-sm text-cream/60">los {order.outAt ? time(order.outAt) : "–"}</span>
       </div>
       <p className="mt-3 text-lg text-cream">
-        <strong className="font-semibold">{o.name}</strong>
+        <strong className="font-semibold">{order.name}</strong>
       </p>
       <a
-        href={mapsUrl(o)}
+        href={mapsUrl(order)}
         target="_blank"
         rel="noreferrer"
         className="mt-1 block text-lg text-cream underline decoration-gold/50 underline-offset-4"
       >
-        {o.street}, {o.postcode} {o.city}
+        {order.street}, {order.postcode} {order.city}
       </a>
-      {o.addressNote && <p className="mt-1 text-cream/75">{o.addressNote}</p>}
+      {order.addressNote && <p className="mt-1 text-cream/75">{order.addressNote}</p>}
       <a
-        href={`tel:${o.phone}`}
+        href={`tel:${order.phone}`}
         className="mt-3 inline-block rounded-full border border-cream/30 px-4 py-1.5 text-sm font-semibold text-cream"
       >
-        Anrufen: {o.phone}
+        Anrufen: {order.phone}
       </a>
       <p className="mt-4 border-t border-gold/15 pt-4 text-cream">
-        {o.payment === "cash" ? "Bar kassieren" : "Kartenzahlung an der Tür"}:{" "}
-        <span className="font-display text-2xl text-gold-soft">{euro(o.total)}</span>
+        {order.payment === "cash" ? "Bar kassieren" : "Kartenzahlung an der Tür"}:{" "}
+        <span className="font-display text-2xl text-gold-soft">{euro(order.total)}</span>
       </p>
       <p className="mt-1 text-sm text-cream/60">
-        {pieces} {pieces === 1 ? "Gericht" : "Gerichte"}: {o.items.map((l) => `${l.qty}× ${l.name}`).join(", ")}
+        {pieces} {pieces === 1 ? "Gericht" : "Gerichte"}:{" "}
+        {order.items.map((line) => `${line.qty}× ${line.name}`).join(", ")}
       </p>
-      {o.note && <p className="mt-2 border-l-2 border-gold/50 pl-3 text-sm text-cream/80">{o.note}</p>}
-      {showDriver && <p className="mt-2 text-sm text-cream/60">Fahrer: {o.driverName ?? "ohne Konto"}</p>}
+      {order.note && <p className="mt-2 border-l-2 border-gold/50 pl-3 text-sm text-cream/80">{order.note}</p>}
+      {showDriver && <p className="mt-2 text-sm text-cream/60">Fahrer: {order.driverName ?? "ohne Konto"}</p>}
       <form action={markDelivered} className="mt-5">
-        <input type="hidden" name="id" value={o.id} />
+        <input type="hidden" name="id" value={order.id} />
         <button className="w-full rounded-full bg-[#7fcf9c] py-4 text-lg font-semibold text-ink">Zugestellt</button>
       </form>
     </li>
@@ -65,9 +66,9 @@ async function Board() {
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
   const owner = me.role === "owner";
   const orders = await listDriverOrders(owner ? null : me.id);
-  const open = orders.filter((o) => o.status === "on_the_way");
-  const done = orders.filter((o) => o.status === "completed");
-  const cash = done.filter((o) => o.payment === "cash").reduce((n, o) => n + o.total, 0);
+  const open = orders.filter((order) => order.status === "on_the_way");
+  const done = orders.filter((order) => order.status === "completed");
+  const cash = done.filter((order) => order.payment === "cash").reduce((sum, order) => sum + order.total, 0);
   return (
     <>
       <StaffHeader title="Lieferungen" me={me} />
@@ -78,8 +79,8 @@ async function Board() {
         </p>
       ) : (
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
-          {open.map((o) => (
-            <Delivery key={o.id} o={o} showDriver={owner} />
+          {open.map((order) => (
+            <Delivery key={order.id} order={order} showDriver={owner} />
           ))}
         </ul>
       )}
@@ -88,14 +89,15 @@ async function Board() {
         <p className="mt-1 text-sm text-cream/60">Bar kassiert: {euro(cash)}</p>
         {done.length > 0 && (
           <ul className="mt-4 divide-y divide-gold/10 border-y border-gold/10 text-sm">
-            {done.map((o) => (
-              <li key={o.id} className="flex flex-wrap justify-between gap-3 py-3 text-cream/80">
+            {done.map((order) => (
+              <li key={order.id} className="flex flex-wrap justify-between gap-3 py-3 text-cream/80">
                 <span>
-                  {o.reference} · {o.street}
-                  {owner && o.driverName ? ` · ${o.driverName}` : ""}
+                  {order.reference} · {order.street}
+                  {owner && order.driverName ? ` · ${order.driverName}` : ""}
                 </span>
                 <span className="tabular-nums">
-                  {o.completedAt ? time(o.completedAt) : ""} · {euro(o.total)} {o.payment === "cash" ? "bar" : "Karte"}
+                  {order.completedAt ? time(order.completedAt) : ""} · {euro(order.total)}{" "}
+                  {order.payment === "cash" ? "bar" : "Karte"}
                 </span>
               </li>
             ))}

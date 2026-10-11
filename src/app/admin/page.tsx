@@ -57,14 +57,15 @@ async function Overview() {
   await connection();
   const me = await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const [d, settings, menu, business] = await Promise.all([
+  const [dashboard, settings, menu, business] = await Promise.all([
     getDashboard(),
     getOrderSettings(),
     readMenu(),
     readBusiness(),
   ]);
-  const diff = d.revenue.today - d.revenue.sameDayLastWeek;
-  const todo = d.actions.newOrders.length + d.actions.packed.length + d.actions.pendingReservations.length;
+  const diff = dashboard.revenue.today - dashboard.revenue.sameDayLastWeek;
+  const todo =
+    dashboard.actions.newOrders.length + dashboard.actions.packed.length + dashboard.actions.pendingReservations.length;
 
   const warnings: { text: string; href: string }[] = [];
   if (settings.ignoreHours)
@@ -107,8 +108,8 @@ async function Overview() {
         </h2>
         {todo > 0 && (
           <ul className="mt-4 divide-y divide-gold/10 border-y border-gold/10">
-            {d.actions.newOrders.map((o) => (
-              <li key={`o${o.id}`}>
+            {dashboard.actions.newOrders.map((order) => (
+              <li key={`o${order.id}`}>
                 <Link
                   href="/admin/bestellungen"
                   className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-gold/[0.04]"
@@ -117,16 +118,16 @@ async function Overview() {
                     <span className="mr-3 rounded-full bg-gold px-2.5 py-0.5 text-xs font-semibold text-ink">
                       Neue Bestellung
                     </span>
-                    {o.reference} · {o.name} · {o.method === "delivery" ? "Lieferung" : "Abholung"}
+                    {order.reference} · {order.name} · {order.method === "delivery" ? "Lieferung" : "Abholung"}
                   </span>
                   <span className="text-sm tabular-nums text-cream/65">
-                    {time(o.createdAt)} · {euro(o.total)}
+                    {time(order.createdAt)} · {euro(order.total)}
                   </span>
                 </Link>
               </li>
             ))}
-            {d.actions.packed.map((o) => (
-              <li key={`p${o.id}`}>
+            {dashboard.actions.packed.map((order) => (
+              <li key={`p${order.id}`}>
                 <Link
                   href="/admin/bestellungen"
                   className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-gold/[0.04]"
@@ -135,14 +136,14 @@ async function Overview() {
                     <span className="mr-3 rounded-full bg-[#7fcf9c] px-2.5 py-0.5 text-xs font-semibold text-ink">
                       Verpackt
                     </span>
-                    {o.reference} · {o.name} ·{" "}
-                    {o.method === "delivery" ? "an Fahrer übergeben" : "als abholbereit markieren"}
+                    {order.reference} · {order.name} ·{" "}
+                    {order.method === "delivery" ? "an Fahrer übergeben" : "als abholbereit markieren"}
                   </span>
                 </Link>
               </li>
             ))}
-            {d.actions.pendingReservations.map((r) => (
-              <li key={`r${r.id}`}>
+            {dashboard.actions.pendingReservations.map((reservation) => (
+              <li key={`r${reservation.id}`}>
                 <Link
                   href="/admin/reservierungen"
                   className="flex flex-wrap items-center justify-between gap-3 py-3 hover:bg-gold/[0.04]"
@@ -151,10 +152,10 @@ async function Overview() {
                     <span className="mr-3 rounded-full border border-gold/60 px-2.5 py-0.5 text-xs font-semibold text-gold-soft">
                       Reservierungsanfrage
                     </span>
-                    {r.name} · {r.guests} {r.guests === 1 ? "Person" : "Personen"}
+                    {reservation.name} · {reservation.guests} {reservation.guests === 1 ? "Person" : "Personen"}
                   </span>
                   <span className="text-sm text-cream/65">
-                    {dayLabel(r.date)} · {r.time} Uhr
+                    {dayLabel(reservation.date)} · {reservation.time} Uhr
                   </span>
                 </Link>
               </li>
@@ -167,29 +168,29 @@ async function Overview() {
       <section className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile
           label="Umsatz heute"
-          value={euroShort(d.revenue.today)}
-          sub={`${diff >= 0 ? "+" : "−"}${euroShort(Math.abs(diff))} ggü. letzter Woche (${euroShort(d.revenue.sameDayLastWeek)})`}
+          value={euroShort(dashboard.revenue.today)}
+          sub={`${diff >= 0 ? "+" : "−"}${euroShort(Math.abs(diff))} ggü. letzter Woche (${euroShort(dashboard.revenue.sameDayLastWeek)})`}
           href="/admin/berichte"
         />
         <Tile
           label="Bestellungen heute"
-          value={String(d.orders.today)}
-          sub={`${d.orders.open} offen · ${d.orders.onTheWay} unterwegs`}
+          value={String(dashboard.orders.today)}
+          sub={`${dashboard.orders.open} offen · ${dashboard.orders.onTheWay} unterwegs`}
           href="/admin/bestellungen"
-          alert={d.orders.new > 0}
+          alert={dashboard.orders.new > 0}
         />
         <Tile
           label="Gäste heute (Reservierung)"
-          value={String(d.reservations.todayGuests)}
-          sub={`${d.reservations.todayCount} Tische`}
+          value={String(dashboard.reservations.todayGuests)}
+          sub={`${dashboard.reservations.todayCount} Tische`}
           href="/admin/reservierungen"
         />
         <Tile
           label="Offene Anfragen"
-          value={String(d.reservations.pending)}
+          value={String(dashboard.reservations.pending)}
           sub="Reservierungen ab heute"
           href="/admin/reservierungen"
-          alert={d.reservations.pending > 0}
+          alert={dashboard.reservations.pending > 0}
         />
       </section>
 
@@ -198,11 +199,11 @@ async function Overview() {
           <h2 className="mb-4 font-display text-2xl font-semibold text-gold-soft">Umsatz der letzten 14 Tage</h2>
           <ColumnChart
             title="Abgeschlossene Bestellungen pro Tag, in Euro"
-            data={d.revenue.last14.map((x) => ({
-              key: x.day,
-              label: dayLabel(x.day),
-              value: x.total,
-              detail: `${x.orders} Bestellungen`,
+            data={dashboard.revenue.last14.map((day) => ({
+              key: day.day,
+              label: dayLabel(day.day),
+              value: day.total,
+              detail: `${day.orders} Bestellungen`,
             }))}
             unit="euro"
             labelEvery={3}
@@ -210,18 +211,18 @@ async function Overview() {
         </section>
         <section className="lg:col-span-2">
           <h2 className="mb-4 font-display text-2xl font-semibold text-gold-soft">Reservierungen heute</h2>
-          {d.todaysBookings.length === 0 ? (
+          {dashboard.todaysBookings.length === 0 ? (
             <p className="text-cream/55">Keine Reservierungen für heute.</p>
           ) : (
             <ul className="divide-y divide-gold/10 border-y border-gold/10 text-sm">
-              {d.todaysBookings.map((b) => (
-                <li key={b.id} className="flex justify-between gap-3 py-2">
+              {dashboard.todaysBookings.map((booking) => (
+                <li key={booking.id} className="flex justify-between gap-3 py-2">
                   <span className="text-cream">
-                    <span className="mr-3 tabular-nums text-gold-soft">{b.time}</span>
-                    {b.name}
-                    {b.status === "pending" && <span className="ml-2 text-xs text-[#f0a080]">unbestätigt</span>}
+                    <span className="mr-3 tabular-nums text-gold-soft">{booking.time}</span>
+                    {booking.name}
+                    {booking.status === "pending" && <span className="ml-2 text-xs text-[#f0a080]">unbestätigt</span>}
                   </span>
-                  <span className="text-cream/60">{b.guests} P.</span>
+                  <span className="text-cream/60">{booking.guests} P.</span>
                 </li>
               ))}
             </ul>
@@ -233,11 +234,11 @@ async function Overview() {
         <section className="mt-12">
           <h2 className="font-display text-xl font-semibold text-gold-soft">Hinweise</h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {warnings.map((w) => (
-              <li key={w.text}>
-                <Link href={w.href} className="flex gap-2 text-[#f0a080] hover:underline">
+            {warnings.map((warning) => (
+              <li key={warning.text}>
+                <Link href={warning.href} className="flex gap-2 text-[#f0a080] hover:underline">
                   <span aria-hidden>!</span>
-                  {w.text}
+                  {warning.text}
                 </Link>
               </li>
             ))}

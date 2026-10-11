@@ -29,7 +29,7 @@ function GoogleButton({ label, next }: { label: string; next: string }) {
 
 export default function LoginView({ googleEnabled }: { googleEnabled: boolean }) {
   const { t, locale } = useLanguage();
-  const a = t.account;
+  const text = t.account;
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   const [mode, setMode] = useState<Mode>(params.get("mode") === "register" ? "register" : "login");
@@ -37,26 +37,28 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
   const [registerState, registerAction, registerPending] = useActionState(register, null);
   const [resetState, resetAction, resetPending] = useActionState(requestReset, null);
 
-  const title = mode === "login" ? a.loginTitle : mode === "register" ? a.registerTitle : a.forgotTitle;
-  const lead = mode === "login" ? a.loginLead : mode === "register" ? a.registerLead : a.forgotLead;
+  const title = mode === "login" ? text.loginTitle : mode === "register" ? text.registerTitle : text.forgotTitle;
+  const lead = mode === "login" ? text.loginLead : mode === "register" ? text.registerLead : text.forgotLead;
 
   return (
     <div>
       {mode !== "forgot" && (
         <div role="tablist" className="mb-10 flex gap-6 border-b border-gold/20">
-          {(["login", "register"] as const).map((m) => (
+          {(["login", "register"] as const).map((option) => (
             <button
-              key={m}
+              key={option}
               role="tab"
               type="button"
-              aria-selected={mode === m}
-              onClick={() => setMode(m)}
+              aria-selected={mode === option}
+              onClick={() => setMode(option)}
               className={`relative pb-3 text-[0.72rem] font-semibold uppercase tracking-[0.3em] transition-colors ${
-                mode === m ? "text-gold-soft" : "text-cream/50 hover:text-cream/80"
+                mode === option ? "text-gold-soft" : "text-cream/50 hover:text-cream/80"
               }`}
             >
-              {m === "login" ? a.signIn : a.signUp}
-              {mode === m && <motion.span layoutId="auth-tab" className="absolute inset-x-0 -bottom-px h-px bg-gold" />}
+              {option === "login" ? text.signIn : text.signUp}
+              {mode === option && (
+                <motion.span layoutId="auth-tab" className="absolute inset-x-0 -bottom-px h-px bg-gold" />
+              )}
             </button>
           ))}
         </div>
@@ -67,17 +69,17 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
 
       {mode !== "forgot" && googleEnabled && (
         <div className="mt-8">
-          <GoogleButton label={a.google} next={next} />
+          <GoogleButton label={text.google} next={next} />
           <div className="mt-8 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-cream/45">
             <span className="h-px flex-1 bg-gold/20" />
-            {a.or}
+            {text.or}
             <span className="h-px flex-1 bg-gold/20" />
           </div>
         </div>
       )}
       {params.get("error") === "google" && (
         <p role="alert" className="mt-6 text-sm text-[#f0a080]">
-          {a.errors.google}
+          {text.errors.google}
         </p>
       )}
 
@@ -92,17 +94,17 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
           {mode === "login" && (
             <form action={loginAction} className={`${googleEnabled ? "mt-2" : "mt-10"} space-y-8`}>
               <input type="hidden" name="next" value={next} />
-              <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
-              <AuthField id="password" label={a.password} type="password" autoComplete="current-password" required />
-              <FormMessage error={loginState?.error && a.errors[loginState.error]} />
+              <AuthField id="email" label={text.email} type="email" autoComplete="email" required />
+              <AuthField id="password" label={text.password} type="password" autoComplete="current-password" required />
+              <FormMessage error={loginState?.error && text.errors[loginState.error]} />
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <SubmitButton pending={loginPending}>{a.signIn}</SubmitButton>
+                <SubmitButton pending={loginPending}>{text.signIn}</SubmitButton>
                 <button
                   type="button"
                   onClick={() => setMode("forgot")}
                   className="text-sm text-cream/70 underline decoration-gold/40 underline-offset-4 hover:text-cream"
                 >
-                  {a.forgot}
+                  {text.forgot}
                 </button>
               </div>
             </form>
@@ -112,45 +114,45 @@ export default function LoginView({ googleEnabled }: { googleEnabled: boolean })
             <form action={registerAction} className={`${googleEnabled ? "mt-2" : "mt-10"} space-y-8`}>
               <input type="hidden" name="next" value={next} />
               <input type="hidden" name="locale" value={locale} />
-              <AuthField id="name" label={a.name} autoComplete="name" required />
-              <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
-              <AuthField id="phone" label={a.phone} type="tel" autoComplete="tel" />
+              <AuthField id="name" label={text.name} autoComplete="name" required />
+              <AuthField id="email" label={text.email} type="email" autoComplete="email" required />
+              <AuthField id="phone" label={text.phone} type="tel" autoComplete="tel" />
               <AuthField
                 id="password"
-                label={a.password}
+                label={text.password}
                 type="password"
                 autoComplete="new-password"
                 minLength={8}
                 required
-                hint={a.passwordHint}
+                hint={text.passwordHint}
               />
               <p className="text-sm text-cream/75">
-                {a.consentPre}{" "}
+                {text.consentPre}{" "}
                 <Link href="/datenschutz" target="_blank" className="text-gold-soft underline underline-offset-4">
-                  {a.consentLink}
+                  {text.consentLink}
                 </Link>
-                {a.consentPost}
+                {text.consentPost}
               </p>
-              <FormMessage error={registerState?.error && a.errors[registerState.error]} />
-              <SubmitButton pending={registerPending}>{a.signUp}</SubmitButton>
+              <FormMessage error={registerState?.error && text.errors[registerState.error]} />
+              <SubmitButton pending={registerPending}>{text.signUp}</SubmitButton>
             </form>
           )}
 
           {mode === "forgot" && (
             <form action={resetAction} className="mt-10 space-y-8">
-              <AuthField id="email" label={a.email} type="email" autoComplete="email" required />
+              <AuthField id="email" label={text.email} type="email" autoComplete="email" required />
               <FormMessage
-                error={resetState?.error && a.errors[resetState.error]}
-                ok={resetState?.ok ? a.linkSent : undefined}
+                error={resetState?.error && text.errors[resetState.error]}
+                ok={resetState?.ok ? text.linkSent : undefined}
               />
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <SubmitButton pending={resetPending}>{a.sendLink}</SubmitButton>
+                <SubmitButton pending={resetPending}>{text.sendLink}</SubmitButton>
                 <button
                   type="button"
                   onClick={() => setMode("login")}
                   className="text-sm text-cream/70 underline decoration-gold/40 underline-offset-4 hover:text-cream"
                 >
-                  {a.back}
+                  {text.back}
                 </button>
               </div>
             </form>

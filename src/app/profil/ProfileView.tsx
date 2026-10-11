@@ -52,15 +52,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function ProfileView({ user, bookings, today, hasPassword, orders }: Props) {
   const { t } = useLanguage();
-  const a = t.account;
+  const text = t.account;
   const [profileState, profileAction, profilePending] = useActionState(updateProfile, null);
   const [pwState, pwAction, pwPending] = useActionState(changePassword, null);
   const [delState, delAction, delPending] = useActionState(deleteAccount, null);
 
   const upcoming = bookings
-    .filter((b) => b.date >= today)
-    .sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time));
-  const past = bookings.filter((b) => b.date < today);
+    .filter((booking) => booking.date >= today)
+    .sort((first, second) => (first.date + first.time).localeCompare(second.date + second.time));
+  const past = bookings.filter((booking) => booking.date < today);
   const dateLabel = (iso: string) =>
     new Date(`${iso}T12:00:00Z`).toLocaleDateString(t.dateLocale, {
       weekday: "short",
@@ -72,31 +72,31 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
 
   const renderList = (items: ProfileBooking[], canCancel: boolean) =>
     items.length === 0 ? (
-      <p className="font-display text-xl italic text-cream/65">{a.none}</p>
+      <p className="font-display text-xl italic text-cream/65">{text.none}</p>
     ) : (
       <ul className="space-y-3">
-        {items.map((b) => (
+        {items.map((booking) => (
           <li
-            key={b.id}
+            key={booking.id}
             className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4"
           >
             <div>
               <p className="font-display text-xl text-cream">
-                {dateLabel(b.date)}, {t.clock(b.time)}
+                {dateLabel(booking.date)}, {t.clock(booking.time)}
               </p>
               <p className="text-sm text-cream/65">
-                {t.reserve.guests}: {b.guests} · {b.reference}
+                {t.reserve.guests}: {booking.guests} · {booking.reference}
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${tone[b.status]}`}>
-                {a.status[b.status]}
+              <span className={`rounded-full border px-3 py-0.5 text-xs font-semibold ${tone[booking.status]}`}>
+                {text.status[booking.status]}
               </span>
-              {canCancel && (b.status === "pending" || b.status === "confirmed") && (
+              {canCancel && (booking.status === "pending" || booking.status === "confirmed") && (
                 <form action={cancelMyBooking}>
-                  <input type="hidden" name="id" value={b.id} />
+                  <input type="hidden" name="id" value={booking.id} />
                   <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-[#f0a080]">
-                    {a.cancel}
+                    {text.cancel}
                   </button>
                 </form>
               )}
@@ -110,7 +110,7 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
     <div className="space-y-12">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{a.hello(user.name)}</h1>
+          <h1 className="font-display text-4xl font-semibold text-cream md:text-5xl">{text.hello(user.name)}</h1>
           <p className="mt-2 text-cream/65">{user.email}</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
@@ -119,49 +119,51 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
               href={homeFor(user.role)}
               className="rounded-full border border-gold/60 px-5 py-2 text-sm font-semibold text-gold-soft hover:bg-gold hover:text-ink"
             >
-              {user.role === "owner" ? a.adminLink : user.role === "kitchen" ? "Zur Küche" : "Zu den Lieferungen"}
+              {user.role === "owner" ? text.adminLink : user.role === "kitchen" ? "Zur Küche" : "Zu den Lieferungen"}
             </Link>
           )}
           <form action={logout}>
-            <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-cream">{a.signOut}</button>
+            <button className="text-sm text-cream/70 underline underline-offset-4 hover:text-cream">
+              {text.signOut}
+            </button>
           </form>
         </div>
       </div>
 
-      <Section title={a.upcoming}>
+      <Section title={text.upcoming}>
         {renderList(upcoming, true)}
         <Link
           href="/#reservieren"
           className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
         >
-          {a.bookNow}
+          {text.bookNow}
         </Link>
       </Section>
 
       {orders.length > 0 && (
         <Section title={t.order.orders}>
           <ul className="space-y-3">
-            {orders.map((o) => (
+            {orders.map((order) => (
               <li
-                key={o.reference}
+                key={order.reference}
                 className="flex flex-wrap items-center justify-between gap-4 border border-gold/20 bg-ink/40 px-5 py-4"
               >
                 <div>
                   <p className="font-display text-xl text-cream">
-                    {new Date(o.createdAt).toLocaleDateString(t.dateLocale, {
+                    {new Date(order.createdAt).toLocaleDateString(t.dateLocale, {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })}{" "}
-                    · {formatEuro(o.total, t.dateLocale)}
+                    · {formatEuro(order.total, t.dateLocale)}
                   </p>
                   <p className="text-sm text-cream/65">
-                    {o.method === "delivery" ? t.order.delivery : t.order.pickup} · {o.reference} ·{" "}
-                    {t.order.status[o.status]}
+                    {order.method === "delivery" ? t.order.delivery : t.order.pickup} · {order.reference} ·{" "}
+                    {t.order.status[order.status]}
                   </p>
                 </div>
                 <a
-                  href={o.url}
+                  href={order.url}
                   className="text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
                 >
                   {t.order.viewStatus}
@@ -172,15 +174,15 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
         </Section>
       )}
 
-      {past.length > 0 && <Section title={a.past}>{renderList(past, false)}</Section>}
+      {past.length > 0 && <Section title={text.past}>{renderList(past, false)}</Section>}
 
-      <Section title={a.details}>
+      <Section title={text.details}>
         <form action={profileAction} className="grid gap-8 md:grid-cols-2">
-          <AuthField id="name" label={a.name} defaultValue={user.name} autoComplete="name" required />
-          <AuthField id="phone" label={a.phone} defaultValue={user.phone} type="tel" autoComplete="tel" />
+          <AuthField id="name" label={text.name} defaultValue={user.name} autoComplete="name" required />
+          <AuthField id="phone" label={text.phone} defaultValue={user.phone} type="tel" autoComplete="tel" />
           <div className="flex flex-col gap-2">
             <label htmlFor="locale" className="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-gold">
-              {a.language}
+              {text.language}
             </label>
             <select
               id="locale"
@@ -188,69 +190,72 @@ export default function ProfileView({ user, bookings, today, hasPassword, orders
               defaultValue={user.locale}
               className={`${fieldClass} [color-scheme:dark]`}
             >
-              {LOCALES.map((l) => (
-                <option key={l} value={l} className="bg-coal text-base">
-                  {content[l].langName}
+              {LOCALES.map((option) => (
+                <option key={option} value={option} className="bg-coal text-base">
+                  {content[option].langName}
                 </option>
               ))}
             </select>
           </div>
           <div className="flex flex-col items-start justify-end gap-3">
             <FormMessage
-              error={profileState?.error && a.errors[profileState.error]}
-              ok={profileState?.ok ? a.saved : undefined}
+              error={profileState?.error && text.errors[profileState.error]}
+              ok={profileState?.ok ? text.saved : undefined}
             />
-            <SubmitButton pending={profilePending}>{a.save}</SubmitButton>
+            <SubmitButton pending={profilePending}>{text.save}</SubmitButton>
           </div>
         </form>
       </Section>
 
-      <Section title={a.changePw}>
-        {!hasPassword && <p className="mb-6 text-cream/75">{a.noPassword}</p>}
+      <Section title={text.changePw}>
+        {!hasPassword && <p className="mb-6 text-cream/75">{text.noPassword}</p>}
         <form action={pwAction} className="grid gap-8 md:grid-cols-2">
           {hasPassword && (
-            <AuthField id="current" label={a.currentPw} type="password" autoComplete="current-password" required />
+            <AuthField id="current" label={text.currentPw} type="password" autoComplete="current-password" required />
           )}
           <AuthField
             id="password"
-            label={a.newPassword}
+            label={text.newPassword}
             type="password"
             autoComplete="new-password"
             minLength={8}
             required
-            hint={a.passwordHint}
+            hint={text.passwordHint}
           />
           <div className="flex flex-col items-start gap-3 md:col-span-2">
-            <FormMessage error={pwState?.error && a.errors[pwState.error]} ok={pwState?.ok ? a.pwChanged : undefined} />
-            <SubmitButton pending={pwPending}>{a.changePw}</SubmitButton>
+            <FormMessage
+              error={pwState?.error && text.errors[pwState.error]}
+              ok={pwState?.ok ? text.pwChanged : undefined}
+            />
+            <SubmitButton pending={pwPending}>{text.changePw}</SubmitButton>
           </div>
         </form>
       </Section>
 
-      <Section title={a.data}>
-        <p className="text-cream/75">{a.dataText}</p>
+      <Section title={text.data}>
+        <p className="text-cream/75">{text.dataText}</p>
         <a
           href="/api/me/export"
           className="mt-4 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
         >
-          {a.export}
+          {text.export}
         </a>
       </Section>
 
-      <Section title={a.deleteTitle}>
-        <p className="max-w-xl text-cream/75">{a.deleteText}</p>
+      <Section title={text.deleteTitle}>
+        <p className="max-w-xl text-cream/75">{text.deleteText}</p>
         <form action={delAction} className="mt-6 grid max-w-md gap-6">
           {hasPassword ? (
-            <AuthField id="current" label={a.currentPw} type="password" autoComplete="current-password" required />
+            <AuthField id="current" label={text.currentPw} type="password" autoComplete="current-password" required />
           ) : (
-            <AuthField id="current" label={a.email} type="email" placeholder={user.email} required />
+            <AuthField id="current" label={text.email} type="email" placeholder={user.email} required />
           )}
-          <FormMessage error={delState?.error && a.errors[delState.error]} />
+          <FormMessage error={delState?.error && text.errors[delState.error]} />
           <button
             disabled={delPending}
             className="w-max rounded-full border border-[#f0a080]/60 px-6 py-3 text-sm font-semibold text-[#f0a080] hover:bg-[#f0a080] hover:text-ink disabled:opacity-60"
           >
-            {a.deleteConfirm}
+            {text.deleteConfirm}
           </button>
         </form>
       </Section>
