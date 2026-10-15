@@ -66,6 +66,9 @@ class Api(baseUrl: String, private val tokenProvider: () -> String?, client: OkH
     suspend fun login(email: String, password: String): LoginResponse =
         json.decodeFromString(raw("POST", "/api/app/login", buildJsonObject { put("email", email); put("password", password) }, auth = false))
 
+    /* The shared demo account, while the website has the app's sign-in switched off; otherwise "login_required". */
+    suspend fun loginDemo(): LoginResponse = json.decodeFromString(raw("POST", "/api/app/login/demo", auth = false))
+
     /* Where "Sign in with Google" starts in the browser; challenge is the SHA-256 of the app's secret. */
     fun googleUrl(challenge: String) = "$base/api/auth/google?app=$challenge"
 

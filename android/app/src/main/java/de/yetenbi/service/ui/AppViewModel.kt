@@ -105,7 +105,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val saved = session.load()
             _state.update { it.copy(language = saved.language, bell = saved.bell) }
-            if (saved.token != null && saved.user != null) startSession(saved.user) else _state.update { it.copy(phase = Phase.SignedOut) }
+            if (saved.token != null && saved.user != null) startSession(saved.user) else signInDemoOrShowLogin()
         }
         viewModelScope.launch { updater.state.collect { s -> _state.update { it.copy(update = s) } } }
         // Look for a new version right away, then every half hour, signed in or not.
@@ -227,6 +227,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /* ---------- Session ---------- */
 
+    /* While the website has the app's sign-in switched off, everyone uses the shared demo account; else the login screen. */
+    private suspend fun signInDemoOrShowLogin() {
+        try {
+            val result = api.loginDemo()
+            session.signIn(result.token, result.user)
+            startSession(result.user)
+        } catch (e: ApiException) {
+            _state.update { it.copy(phase = Phase.SignedOut) }
+        }
+    }
+
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) return
         _state.update { it.copy(loginBusy = true, loginError = null) }
@@ -280,7 +291,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             if (!silent) api.logout()
             session.signOut()
-            _state.update { UiState(phase = Phase.SignedOut, language = it.language, bell = it.bell, update = it.update) }
+            _state.update { UiState(phase = Phase.Loading, language = it.language, bell = it.bell, update = it.update) }
+            signInDemoOrShowLogin()
         }
     }
 

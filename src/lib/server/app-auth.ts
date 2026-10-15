@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
+import { APP_LOGIN } from "@/lib/features";
 import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/roles";
 import { db, hasDatabase } from "./db";
@@ -13,6 +14,8 @@ import { db, hasDatabase } from "./db";
 export type AppUser = { id: number; email: string; name: string; role: Role; locale: Locale };
 
 const TOKEN_DAYS = 30;
+/** The shared account the app uses while APP_LOGIN is off (see /api/app/login/demo). */
+export const DEMO_EMAIL = "demo@service-app.invalid";
 export const APP_ROLES: Role[] = ["service", "owner"];
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
@@ -71,7 +74,9 @@ export async function appUser(request: Request): Promise<AppUser | null> {
     where s.token_hash = ${sha256(token)} and s.kind = 'app' and s.expires_at > now()
       and u.role in ('service', 'owner')
   `) as { id: string; email: string; name: string; role: Role; locale: Locale }[];
-  return row ? { ...row, id: Number(row.id) } : null;
+  // Once sign-in is back on, phones still using the demo account are sent to the login screen.
+  if (!row || (APP_LOGIN && row.email === DEMO_EMAIL)) return null;
+  return { ...row, id: Number(row.id) };
 }
 
 /** A refusal the app understands: a machine-readable code (translated in the app) and an HTTP status. */
