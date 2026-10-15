@@ -1,1 +1,12 @@
 android
+# Deploys from this computer use this file instead of .gitignore: keep secrets and local builds out.
+.env*
+!.env.example
+.vercel
+*.pem
+node_modules
+.next
+out
+coverage
+test-results
+*.tsbuildinfo
