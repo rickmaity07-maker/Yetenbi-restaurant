@@ -7,7 +7,8 @@ import StaffHeader from "@/components/StaffHeader";
 import { requireRole } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import { listKitchenOrders, type Order } from "@/lib/server/orders";
-import { kitchenStep } from "./actions";
+import { listKitchenTickets, type KitchenTicket } from "@/lib/server/service";
+import { kitchenStep, tableReady } from "./actions";
 
 export const metadata: Metadata = { title: "Küche | Yetenbi", robots: { index: false, follow: false } };
 
@@ -77,6 +78,74 @@ function Ticket({ order }: { order: Order }) {
   );
 }
 
+const minutesSince = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+
+/** A round from the service app: table, waiter, the dishes with the guest's wishes. */
+function TableTicket({ ticket }: { ticket: KitchenTicket }) {
+  const done = ticket.readyAt !== null;
+  const waiting = minutesSince(ticket.sentAt);
+  return (
+    <li
+      className={`flex flex-col border p-5 ${done ? "border-cream/15 opacity-60" : waiting >= 20 ? "border-[#f0a080] bg-[#f0a080]/[0.06]" : "border-gold bg-gold/[0.05]"}`}
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-display text-3xl text-cream">Tisch {ticket.table}</p>
+        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Gang {ticket.round}</span>
+      </div>
+      <p className="mt-1 text-sm text-cream/65">
+        {time(ticket.sentAt)} · {ticket.waiter || "Service"} ·{" "}
+        {done ? `fertig ${time(ticket.readyAt!)}` : `seit ${waiting} Min.`}
+      </p>
+      <ul className="mt-4 space-y-2 border-t border-gold/15 pt-4">
+        {ticket.items.map((line) => (
+          <li key={line.id} className="text-lg text-cream">
+            <div className="flex gap-3">
+              <span className="w-10 shrink-0 font-display text-2xl leading-none text-gold-soft tabular-nums">
+                {line.qty}×
+              </span>
+              <span>{line.name}</span>
+            </div>
+            {line.note && <p className="ml-[3.25rem] text-base text-[#f0a080]">→ {line.note}</p>}
+          </li>
+        ))}
+      </ul>
+      {done ? (
+        <p className="mt-auto pt-6 text-sm text-cream/60">Am Pass · wartet auf den Service</p>
+      ) : (
+        <form action={tableReady} className="mt-auto pt-6">
+          <input type="hidden" name="check" value={ticket.checkId} />
+          <input type="hidden" name="round" value={ticket.round} />
+          <button className="w-full rounded-full bg-gold py-4 text-lg font-semibold text-ink">
+            Fertig – Service rufen
+          </button>
+        </form>
+      )}
+    </li>
+  );
+}
+
+function TableTickets({ tickets }: { tickets: KitchenTicket[] }) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-2xl font-semibold text-gold-soft">
+        Tische <span className="text-cream/50">({tickets.filter((ticket) => !ticket.readyAt).length})</span>
+      </h2>
+      <p className="mt-1 text-sm text-cream/55">
+        Aus der Service-App, älteste zuerst. „Fertig“ meldet es sofort auf den Handys und Tablets des Service.
+      </p>
+      {tickets.length === 0 ? (
+        <p className="mt-6 font-display text-xl italic text-cream/50">Keine Tischbestellung offen.</p>
+      ) : (
+        <ul className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {tickets.map((ticket) => (
+            <TableTicket key={`${ticket.checkId}-${ticket.round}`} ticket={ticket} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function Column({ title, hint, orders }: { title: string; hint: string; orders: Order[] }) {
   return (
     <section>
@@ -101,12 +170,13 @@ async function Board() {
   await connection();
   const me = await requireRole(["kitchen", "owner"], "/kueche");
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const orders = await listKitchenOrders();
+  const [orders, tickets] = await Promise.all([listKitchenOrders(), listKitchenTickets()]);
   return (
     <>
       <StaffHeader title="Küche" me={me} />
       <LiveRefresh seconds={15} />
       <LiveAlerts mode="kitchen" />
+      <TableTickets tickets={tickets} />
       <div className="mt-10 grid gap-10 lg:grid-cols-3">
         <Column
           title="Zubereiten"

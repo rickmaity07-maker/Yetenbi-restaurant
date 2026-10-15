@@ -16,6 +16,7 @@ import { useLanguage } from "@/lib/language";
 import { Photo } from "@/components/Photos";
 import { AllergenFacts, DrinkFacts, FactsLegend, useMenu, useTagLabels } from "@/components/MenuFacts";
 import { hasAllergenData, priceText, type Dish } from "@/lib/menu";
+import { ONLINE_ORDERING } from "@/lib/features";
 
 /** Dim photograph bleeding in from one side, like the pictures around the text on the printed menu. */
 function SidePhoto({ src, side }: { src: StaticImageData; side: "left" | "right" }) {
@@ -136,9 +137,11 @@ export default function MenuCard() {
             className="mt-6 text-[clamp(3rem,7vw,6rem)] leading-none text-cream"
           />
           <Lead className="mt-5 max-w-xl text-center">{t.menu.lead}</Lead>
-          <Rise className="mt-8" delay={0.3}>
-            <GoldButton href="/bestellen">{t.order.menuCta}</GoldButton>
-          </Rise>
+          {ONLINE_ORDERING && (
+            <Rise className="mt-8" delay={0.3}>
+              <GoldButton href="/bestellen">{t.order.menuCta}</GoldButton>
+            </Rise>
+          )}
         </div>
 
         <Rise className="mt-16" delay={0.15}>

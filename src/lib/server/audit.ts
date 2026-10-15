@@ -7,7 +7,7 @@ import { db } from "./db";
   Entries older than one year are removed by the daily clean-up.
 */
 
-type Area = "orders" | "reservations" | "menu" | "photos" | "settings" | "team" | "login" | "customers";
+type Area = "orders" | "reservations" | "menu" | "photos" | "settings" | "team" | "login" | "customers" | "service";
 
 export async function audit(
   user: Pick<User, "id" | "name" | "role"> | null,

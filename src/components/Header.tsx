@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/
 import { ArrowUpRight, UserCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useAccount } from "@/lib/account-client";
+import { ONLINE_ORDERING } from "@/lib/features";
 import { homeFor } from "@/lib/roles";
 import { useState } from "react";
 import Jebena from "./Jebena";
@@ -23,14 +24,16 @@ export default function Header() {
   const accountHref = me ? homeFor(me.role) : "/login";
   // The team gets a labelled button to their screen; guests the account icon.
   const staffLabel =
-    me && me.role !== "guest" ? { owner: "Verwaltung", kitchen: "Küche", driver: "Lieferungen" }[me.role] : null;
+    me && me.role !== "guest"
+      ? { owner: "Verwaltung", kitchen: "Küche", driver: "Lieferungen", service: "Service-App" }[me.role]
+      : null;
   const accountLabel = staffLabel ?? (me ? t.account.myAccount : t.account.signIn);
   const links = [
     { href: "#platte", label: t.nav.links.platte },
     { href: "#speisekarte", label: t.nav.links.karte },
     { href: "#kaffee", label: t.nav.links.kaffee },
     { href: "#besuch", label: t.nav.links.anfahrt },
-    { href: "/bestellen", label: t.order.navLink },
+    ...(ONLINE_ORDERING ? [{ href: "/bestellen", label: t.order.navLink }] : []),
   ];
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);

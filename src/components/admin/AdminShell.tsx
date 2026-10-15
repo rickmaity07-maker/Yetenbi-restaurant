@@ -23,6 +23,7 @@ const NAV: Group[] = [
     items: [
       { href: "/admin/bestellungen", label: "Bestellungen", badge: (counts) => counts.newOrders },
       { href: "/admin/reservierungen", label: "Reservierungen", badge: (counts) => counts.pendingReservations },
+      { href: "/admin/service", label: "Service-App & Tische" },
       { href: "/kueche", label: "Küchenbildschirm", external: true },
       { href: "/lieferung", label: "Lieferungen (Fahrer)", external: true },
     ],

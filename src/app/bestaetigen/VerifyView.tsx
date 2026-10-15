@@ -6,6 +6,7 @@ import { useActionState } from "react";
 import { confirmEmail } from "@/app/account-actions";
 import { useLanguage } from "@/lib/language";
 import { FormMessage, SubmitButton } from "@/components/account/AccountShell";
+import { ONLINE_ORDERING } from "@/lib/features";
 
 export default function VerifyView() {
   const { t } = useLanguage();
@@ -21,8 +22,11 @@ export default function VerifyView() {
           <p role="status" className="mt-6 font-display text-2xl italic text-cream/85">
             {text.verifyDone}
           </p>
-          <Link href="/bestellen" className="mt-8 inline-block rounded-full bg-gold px-7 py-3 font-semibold text-ink">
-            {t.order.title}
+          <Link
+            href={ONLINE_ORDERING ? "/bestellen" : "/profil"}
+            className="mt-8 inline-block rounded-full bg-gold px-7 py-3 font-semibold text-ink"
+          >
+            {ONLINE_ORDERING ? t.order.title : text.toProfile}
           </Link>
         </>
       ) : (

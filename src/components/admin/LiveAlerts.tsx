@@ -16,6 +16,8 @@ export type Pulse = {
   lastReservationId: number;
   kitchenQueue: number;
   lastAccepted: number;
+  tableQueue: number;
+  lastTableItem: number;
 };
 
 const SOUND_KEY = "yt-alert-sound";
@@ -138,11 +140,16 @@ export default function LiveAlerts({
             alert("Neue Bestellung für die Küche", `${latest.kitchenQueue} in Arbeit`);
             changed = true;
           }
+          if (mode === "kitchen" && latest.lastTableItem > was.lastTableItem) {
+            alert("Neue Tischbestellung", `${latest.tableQueue} Tisch-Bons offen`);
+            changed = true;
+          }
           if (changed) router.refresh();
         }
         prev.current = latest;
         onPulse?.(latest);
-        count.current = mode === "owner" ? latest.newOrders + latest.pendingReservations : latest.kitchenQueue;
+        count.current =
+          mode === "owner" ? latest.newOrders + latest.pendingReservations : latest.kitchenQueue + latest.tableQueue;
         applyTitle(count.current);
       } catch {
         // offline for a moment: try again on the next tick

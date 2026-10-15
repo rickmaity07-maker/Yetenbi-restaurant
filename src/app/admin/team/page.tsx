@@ -12,6 +12,8 @@ const WHAT: Record<Exclude<Role, "guest">, string> = {
   owner: "Reservierungen, Bestellungen, Einstellungen und Team.",
   kitchen: "Nur /kueche: angenommene Bestellungen ohne Preise und Gästedaten; drückt „Essen fertig“ und „Verpackt“.",
   driver: "Nur /lieferung: die eigenen Lieferungen mit Adresse und Betrag; drückt „Zugestellt“.",
+  service:
+    "Die Service-App auf Handy oder Tablet: Tische öffnen, Bestellungen an die Küche, kassieren. Auf der Website nur /service (App laden).",
 };
 
 async function Team() {
@@ -35,7 +37,7 @@ async function Team() {
         <AddStaffForm />
       </section>
 
-      {(["owner", "kitchen", "driver"] as const).map((role) => {
+      {(["owner", "service", "kitchen", "driver"] as const).map((role) => {
         const people = staff.filter((member) => member.role === role);
         return (
           <section key={role} className="mt-12">
@@ -61,7 +63,7 @@ async function Team() {
                       {person.id !== me.id && (
                         <form action={changeRole} className="flex flex-wrap items-center gap-2">
                           <input type="hidden" name="id" value={person.id} />
-                          {(["owner", "kitchen", "driver"] as const)
+                          {(["owner", "service", "kitchen", "driver"] as const)
                             .filter((option) => option !== role)
                             .map((option) => (
                               <button

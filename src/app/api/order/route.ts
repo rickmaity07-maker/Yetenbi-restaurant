@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { todayISO } from "@/lib/booking";
+import { ONLINE_ORDERING } from "@/lib/features";
 import { LOCALES, type Locale } from "@/lib/i18n";
 import { mergeCartLines, totals, validateOrder, type OrderInput } from "@/lib/ordering";
 import { getCurrentUser } from "@/lib/server/auth";
@@ -17,7 +18,7 @@ import { getBusiness } from "@/lib/server/business";
   Everything is re-validated and re-priced here; the browser's totals are ignored.
 */
 export async function POST(request: Request) {
-  if (!hasDatabase()) return Response.json({ code: "unavailable" }, { status: 503 });
+  if (!ONLINE_ORDERING || !hasDatabase()) return Response.json({ code: "unavailable" }, { status: 503 });
   const me = await getCurrentUser();
   if (!me) return Response.json({ code: "login" }, { status: 401 });
   // Order emails go to the account's address, so it must belong to the person ordering.

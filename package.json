@@ -15,7 +15,8 @@
     "test": "vitest run",
     "typecheck": "next typegen && tsc --noEmit",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
-    "test:accounts": "node --env-file-if-exists=.env.local scripts/create-test-accounts.mjs"
+    "test:accounts": "node --env-file-if-exists=.env.local scripts/create-test-accounts.mjs",
+    "app:release": "node --env-file-if-exists=.env.local scripts/release-app.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

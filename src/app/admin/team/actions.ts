@@ -8,7 +8,7 @@ import { audit } from "@/lib/server/audit";
 
 export type TeamState = { ok?: string; error?: string } | null;
 
-const STAFF: Role[] = ["owner", "kitchen", "driver"];
+const STAFF: Role[] = ["owner", "kitchen", "driver", "service"];
 const asRole = (v: FormDataEntryValue | null) => (STAFF.includes(String(v) as Role) ? (String(v) as Role) : null);
 
 /**

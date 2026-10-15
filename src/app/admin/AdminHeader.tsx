@@ -25,7 +25,11 @@ const PAGES = {
     title: "Betrieb & Rechtliches",
     lead: "Öffnungszeiten, Kontaktdaten und die Angaben für Impressum und Datenschutz.",
   },
-  team: { title: "Team & Zugänge", lead: "Logins für Verwaltung, Küche und Fahrer anlegen und verwalten." },
+  team: { title: "Team & Zugänge", lead: "Logins für Verwaltung, Service, Küche und Fahrer anlegen und verwalten." },
+  service: {
+    title: "Service-App",
+    lead: "Tische und Rechnungen von heute, der Tischplan und die App-Versionen für Handys und Tablets.",
+  },
 } as const;
 
 type AdminPage = keyof typeof PAGES;

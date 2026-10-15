@@ -45,6 +45,9 @@ export function AddStaffForm() {
           <option value="kitchen" className="bg-coal">
             Küche – sieht nur das Essen
           </option>
+          <option value="service" className="bg-coal">
+            Service – nimmt Bestellungen in der App auf
+          </option>
           <option value="driver" className="bg-coal">
             Lieferung – sieht eigene Lieferungen
           </option>

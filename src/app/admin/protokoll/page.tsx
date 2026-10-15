@@ -17,6 +17,7 @@ const AREAS: Record<string, string> = {
   team: "Team",
   login: "Anmeldungen",
   customers: "Kunden",
+  service: "Service-App",
 };
 
 const when = (iso: string) =>

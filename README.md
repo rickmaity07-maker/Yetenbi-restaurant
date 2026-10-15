@@ -86,6 +86,31 @@ holds the place and the message, never guest data, tokens or cookies. Details st
   rejected guests, and *Gast sperren* blocks a guest's phone, email and device (list and unblock at the bottom).
 - Guests follow their order live at **/bestellung**; signed-in guests see their orders in the profile.
 
+## Service app (Android, phones and tablets)
+
+Waiters take table orders in the **Yetenbi Service** app (`android/`, Kotlin + Jetpack Compose, German and English).
+Phones show one screen at a time; tablets show the bill and the menu side by side.
+
+- Sign-in with a **Service** (or owner) account from /admin/team. On the website, service staff land on **/service**,
+  where they download the app.
+- **Tische**: the tables drawn from above (chairs, plates for seated guests, the number), free / taken / food ready.
+  Tap a free table, choose the number of guests, add dishes (long-press for a wish such as "extra scharf"), *An die
+  Küche*. Food appears on **/kueche** as a ticket per table and course; *Fertig* there makes every waiter's phone ring
+  ("Tisch 2: Essen fertig"). Drinks go straight onto the bill. *Kassieren*: card or cash (with change), optional tip.
+- **Heute**: the day's revenue, cash, card and tips and every bill; owners can reopen a bill paid by mistake.
+- The table plan (default: tables 1–4), today's tables and the app versions are in **/admin/service**. The server
+  re-prices every dish from the menu; sold-out dishes are greyed out in the app within 30 seconds.
+- API: `/api/app/*` with a bearer token (sessions table, kind `app`, 30 days). Tables: `dining_tables`,
+  `table_checks`, `table_check_items`, `app_releases` (migration `0003_service_app.sql`).
+
+**Online updates.** `npm run app:release -- --notes "Neu: …"` builds the signed APK, uploads it to Cloudinary and
+publishes it. Devices check on start and every 30 minutes, show *Update verfügbar* in the notification bar and install
+with one tap (`--mandatory` locks older versions until they update). The signing key is in `~/.android-yetenbi`
+(outside the repo): **back it up** – without it, installed apps can't be updated.
+
+Build locally (JDK 17+ and the Android SDK): `cd android && ./gradlew assembleDebug`; against a local server:
+`./gradlew installDebug -PapiUrl=http://10.0.2.2:3000`.
+
 ## Accounts
 
 - Guests can create an account (email + password; the address must be confirmed with a link before they can order, or **Sign in with Google** once `GOOGLE_CLIENT_ID` and
@@ -101,9 +126,9 @@ holds the place and the message, never guest data, tokens or cookies. Details st
   straight to Cloudinary with a one-time signature from the server (so big phone photos work), the server checks it
   arrived in the `yetenbi/` folder and the home page refreshes. Needs `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
   `CLOUDINARY_API_SECRET`; without them the built-in pictures stay.
-- **Team** (/admin/team): owners create logins for kitchen staff, drivers and other owners (email + starting password),
+- **Team** (/admin/team): owners create logins for service staff, kitchen staff, drivers and other owners (email + starting password),
   change roles, set a new password or remove someone (they keep a plain guest account). After signing in at /login,
-  everyone lands on their own screen: owners /admin, kitchen /kueche, drivers /lieferung.
+  everyone lands on their own screen: owners /admin, service /service (the app download), kitchen /kueche, drivers /lieferung.
 - Limits against abuse (`src/lib/server/rate-limit.ts`): 10 wrong passwords per account or 30 per connection in
   15 minutes, then a 15-minute pause; 3 reset emails per address and hour; 5 sign-ups and 6 reservations per
   connection and hour. Signing in with Google takes over an account with the same email only if that account never

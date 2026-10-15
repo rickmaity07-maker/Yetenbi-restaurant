@@ -117,7 +117,9 @@ export async function getPulse() {
       (select count(*) from reservations where status = 'pending' and date >= (now() at time zone 'Europe/Berlin')::date)::int as pending_reservations,
       (select coalesce(max(id), 0) from reservations where source = 'website')::int as last_reservation_id,
       (select count(*) from orders where status in ('accepted','cooked'))::int as kitchen_queue,
-      (select coalesce(max(extract(epoch from accepted_at)), 0) from orders)::float as last_accepted
+      (select coalesce(max(extract(epoch from accepted_at)), 0) from orders)::float as last_accepted,
+      (select count(distinct (check_id, round)) from table_check_items where kitchen and status = 'sent')::int as table_queue,
+      (select coalesce(max(id), 0) from table_check_items where kitchen)::int as last_table_item
   `) as Row[];
   return {
     newOrders: Number(row.new_orders),
@@ -126,5 +128,7 @@ export async function getPulse() {
     lastReservationId: Number(row.last_reservation_id),
     kitchenQueue: Number(row.kitchen_queue),
     lastAccepted: Number(row.last_accepted),
+    tableQueue: Number(row.table_queue),
+    lastTableItem: Number(row.last_table_item),
   };
 }

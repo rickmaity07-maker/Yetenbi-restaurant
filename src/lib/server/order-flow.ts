@@ -16,7 +16,7 @@ export async function moveOrder(
   to: OrderStatus,
   extra: { driverId?: number | null; eta?: number | null; staffNote?: string } = {},
 ) {
-  if (user.role === "guest") return null;
+  if (user.role === "guest" || user.role === "service") return null;
   const role: StaffRole = user.role;
   const current = await findOrderById(id);
   if (!current || current.status !== from || !canMove(role, from, to, current.method)) return null;

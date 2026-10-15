@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { formatEuro, type OrderStatus } from "@/lib/ordering";
 import type { L } from "@/lib/data";
 import { useLanguage } from "@/lib/language";
+import { ONLINE_ORDERING } from "@/lib/features";
 
 type Status = {
   reference: string;
@@ -162,12 +163,14 @@ export default function StatusView() {
       </div>
 
       <p className="mt-6 text-sm text-cream/60">{text.keepPage}</p>
-      <Link
-        href="/bestellen"
-        className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
-      >
-        {text.again}
-      </Link>
+      {ONLINE_ORDERING && (
+        <Link
+          href="/bestellen"
+          className="mt-6 inline-block text-sm font-semibold text-gold-soft underline decoration-gold/40 underline-offset-4"
+        >
+          {text.again}
+        </Link>
+      )}
     </div>
   );
 }
