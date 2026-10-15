@@ -6,8 +6,9 @@
     npm run app:release -- --dry-run      builds and checks, uploads nothing
 
   Steps: picks the next version number, builds the signed release APK (android/, key from ~/.android-yetenbi),
-  uploads it to Cloudinary (the account the website uses for photos) and records it in the database.
-  Reads DATABASE_URL and CLOUDINARY_* from .env.local. Switch versions on or off in /admin/service.
+  attaches it to a GitHub release "app-<version>" on the site's repo and records it in the database.
+  (Cloudinary, which holds the photos, refuses app files.) Reads DATABASE_URL and optionally GITHUB_TOKEN from
+  .env.local; without the token it uses the GitHub login git pushes with. Switch versions on or off in /admin/service.
 */
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -29,10 +30,21 @@ const fail = (message) => {
   process.exit(1);
 };
 
-const { DATABASE_URL, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+const { DATABASE_URL } = process.env;
 if (!DATABASE_URL) fail("DATABASE_URL is missing (add it to .env.local).");
-if (!flag("dry-run") && !(CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET))
-  fail("CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are needed to upload the app.");
+
+// The repo from the git remote, e.g. https://github.com/owner/name.git -> owner/name.
+const remote = execSync("git remote get-url origin", { cwd: root, encoding: "utf8" }).trim();
+const remoteRepo = remote.match(/github\.com[/:]([^/]+\/[^/]+?)(\.git)?$/)?.[1];
+if (!remoteRepo) fail(`The git remote isn't on GitHub: ${remote}`);
+// GITHUB_TOKEN from .env.local, otherwise the login git already uses to push.
+const token =
+  process.env.GITHUB_TOKEN ||
+  (flag("dry-run")
+    ? ""
+    : (execSync("git credential fill", { cwd: root, input: "protocol=https\nhost=github.com\n\n", encoding: "utf8" })
+        .match(/^password=(.*)$/m)?.[1] ?? ""));
+if (!token && !flag("dry-run")) fail("No GitHub login: set GITHUB_TOKEN in .env.local or sign in to git once.");
 const home = process.env.USERPROFILE ?? process.env.HOME ?? "";
 if (!existsSync(path.join(home, ".android-yetenbi", "keystore.properties")))
   fail("Release key not found in ~/.android-yetenbi. Without it the devices can't install updates.");
@@ -69,34 +81,41 @@ if (flag("dry-run")) {
   process.exit(0);
 }
 
-console.log("→ Uploading …");
-const params = {
-  public_id: `yetenbi/app/yetenbi-service-${versionName}-${versionCode}.apk`,
-  timestamp: Math.floor(Date.now() / 1000),
+console.log("→ Uploading to GitHub Releases …");
+const gh = async (url, init = {}) => {
+  const res = await fetch(url.startsWith("https://") ? url : `https://api.github.com${url}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...init.headers,
+    },
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) fail(`GitHub: ${body?.message ?? res.status} (${url})`);
+  return body;
 };
-const signature = createHash("sha1")
-  .update(
-    Object.keys(params)
-      .sort()
-      .map((k) => `${k}=${params[k]}`)
-      .join("&") + CLOUDINARY_API_SECRET,
-  )
-  .digest("hex");
-const form = new FormData();
-form.append("file", new Blob([bytes], { type: "application/vnd.android.package-archive" }), "app.apk");
-for (const [k, v] of Object.entries(params)) form.append(k, String(v));
-form.append("api_key", CLOUDINARY_API_KEY);
-form.append("signature", signature);
-const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`, {
+// The repo's current name (it may have moved since the remote was set up).
+const { full_name: repo } = await gh(`/repos/${remoteRepo}`);
+const tag = `app-${versionName}`;
+const release = await gh(`/repos/${repo}/releases`, {
   method: "POST",
-  body: form,
+  body: JSON.stringify({
+    tag_name: tag,
+    name: `Service-App ${versionName}`,
+    body: [notes, option("notes-en")].filter(Boolean).join("\n\n"),
+    make_latest: "false", // "latest" stays free for the website itself
+  }),
 });
-const upload = await res.json();
-if (!res.ok) fail(`Upload failed: ${upload?.error?.message ?? res.status}`);
+const upload = await gh(
+  `https://uploads.github.com/repos/${repo}/releases/${release.id}/assets?name=yetenbi-service-${versionName}.apk`,
+  { method: "POST", body: bytes, headers: { "Content-Type": "application/vnd.android.package-archive" } },
+);
 
 await sql`
   insert into app_releases (version_code, version_name, url, sha256, size_bytes, notes, notes_en, mandatory)
-  values (${versionCode}, ${versionName}, ${upload.secure_url}, ${sha256}, ${size}, ${notes}, ${option("notes-en") ?? ""}, ${flag("mandatory")})
+  values (${versionCode}, ${versionName}, ${upload.browser_download_url}, ${sha256}, ${size}, ${notes}, ${option("notes-en") ?? ""}, ${flag("mandatory")})
 `;
 console.log(`✔ Published ${versionName} (build ${versionCode})${flag("mandatory") ? " as a mandatory update" : ""}`);
-console.log(`  ${upload.secure_url}`);
+console.log(`  ${upload.browser_download_url}`);
