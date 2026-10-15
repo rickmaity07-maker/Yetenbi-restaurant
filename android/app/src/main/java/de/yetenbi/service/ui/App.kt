@@ -1,5 +1,6 @@
 package de.yetenbi.service.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,7 @@ fun App(vm: AppViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var lastError by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         vm.notices.collect { notice ->
@@ -94,7 +97,11 @@ fun App(vm: AppViewModel) {
                 AnimatedContent(state.phase, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "phase") { phase ->
                     when (phase) {
                         Phase.Loading -> Box(Modifier.fillMaxSize().background(Yt.Night))
-                        Phase.SignedOut -> LoginScreen(state, vm::login, vm::setLanguage)
+                        Phase.SignedOut -> LoginScreen(
+                            state, vm::login,
+                            onGoogle = { vm.googleStart { uri -> context.startActivity(Intent(Intent.ACTION_VIEW, uri)) } },
+                            onLanguage = vm::setLanguage,
+                        )
                         Phase.SignedIn -> Shell(state, vm)
                     }
                 }

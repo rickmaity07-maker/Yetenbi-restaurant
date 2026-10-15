@@ -1,6 +1,8 @@
 package de.yetenbi.service.ui
 
 import android.app.Application
+import android.net.Uri
+import android.util.Base64
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import de.yetenbi.service.BuildConfig
@@ -32,6 +34,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.time.LocalDate
 
 enum class Phase { Loading, SignedOut, SignedIn }
@@ -77,6 +81,9 @@ data class UiState(
 }
 
 data class Notice(val text: String, val error: Boolean = false)
+
+/* base64url without padding, as PKCE wants it. */
+private const val B64 = Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val container = (app as ServiceApp).container
@@ -226,6 +233,40 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val result = api.login(email.trim(), password)
+                session.signIn(result.token, result.user)
+                startSession(result.user)
+            } catch (e: ApiException) {
+                _state.update { it.copy(loginBusy = false, loginError = strings.error(e.code)) }
+            }
+        }
+    }
+
+    /*
+      "Sign in with Google": a fresh secret (PKCE verifier) is saved, the browser opens Google via the website, and the
+      website sends the browser back with a one-time code (googleReturn), which only works together with the secret.
+    */
+    fun googleStart(open: (Uri) -> Unit) {
+        val verifier = Base64.encodeToString(ByteArray(32).also { SecureRandom().nextBytes(it) }, B64)
+        val challenge = Base64.encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()), B64)
+        _state.update { it.copy(loginError = null) }
+        viewModelScope.launch {
+            session.setGoogleVerifier(verifier)
+            open(Uri.parse(api.googleUrl(challenge)))
+        }
+    }
+
+    fun googleReturn(uri: Uri) {
+        if (uri.scheme != "de.yetenbi.service" || uri.host != "auth") return
+        val code = uri.getQueryParameter("code")
+        val error = uri.getQueryParameter("error")
+        _state.update { it.copy(loginBusy = code != null, loginError = error?.let(strings::error)) }
+        if (code == null) return
+        viewModelScope.launch {
+            val verifier = session.googleVerifier()
+            session.setGoogleVerifier(null)
+            try {
+                if (verifier == null) throw ApiException("google", 0)
+                val result = api.loginGoogle(code, verifier)
                 session.signIn(result.token, result.user)
                 startSession(result.user)
             } catch (e: ApiException) {

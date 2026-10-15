@@ -42,8 +42,11 @@ const token =
   process.env.GITHUB_TOKEN ||
   (flag("dry-run")
     ? ""
-    : (execSync("git credential fill", { cwd: root, input: "protocol=https\nhost=github.com\n\n", encoding: "utf8" })
-        .match(/^password=(.*)$/m)?.[1] ?? ""));
+    : (execSync("git credential fill", {
+        cwd: root,
+        input: "protocol=https\nhost=github.com\n\n",
+        encoding: "utf8",
+      }).match(/^password=(.*)$/m)?.[1] ?? ""));
 if (!token && !flag("dry-run")) fail("No GitHub login: set GITHUB_TOKEN in .env.local or sign in to git once.");
 const home = process.env.USERPROFILE ?? process.env.HOME ?? "";
 if (!existsSync(path.join(home, ".android-yetenbi", "keystore.properties")))

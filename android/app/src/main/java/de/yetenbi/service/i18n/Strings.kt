@@ -26,7 +26,7 @@ data class Strings(
     data class Nav(val tables: String, val today: String, val settings: String)
     data class Login(
         val title: String, val lead: String, val email: String, val password: String, val submit: String, val busy: String,
-        val version: (String) -> String,
+        val google: String, val or: String, val version: (String) -> String,
     )
     data class Tables(
         val title: String, val occupied: (Int, Int) -> String, val free: String, val cooking: (Int) -> String, val ready: (Int) -> String,
@@ -76,7 +76,8 @@ private val de = Strings(
     nav = Strings.Nav(tables = "Tische", today = "Heute", settings = "Einstellungen"),
     login = Strings.Login(
         title = "Service", lead = "Mit deinem Yetenbi-Konto anmelden – derselbe Login wie auf der Website.",
-        email = "E-Mail", password = "Passwort", submit = "Anmelden", busy = "Melde an …", version = { "Version $it" },
+        email = "E-Mail", password = "Passwort", submit = "Anmelden", busy = "Melde an …",
+        google = "Mit Google anmelden", or = "oder mit E-Mail und Passwort", version = { "Version $it" },
     ),
     tables = Strings.Tables(
         title = "Tische", occupied = { busy, all -> "$busy von $all besetzt" }, free = "frei",
@@ -131,6 +132,7 @@ private val de = Strings(
         "offline" to "Keine Verbindung zum Server.",
         "unauthorized" to "Bitte neu anmelden.",
         "credentials" to "E-Mail oder Passwort stimmt nicht.",
+        "google" to "Anmeldung mit Google hat nicht geklappt. Bitte nochmal.",
         "too_many" to "Zu viele Versuche. Bitte 15 Minuten warten.",
         "no_app_access" to "Dieses Konto hat keinen Zugang zur Service-App. Die Verwaltung kann ihn unter Team freischalten.",
         "unavailable" to "Der Server ist gerade nicht erreichbar.",
@@ -161,7 +163,8 @@ private val en = Strings(
     nav = Strings.Nav(tables = "Tables", today = "Today", settings = "Settings"),
     login = Strings.Login(
         title = "Service", lead = "Sign in with your Yetenbi account – the same login as on the website.",
-        email = "Email", password = "Password", submit = "Sign in", busy = "Signing in …", version = { "Version $it" },
+        email = "Email", password = "Password", submit = "Sign in", busy = "Signing in …",
+        google = "Sign in with Google", or = "or with email and password", version = { "Version $it" },
     ),
     tables = Strings.Tables(
         title = "Tables", occupied = { busy, all -> "$busy of $all taken" }, free = "free",
@@ -216,6 +219,7 @@ private val en = Strings(
         "offline" to "No connection to the server.",
         "unauthorized" to "Please sign in again.",
         "credentials" to "Email or password is wrong.",
+        "google" to "Google sign-in didn't work. Please try again.",
         "too_many" to "Too many attempts. Please wait 15 minutes.",
         "no_app_access" to "This account has no access to the service app. A manager can grant it under Team.",
         "unavailable" to "The server is not reachable right now.",

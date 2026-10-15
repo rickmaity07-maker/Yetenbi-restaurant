@@ -25,6 +25,35 @@ export async function createAppToken(userId: number) {
   return token;
 }
 
+/*
+  "Sign in with Google" in the app: the app opens /api/auth/google?app=<challenge> in the browser, where challenge is
+  the SHA-256 (base64url) of a secret only the app knows (PKCE). After Google, the browser is sent to APP_RETURN with a
+  one-time code, valid for 2 minutes. The app swaps code + secret for a token; another app catching the code can't.
+  Codes are rows of kind 'app-code' in sessions, stored as SHA-256 of code + challenge.
+*/
+export const APP_RETURN = "de.yetenbi.service://auth";
+export const APP_CHALLENGE = /^[A-Za-z0-9_-]{43}$/;
+
+export async function createAppCode(userId: number, challenge: string) {
+  const code = randomBytes(24).toString("base64url");
+  await db()`
+    insert into sessions (token_hash, user_id, expires_at, kind)
+    values (${sha256(`${code}.${challenge}`)}, ${userId}, now() + interval '2 minutes', 'app-code')
+  `;
+  return code;
+}
+
+/** The user id for a one-time code and the app's secret, or null. A code works once. */
+export async function redeemAppCode(code: string, verifier: string) {
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  const [row] = (await db()`
+    delete from sessions
+    where token_hash = ${sha256(`${code}.${challenge}`)} and kind = 'app-code' and expires_at > now()
+    returning user_id
+  `) as { user_id: string }[];
+  return row ? Number(row.user_id) : null;
+}
+
 const bearer = (request: Request) => request.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1] ?? null;
 
 export async function revokeAppToken(request: Request) {

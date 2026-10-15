@@ -1,6 +1,7 @@
 package de.yetenbi.service
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -28,5 +29,12 @@ class MainActivity : ComponentActivity() {
             registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
         setContent { YetenbiTheme { App(viewModel) } }
+        // Opened by the return link of "Sign in with Google" (also when the app was closed meanwhile).
+        if (savedInstanceState == null) intent?.data?.let(viewModel::googleReturn)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let(viewModel::googleReturn)
     }
 }

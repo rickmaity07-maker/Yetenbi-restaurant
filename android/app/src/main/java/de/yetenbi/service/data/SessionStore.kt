@@ -38,6 +38,11 @@ class SessionStore(private val context: Context) {
         context.store.edit { it.remove(tokenKey); it.remove(userKey) }
     }
 
+    /* The PKCE secret of a Google sign-in under way: kept on disk, since Android may close the app while the browser is open. */
+    private val googleKey = stringPreferencesKey("google_verifier")
+    suspend fun setGoogleVerifier(value: String?) = context.store.edit { if (value == null) it.remove(googleKey) else it[googleKey] = value }
+    suspend fun googleVerifier(): String? = context.store.data.first()[googleKey]
+
     suspend fun setLanguage(code: String) = context.store.edit { it[languageKey] = code }
     suspend fun setBell(on: Boolean) = context.store.edit { it[bellKey] = on }
 

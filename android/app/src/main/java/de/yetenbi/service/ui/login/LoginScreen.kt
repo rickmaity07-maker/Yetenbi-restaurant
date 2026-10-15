@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import de.yetenbi.service.BuildConfig
 import de.yetenbi.service.i18n.LocalStrings
 import de.yetenbi.service.ui.UiState
+import de.yetenbi.service.ui.components.ButtonKind
 import de.yetenbi.service.ui.components.Cross
 import de.yetenbi.service.ui.components.Eyebrow
 import de.yetenbi.service.ui.components.FlagStripe
@@ -56,7 +57,7 @@ fun fieldColors() = OutlinedTextFieldDefaults.colors(
 )
 
 @Composable
-fun LoginScreen(state: UiState, onLogin: (String, String) -> Unit, onLanguage: (String) -> Unit) {
+fun LoginScreen(state: UiState, onLogin: (String, String) -> Unit, onGoogle: () -> Unit, onLanguage: (String) -> Unit) {
     val strings = LocalStrings.current
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -77,6 +78,13 @@ fun LoginScreen(state: UiState, onLogin: (String, String) -> Unit, onLanguage: (
                 Spacer(Modifier.height(18.dp))
                 Text(strings.login.lead, style = MaterialTheme.typography.bodyMedium, color = Yt.Sand, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(28.dp))
+                PillButton(
+                    strings.login.google, onGoogle, kind = ButtonKind.Secondary, enabled = !state.loginBusy,
+                    big = true, modifier = Modifier.fillMaxWidth(), testTag = "login-google",
+                )
+                Spacer(Modifier.height(18.dp))
+                Text(strings.login.or, style = MaterialTheme.typography.bodySmall, color = Yt.Sand.copy(alpha = 0.7f))
+                Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     email, { email = it }, label = { Text(strings.login.email) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),

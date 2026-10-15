@@ -152,7 +152,7 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!token) return null;
   const [row] = (await db()`
     select u.* from sessions s join users u on u.id = s.user_id
-    where s.token_hash = ${sha256(token)} and s.expires_at > now()
+    where s.token_hash = ${sha256(token)} and s.kind = 'web' and s.expires_at > now()
   `) as UserRow[];
   return row ? toUser(row) : null;
 }
