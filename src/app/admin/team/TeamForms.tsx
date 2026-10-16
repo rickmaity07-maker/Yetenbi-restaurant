@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addStaff, resetStaffPassword, type TeamState } from "./actions";
+import { addStaff, resetStaffPassword, setStaffPin, type TeamState } from "./actions";
 
 const field =
   "w-full border-0 border-b border-gold/30 bg-transparent px-0 pb-2 pt-1 text-base text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none [color-scheme:dark]";
@@ -97,6 +97,44 @@ export function ResetPasswordForm({ id }: { id: number }) {
       >
         Setzen
       </button>
+      <div className="basis-full">
+        <Message state={state} />
+      </div>
+    </form>
+  );
+}
+
+/** The PIN for "Wer bedient?" in the service app: on a shared phone, tap your name and type the PIN. */
+export function PinForm({ id, hasPin }: { id: number; hasPin: boolean }) {
+  const [state, action, pending] = useActionState(setStaffPin, null);
+  return (
+    <form action={action} className="mt-3 flex flex-wrap items-end gap-3">
+      <input type="hidden" name="id" value={id} />
+      <input
+        name="pin"
+        inputMode="numeric"
+        maxLength={6}
+        placeholder={hasPin ? "Neue PIN" : "PIN (4–6 Ziffern)"}
+        aria-label="App-PIN"
+        autoComplete="off"
+        className={`${field} max-w-[10rem] text-sm`}
+      />
+      <button
+        disabled={pending}
+        className="rounded-full border border-cream/30 px-4 py-1.5 text-xs font-semibold text-cream hover:border-gold disabled:opacity-60"
+      >
+        Setzen
+      </button>
+      {hasPin && (
+        <button
+          name="remove"
+          value="1"
+          disabled={pending}
+          className="rounded-full border border-[#f0a080]/60 px-4 py-1.5 text-xs font-semibold text-[#f0a080] disabled:opacity-60"
+        >
+          Entfernen
+        </button>
+      )}
       <div className="basis-full">
         <Message state={state} />
       </div>

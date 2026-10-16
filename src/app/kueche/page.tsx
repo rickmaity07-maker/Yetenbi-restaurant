@@ -7,8 +7,10 @@ import StaffHeader from "@/components/StaffHeader";
 import { requireRole } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import { listKitchenOrders, type Order } from "@/lib/server/orders";
+import type { Menu } from "@/lib/menu";
+import { readMenu } from "@/lib/server/menu";
 import { listKitchenTickets, type KitchenTicket } from "@/lib/server/service";
-import { kitchenStep, tableReady } from "./actions";
+import { kitchenSoldOut, kitchenStep, tableReady } from "./actions";
 
 export const metadata: Metadata = { title: "Küche | Yetenbi", robots: { index: false, follow: false } };
 
@@ -80,36 +82,48 @@ function Ticket({ order }: { order: Order }) {
 
 const minutesSince = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
 
-/** A round from the service app: table, waiter, the dishes with the guest's wishes. */
+/*
+  A round from the service app: table, waiter, the dishes with the guest's wishes and seat. Dishes the waiter marked
+  "später" show greyed out until called, so the kitchen can plan them.
+*/
 function TableTicket({ ticket }: { ticket: KitchenTicket }) {
   const done = ticket.readyAt !== null;
   const waiting = minutesSince(ticket.sentAt);
   return (
     <li
-      className={`flex flex-col border p-5 ${done ? "border-cream/15 opacity-60" : waiting >= 20 ? "border-[#f0a080] bg-[#f0a080]/[0.06]" : "border-gold bg-gold/[0.05]"}`}
+      className={`flex flex-col border p-5 ${ticket.held ? "border-dashed border-cream/25" : done ? "border-cream/15 opacity-60" : waiting >= 20 ? "border-[#f0a080] bg-[#f0a080]/[0.06]" : "border-gold bg-gold/[0.05]"}`}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <p className="font-display text-3xl text-cream">Tisch {ticket.table}</p>
-        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Gang {ticket.round}</span>
+        <p className={`font-display text-3xl ${ticket.held ? "text-cream/60" : "text-cream"}`}>Tisch {ticket.table}</p>
+        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
+          {ticket.held ? "Später" : `Gang ${ticket.round}`}
+        </span>
       </div>
       <p className="mt-1 text-sm text-cream/65">
         {time(ticket.sentAt)} · {ticket.waiter || "Service"} ·{" "}
-        {done ? `fertig ${time(ticket.readyAt!)}` : `seit ${waiting} Min.`}
+        {ticket.held ? "noch nicht kochen" : done ? `fertig ${time(ticket.readyAt!)}` : `seit ${waiting} Min.`}
       </p>
-      <ul className="mt-4 space-y-2 border-t border-gold/15 pt-4">
+      <ul className={`mt-4 space-y-2 border-t border-gold/15 pt-4 ${ticket.held ? "opacity-60" : ""}`}>
         {ticket.items.map((line) => (
           <li key={line.id} className="text-lg text-cream">
             <div className="flex gap-3">
               <span className="w-10 shrink-0 font-display text-2xl leading-none text-gold-soft tabular-nums">
                 {line.qty}×
               </span>
-              <span>{line.name}</span>
+              <span className="flex-1">{line.name}</span>
+              {line.seat !== null && (
+                <span className="self-center rounded-full border border-cream/25 px-2 text-xs text-cream/70">
+                  P{line.seat}
+                </span>
+              )}
             </div>
             {line.note && <p className="ml-[3.25rem] text-base text-[#f0a080]">→ {line.note}</p>}
           </li>
         ))}
       </ul>
-      {done ? (
+      {ticket.held ? (
+        <p className="mt-auto pt-6 text-sm text-cream/60">Wartet, bis der Service den Gang abruft.</p>
+      ) : done ? (
         <p className="mt-auto pt-6 text-sm text-cream/60">Am Pass · wartet auf den Service</p>
       ) : (
         <form action={tableReady} className="mt-auto pt-6">
@@ -128,7 +142,8 @@ function TableTickets({ tickets }: { tickets: KitchenTicket[] }) {
   return (
     <section className="mt-10">
       <h2 className="font-display text-2xl font-semibold text-gold-soft">
-        Tische <span className="text-cream/50">({tickets.filter((ticket) => !ticket.readyAt).length})</span>
+        Tische{" "}
+        <span className="text-cream/50">({tickets.filter((ticket) => !ticket.readyAt && !ticket.held).length})</span>
       </h2>
       <p className="mt-1 text-sm text-cream/55">
         Aus der Service-App, älteste zuerst. „Fertig“ meldet es sofort auf den Handys und Tablets des Service.
@@ -138,11 +153,49 @@ function TableTickets({ tickets }: { tickets: KitchenTicket[] }) {
       ) : (
         <ul className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tickets.map((ticket) => (
-            <TableTicket key={`${ticket.checkId}-${ticket.round}`} ticket={ticket} />
+            <TableTicket key={`${ticket.checkId}-${ticket.round}-${ticket.held}`} ticket={ticket} />
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+/* "Ausverkauft": one tap greys a dish out on the website and in the waiters' app (within seconds). */
+function SoldOut({ menu }: { menu: Menu }) {
+  const out = menu.flatMap((category) => category.items).filter((dish) => !dish.available);
+  return (
+    <details className="mt-10 border border-gold/20 bg-ink/40 p-5" open={out.length > 0}>
+      <summary className="cursor-pointer font-display text-2xl font-semibold text-gold-soft">
+        Ausverkauft <span className="text-cream/50">({out.length})</span>
+      </summary>
+      <p className="mt-1 text-sm text-cream/55">
+        Antippen, wenn ein Gericht aus ist. Es ist dann auf der Website und in der Service-App nicht mehr bestellbar,
+        bis es wieder „da“ ist.
+      </p>
+      {menu
+        .filter((category) => category.items.length > 0)
+        .map((category) => (
+          <div key={category.id} className="mt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cream/55">{category.title.de}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {category.items.map((dish) => (
+                <form key={dish.id} action={kitchenSoldOut}>
+                  <input type="hidden" name="dish" value={dish.id} />
+                  <input type="hidden" name="available" value={dish.available ? "0" : "1"} />
+                  <button
+                    className={`rounded-full border px-4 py-2 text-sm font-semibold ${dish.available ? "border-cream/25 text-cream hover:border-gold" : "border-[#f0a080] bg-[#f0a080] text-ink"}`}
+                    aria-pressed={!dish.available}
+                  >
+                    {dish.name.de}
+                    {!dish.available && " · aus"}
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        ))}
+    </details>
   );
 }
 
@@ -170,13 +223,14 @@ async function Board() {
   await connection();
   const me = await requireRole(["kitchen", "owner"], "/kueche");
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
-  const [orders, tickets] = await Promise.all([listKitchenOrders(), listKitchenTickets()]);
+  const [orders, tickets, menu] = await Promise.all([listKitchenOrders(), listKitchenTickets(), readMenu()]);
   return (
     <>
       <StaffHeader title="Küche" me={me} />
       <LiveRefresh seconds={15} />
       <LiveAlerts mode="kitchen" />
       <TableTickets tickets={tickets} />
+      <SoldOut menu={menu} />
       <div className="mt-10 grid gap-10 lg:grid-cols-3">
         <Column
           title="Zubereiten"

@@ -1,13 +1,15 @@
+import { APP_FEEDBACK } from "@/lib/features";
 import { appRoute } from "@/lib/server/app-auth";
 import { readMenu } from "@/lib/server/menu";
-import { listTables } from "@/lib/server/service";
+import { listTables, menuStamp, popularDishes } from "@/lib/server/service";
 
 /*
-  Everything the app needs on start and refreshes every half minute: who is signed in, the table plan and the
-  menu (sold-out dishes included, marked, so the waiter sees them greyed out).
+  Everything the app needs on start and whenever the menu or tables change: who is signed in, the table plan, the
+  menu (sold-out dishes included, marked, so the waiter sees them greyed out), the dishes ordered most, and which
+  extras are switched on.
 */
 export const GET = appRoute(async (_request, user) => {
-  const [tables, menu] = await Promise.all([listTables(), readMenu()]);
+  const [tables, menu, popular, stamp] = await Promise.all([listTables(), readMenu(), popularDishes(), menuStamp()]);
   return {
     user,
     tables,
@@ -28,6 +30,9 @@ export const GET = appRoute(async (_request, user) => {
           available: dish.available,
         })),
       })),
+    popular,
+    stamp,
+    features: { feedback: APP_FEEDBACK },
     serverTime: new Date().toISOString(),
   };
 });

@@ -18,9 +18,10 @@ export default function PlanForm({ plan }: { plan: string }) {
         />
       </label>
       <p className="text-xs text-cream/55">
-        Name, optional mit Plätzen: <span className="font-mono text-cream/80">4</span> oder{" "}
-        <span className="font-mono text-cream/80">4 | 6</span>. Ein entfernter Tisch verschwindet aus der App; offene
-        Rechnungen und die Historie behalten ihn.
+        Name, optional mit Plätzen und Bereich: <span className="font-mono text-cream/80">4</span>,{" "}
+        <span className="font-mono text-cream/80">4 | 6</span> oder{" "}
+        <span className="font-mono text-cream/80">4 | 6 | Terrasse</span>. Die App zeigt die Tische nach Bereich
+        getrennt. Ein entfernter Tisch verschwindet aus der App; offene Rechnungen und die Historie behalten ihn.
       </p>
       <div className="flex items-center gap-4">
         <button

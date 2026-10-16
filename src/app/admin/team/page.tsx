@@ -6,7 +6,7 @@ import { listStaff, requireOwner } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import AdminHeader from "../AdminHeader";
 import { changeRole } from "./actions";
-import { AddStaffForm, ResetPasswordForm } from "./TeamForms";
+import { AddStaffForm, PinForm, ResetPasswordForm } from "./TeamForms";
 
 const WHAT: Record<Exclude<Role, "guest">, string> = {
   owner: "Reservierungen, Bestellungen, Einstellungen und Team.",
@@ -85,6 +85,18 @@ async function Team() {
                         </form>
                       )}
                     </div>
+                    {(role === "service" || role === "owner") && (
+                      <details className="mt-2 text-sm">
+                        <summary className="cursor-pointer text-cream/55 hover:text-cream">
+                          App-PIN {person.hasPin ? "· gesetzt" : "· keine"}
+                        </summary>
+                        <p className="mt-2 max-w-xl text-xs text-cream/55">
+                          Auf einem geteilten Handy oder Tablet: „Wer bedient?“ antippen, Namen wählen, PIN eingeben.
+                          Bestellungen und Zahlungen laufen dann unter diesem Namen.
+                        </p>
+                        <PinForm id={person.id} hasPin={person.hasPin} />
+                      </details>
+                    )}
                     {person.id !== me.id && (
                       <details className="mt-2 text-sm">
                         <summary className="cursor-pointer text-cream/55 hover:text-cream">Passwort neu setzen</summary>

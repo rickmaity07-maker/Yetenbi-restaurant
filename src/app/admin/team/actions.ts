@@ -1,7 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createUser, findUserByEmail, findUserById, requireOwner, setPassword, setRole } from "@/lib/server/auth";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  requireOwner,
+  setPassword,
+  setPin,
+  setRole,
+} from "@/lib/server/auth";
 import type { Role } from "@/lib/roles";
 import { isEmail } from "@/lib/validate";
 import { audit } from "@/lib/server/audit";
@@ -84,4 +92,26 @@ export async function resetStaffPassword(_: TeamState, form: FormData): Promise<
   await setPassword(id, password);
   await audit(me, "team", "Passwort neu gesetzt", user.email);
   return { ok: "Neues Passwort gesetzt." };
+}
+
+/** Sets or removes the PIN a team member uses to take over a shared phone or tablet in the service app. */
+export async function setStaffPin(_: TeamState, form: FormData): Promise<TeamState> {
+  const me = await requireOwner();
+  const id = Number(form.get("id"));
+  const pin = String(form.get("pin") ?? "").trim();
+  const user = Number.isInteger(id) ? await findUserById(id) : null;
+  if (!user || (user.role !== "service" && user.role !== "owner")) return { error: "Nur für Service und Verwaltung." };
+  if (form.get("remove") === "1") {
+    await setPin(id, null);
+    await audit(me, "team", "App-PIN entfernt", user.email);
+    revalidatePath("/admin/team");
+    return { ok: "PIN entfernt." };
+  }
+  if (!/^\d{4,6}$/.test(pin)) return { error: "Die PIN hat 4 bis 6 Ziffern." };
+  if (/^(\d)\1+$/.test(pin) || "0123456789".includes(pin) || "9876543210".includes(pin))
+    return { error: "Zu leicht zu erraten (z. B. 1111 oder 1234). Bitte eine andere PIN." };
+  await setPin(id, pin);
+  await audit(me, "team", "App-PIN gesetzt", user.email);
+  revalidatePath("/admin/team");
+  return { ok: "PIN gesetzt." };
 }

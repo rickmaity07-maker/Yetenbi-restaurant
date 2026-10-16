@@ -41,6 +41,7 @@ type UserRow = {
   created_at: string;
   password_hash?: string;
   email_verified?: boolean;
+  pin_hash?: string | null;
 };
 const toUser = (row: UserRow): User => ({
   id: Number(row.id),
@@ -114,6 +115,19 @@ export async function setPassword(id: number, password: string) {
   await db()`delete from sessions where user_id = ${id}`; // sign out everywhere
 }
 
+/*
+  The 4–6 digit PIN to take over a shared phone or tablet in the service app (set by an owner in /admin/team).
+  Stored like a password; null removes it.
+*/
+export async function setPin(id: number, pin: string | null) {
+  await db()`update users set pin_hash = ${pin === null ? null : await hashPassword(pin)} where id = ${id}`;
+}
+
+export async function verifyPin(id: number, pin: string) {
+  const [row] = (await db()`select pin_hash from users where id = ${id}`) as { pin_hash: string | null }[];
+  return verifyPassword(pin, row?.pin_hash ?? DUMMY_HASH);
+}
+
 export async function deleteUser(id: number) {
   await db()`delete from users where id = ${id}`;
 }
@@ -175,11 +189,15 @@ export const requireOwner = () => requireRole(["owner"], "/admin");
 
 /* ---------- team ---------- */
 
-type StaffMember = User & { googleOnly: boolean };
+type StaffMember = User & { googleOnly: boolean; hasPin: boolean };
 
 export async function listStaff(): Promise<StaffMember[]> {
   const rows = (await db()`select * from users where role <> 'guest' order by role, lower(name)`) as UserRow[];
-  return rows.map((row) => ({ ...toUser(row), googleOnly: row.password_hash === "none" }));
+  return rows.map((row) => ({
+    ...toUser(row),
+    googleOnly: row.password_hash === "none",
+    hasPin: Boolean(row.pin_hash),
+  }));
 }
 
 export async function listDrivers() {

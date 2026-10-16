@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { setFeedbackDone } from "@/lib/server/app-feedback";
 import { setReleaseFlags } from "@/lib/server/app-releases";
 import { audit } from "@/lib/server/audit";
 import { requireOwner } from "@/lib/server/auth";
@@ -9,8 +10,8 @@ import { saveTables } from "@/lib/server/service";
 export type PlanState = { ok?: string; error?: string } | null;
 
 /**
-  The table plan, one table per line: "4" or "4 | 6" (name | seats). Order of the lines = order in the app.
-  Names may repeat only once; 1–60 tables.
+  The table plan, one table per line: "4", "4 | 6" (name | seats) or "4 | 6 | Terrasse" (name | seats | area).
+  Order of the lines = order in the app, which groups the tables by area. Each name once; 1–60 tables.
 */
 export async function saveTablePlan(_: PlanState, form: FormData): Promise<PlanState> {
   const me = await requireOwner();
@@ -22,18 +23,28 @@ export async function saveTablePlan(_: PlanState, form: FormData): Promise<PlanS
   const plan: { label: string; area: string; seats: number }[] = [];
   const seen = new Set<string>();
   for (const line of lines) {
-    const [rawLabel, rawSeats] = line.split("|").map((part) => part.trim());
+    const [rawLabel, rawSeats, rawArea] = line.split("|").map((part) => part.trim());
     const label = rawLabel.slice(0, 24);
     const seats = rawSeats ? Number(rawSeats) : 4;
+    const area = (rawArea ?? "").slice(0, 24);
     if (!label) return { error: `„${line}“: Name fehlt.` };
     if (!Number.isInteger(seats) || seats < 1 || seats > 40) return { error: `„${line}“: Plätze 1 bis 40.` };
     if (seen.has(label.toLowerCase())) return { error: `Tisch „${label}“ steht doppelt in der Liste.` };
     seen.add(label.toLowerCase());
-    plan.push({ label, area: "", seats });
+    plan.push({ label, area, seats });
   }
   await saveTables(me, plan);
   revalidatePath("/admin/service");
   return { ok: `Gespeichert: ${plan.length} Tische. Die App übernimmt sie innerhalb einer halben Minute.` };
+}
+
+/** Feedback from the app: ticked off when dealt with (or back). */
+export async function feedbackDone(form: FormData) {
+  await requireOwner();
+  const id = Number(form.get("id"));
+  if (!Number.isInteger(id)) return;
+  await setFeedbackDone(id, form.get("done") === "1");
+  revalidatePath("/admin/service");
 }
 
 /** Switch a version on or off for the devices, or make it mandatory. */

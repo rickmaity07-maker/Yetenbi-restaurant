@@ -4,16 +4,18 @@ import LiveRefresh from "@/components/LiveRefresh";
 import { todayISO } from "@/lib/booking";
 import { formatEuro } from "@/lib/ordering";
 import { checkTotal, kitchenCounts, type Check } from "@/lib/service";
+import { listCrashes, listFeedback, type Crash, type Feedback } from "@/lib/server/app-feedback";
 import { listReleases } from "@/lib/server/app-releases";
 import { requireOwner } from "@/lib/server/auth";
 import { hasDatabase } from "@/lib/server/db";
 import { daySummary, listClosedChecks, listOpenChecks, listTables } from "@/lib/server/service";
 import { siteUrl } from "@/lib/site-url";
 import AdminHeader from "../AdminHeader";
-import { releaseFlag } from "./actions";
+import { feedbackDone, releaseFlag } from "./actions";
 import PlanForm from "./PlanForm";
 
 const euro = (amount: number) => formatEuro(amount, "de-DE");
+const PAID_BY = { cash: "bar", card: "Karte", mixed: "bar + Karte" } as const;
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
@@ -41,6 +43,7 @@ function OpenCheck({ check }: { check: Check }) {
         {cooking > 0 && <span className="mr-3 text-gold-soft">{cooking} in der Küche</span>}
         {ready > 0 && <span className="mr-3 text-[#7fcf9c]">{ready} am Pass</span>}
         <span className="font-semibold text-cream">{euro(checkTotal(check.items))}</span>
+        {check.payments.length > 0 && <span className="ml-2 text-cream/60">(offen {euro(check.due)})</span>}
       </p>
     </li>
   );
@@ -51,15 +54,25 @@ async function Service() {
   await requireOwner();
   if (!hasDatabase()) return <p className="mt-12 text-cream/70">Keine Datenbank verbunden.</p>;
   const today = todayISO();
-  const [open, closed, summary, tables, releases] = await Promise.all([
+  const [open, closed, summary, tables, releases, feedback, crashes] = await Promise.all([
     listOpenChecks(),
     listClosedChecks(today),
     daySummary(today),
     listTables(),
     listReleases(),
+    listFeedback(),
+    listCrashes(),
   ]);
   const latest = releases.find((release) => release.published);
-  const plan = tables.map((table) => (table.seats === 4 ? table.label : `${table.label} | ${table.seats}`)).join("\n");
+  const plan = tables
+    .map((table) =>
+      table.area
+        ? `${table.label} | ${table.seats} | ${table.area}`
+        : table.seats === 4
+          ? table.label
+          : `${table.label} | ${table.seats}`,
+    )
+    .join("\n");
 
   return (
     <>
@@ -109,13 +122,15 @@ async function Service() {
                 <span className={check.status === "void" ? "text-[#f0a080]" : "text-cream"}>
                   {check.status === "void"
                     ? "storniert"
-                    : `${euro(check.total)} ${check.payment === "cash" ? "bar" : "Karte"}${check.tip ? ` + ${euro(check.tip)} Trinkgeld` : ""}`}
+                    : `${euro(check.total)} ${PAID_BY[check.payment ?? "card"]}${check.payments.length > 1 ? ` (${check.payments.length} Teile)` : ""}${check.tip ? ` + ${euro(check.tip)} Trinkgeld` : ""}`}
                 </span>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <FeedbackList feedback={feedback} />
 
       <section className="mt-12 grid gap-10 lg:grid-cols-2">
         <div>
@@ -173,9 +188,88 @@ async function Service() {
               ))}
             </ul>
           )}
+          <Crashes crashes={crashes} />
         </div>
       </section>
     </>
+  );
+}
+
+/* What testers sent with "Feedback" in the app, newest first, open ones on top. */
+function FeedbackList({ feedback }: { feedback: Feedback[] }) {
+  const open = feedback.filter((entry) => !entry.done).length;
+  return (
+    <section className="mt-12">
+      <h2 className="font-display text-2xl font-semibold text-gold-soft">
+        Feedback aus der App <span className="text-cream/50">({open} offen)</span>
+      </h2>
+      <p className="mt-1 text-sm text-cream/60">
+        Was Testerinnen und Tester mit „Feedback“ in der App schicken, mit einem Bildschirmfoto der Seite, auf der sie
+        waren.
+      </p>
+      {feedback.length === 0 ? (
+        <p className="mt-4 text-cream/55">Noch kein Feedback.</p>
+      ) : (
+        <ul className="mt-4 divide-y divide-gold/10 border-y border-gold/10">
+          {feedback.map((entry) => (
+            <li key={entry.id} className={`flex flex-wrap gap-5 py-4 ${entry.done ? "opacity-55" : ""}`}>
+              {entry.hasScreenshot && (
+                <a href={`/admin/service/feedback/${entry.id}`} target="_blank" rel="noreferrer" className="shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- private, owner-only image */}
+                  <img
+                    src={`/admin/service/feedback/${entry.id}`}
+                    alt="Bildschirmfoto"
+                    loading="lazy"
+                    className="h-40 w-auto border border-gold/20"
+                  />
+                </a>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-cream/55">
+                  {new Date(entry.createdAt).toLocaleString("de-DE", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                    timeZone: "Europe/Berlin",
+                  })}{" "}
+                  · {entry.userName || "?"} · {entry.screen} · App {entry.appVersion} · {entry.device}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-cream">{entry.message || "(nur Bildschirmfoto)"}</p>
+                <form action={feedbackDone} className="mt-2">
+                  <input type="hidden" name="id" value={entry.id} />
+                  <input type="hidden" name="done" value={entry.done ? "0" : "1"} />
+                  <button className="rounded-full border border-cream/30 px-3 py-1 text-xs font-semibold text-cream hover:border-gold">
+                    {entry.done ? "Wieder offen" : "Erledigt"}
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/* The app's latest crashes (also emailed like website errors). */
+function Crashes({ crashes }: { crashes: Crash[] }) {
+  if (crashes.length === 0) return null;
+  return (
+    <details className="mt-8 text-sm">
+      <summary className="cursor-pointer text-cream/70">App-Abstürze ({crashes.length})</summary>
+      <ul className="mt-3 space-y-3">
+        {crashes.map((crash) => (
+          <li key={crash.id} className="border border-gold/15 p-3">
+            <p className="text-xs text-cream/55">
+              {new Date(crash.createdAt).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })} · App{" "}
+              {crash.appVersion} · {crash.device} · Android {crash.android}
+            </p>
+            <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-xs text-cream/80">
+              {crash.trace.slice(0, 2000)}
+            </pre>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 

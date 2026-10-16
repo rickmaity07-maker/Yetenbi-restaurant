@@ -10,3 +10,9 @@ export const ONLINE_ORDERING = false;
   again (Google + email), no app update needed.
 */
 export const APP_LOGIN = false;
+
+/*
+  "Feedback" button in the service app (with a screenshot of the screen), for the client's test. What testers send
+  appears in /admin/service. Set to false and deploy to hide the button; no app update needed.
+*/
+export const APP_FEEDBACK = true;
