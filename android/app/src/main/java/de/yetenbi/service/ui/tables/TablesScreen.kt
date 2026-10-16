@@ -31,10 +31,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import java.time.Instant
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,6 +74,14 @@ fun TablesScreen(state: UiState, vm: AppViewModel) {
     val compact = LocalCompact.current
     val tables = state.tables
     val taken = tables.count { state.checkFor(it.id) != null }
+    // The timers on the tiles move on every half minute.
+    var now by remember { mutableStateOf(Instant.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30_000)
+            now = Instant.now()
+        }
+    }
     LazyVerticalGrid(
         columns = if (compact) GridCells.Fixed(2) else GridCells.Adaptive(240.dp),
         contentPadding = PaddingValues(if (compact) 14.dp else 28.dp),
@@ -91,12 +103,27 @@ fun TablesScreen(state: UiState, vm: AppViewModel) {
                     Legend(Yt.Sand.copy(alpha = 0.5f), strings.tables.legendFree)
                     Legend(Yt.Gold, strings.tables.legendBusy)
                     Legend(Yt.Ready, strings.tables.legendReady)
+                    Spacer(Modifier.weight(1f))
+                    // Who is serving on this device; tap to hand it to the next waiter (PIN).
+                    Surface(onClick = { vm.openStaff(true) }, shape = CircleShape, color = Yt.Ember, modifier = Modifier.testTag("who")) {
+                        Text("${strings.staff.switch} · ${state.user?.name.orEmpty()}", style = MaterialTheme.typography.labelMedium.copy(letterSpacing = MaterialTheme.typography.bodySmall.letterSpacing), color = Yt.GoldSoft, maxLines = 1, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                    }
                 }
             }
         }
-        items(tables, key = { it.id }) { table -> TableTile(table, state.checkFor(table.id), onClick = { vm.tapTable(table) }) }
+        // Tables grouped by area ("Innen", "Terrasse"), in the order of the plan; one plain group when there are none.
+        val areas = tables.groupBy { it.area }
+        areas.forEach { (area, group) ->
+            if (areas.size > 1) item(key = "area-$area", span = { GridItemSpan(maxLineSpan) }) {
+                Eyebrow(area.ifBlank { strings.tables.noArea }, Modifier.padding(top = 6.dp))
+            }
+            items(group, key = { it.id }) { table -> TableTile(table, state.checkFor(table.id), now, onClick = { vm.tapTable(table) }) }
+        }
     }
 }
+
+/* Minutes since the last order after which a table with nothing cooking or waiting counts as forgotten. */
+private const val FORGOTTEN_MINUTES = 25L
 
 @Composable
 private fun Legend(color: Color, label: String) {
@@ -108,10 +135,13 @@ private fun Legend(color: Color, label: String) {
 }
 
 @Composable
-fun TableTile(table: DiningTable, check: Check?, onClick: () -> Unit) {
+fun TableTile(table: DiningTable, check: Check?, now: Instant, onClick: () -> Unit) {
     val strings = LocalStrings.current
     val compact = LocalCompact.current
     val tableState = stateOf(check)
+    val sinceOrder = check?.let { Times.minutesSince(it.lastOrderAt, now) } ?: 0
+    // Nothing cooking, nothing at the pass, nothing waiting, and no order for a while: someone should look.
+    val forgotten = check != null && check.readyCount == 0 && check.cookingCount == 0 && check.heldCount == 0 && sinceOrder >= FORGOTTEN_MINUTES
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(22.dp),
@@ -120,7 +150,7 @@ fun TableTile(table: DiningTable, check: Check?, onClick: () -> Unit) {
             if (tableState == TableState.Free) 1.dp else 1.5.dp,
             when (tableState) {
                 TableState.Free -> Yt.Line
-                TableState.Taken -> Yt.Gold.copy(alpha = 0.55f)
+                TableState.Taken -> if (forgotten) Yt.Coral else Yt.Gold.copy(alpha = 0.55f)
                 TableState.Ready -> Yt.Ready
             },
         ),
@@ -144,13 +174,19 @@ fun TableTile(table: DiningTable, check: Check?, onClick: () -> Unit) {
                     Text(strings.common.guests(check.guests), style = MaterialTheme.typography.titleMedium, color = Yt.Cream, modifier = Modifier.weight(1f), maxLines = 1)
                     MoneyText(check.totalCents, color = Yt.GoldSoft, fontSize = if (compact) MaterialTheme.typography.titleMedium.fontSize else MaterialTheme.typography.titleLarge.fontSize)
                 }
+                Text(
+                    "${strings.tables.seated(Times.minutesSince(check.openedAt, now))} · ${strings.tables.lastOrder(sinceOrder)}",
+                    style = MaterialTheme.typography.bodySmall, color = if (forgotten) Yt.Coral else Yt.Sand, maxLines = 2,
+                )
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     when {
                         check.readyCount > 0 -> Tag(Icons.Rounded.NotificationsActive, strings.tables.ready(check.readyCount), Yt.Ready, Yt.Ink)
                         check.cookingCount > 0 -> Tag(Icons.Rounded.SoupKitchen, strings.tables.cooking(check.cookingCount), Yt.Ember, Yt.GoldSoft)
-                        else -> Tag(Icons.Rounded.Schedule, strings.common.minutes(Times.minutesSince(check.openedAt)), Yt.Ember, Yt.Sand)
+                        forgotten -> Tag(Icons.Rounded.Schedule, strings.tables.forgotten, Yt.Coral, Yt.Ink)
+                        else -> Tag(Icons.Rounded.Schedule, strings.common.minutes(sinceOrder), Yt.Ember, Yt.Sand)
                     }
+                    if (check.heldCount > 0) Tag(Icons.Rounded.Schedule, strings.tables.held(check.heldCount), Yt.Ember, Yt.Sand)
                 }
             }
         }

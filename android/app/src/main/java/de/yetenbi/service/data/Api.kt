@@ -83,7 +83,8 @@ class Api(baseUrl: String, private val tokenProvider: () -> String?, client: OkH
 
     /* ---------- Checks ---------- */
 
-    suspend fun openChecks(): List<Check> = get<CheckList>("/api/app/checks").checks
+    /* The open checks, with the stamp that changes when the menu or the tables do. */
+    suspend fun openChecks(): CheckList = get("/api/app/checks")
     suspend fun closedChecks(date: String): CheckList = get("/api/app/checks?closed=$date")
     suspend fun check(id: Long): Check = get("/api/app/checks/$id")
 
@@ -97,12 +98,27 @@ class Api(baseUrl: String, private val tokenProvider: () -> String?, client: OkH
             tableId?.let { put("tableId", it) }
         })
 
-    suspend fun sendRound(id: Long, lines: List<RoundLine>): Check =
+    /* key: the same for every attempt at this round, so a retry after a dropped connection is booked once. */
+    suspend fun sendRound(id: Long, lines: List<RoundLine>, key: String): Check =
         send("POST", "/api/app/checks/$id/round", buildJsonObject {
+            put("key", key)
             put("items", buildJsonArray {
-                lines.forEach { line -> add(buildJsonObject { put("itemId", line.dish.id); put("qty", line.qty); put("note", line.note) }) }
+                lines.forEach { line ->
+                    add(buildJsonObject {
+                        put("itemId", line.dish.id); put("qty", line.qty); put("note", line.note)
+                        line.seat?.let { put("seat", it) }
+                        if (line.hold) put("hold", true)
+                    })
+                }
             })
         })
+
+    /* "Abrufen": the dishes waiting as "later" go to the kitchen. */
+    suspend fun fire(id: Long): Check = send("POST", "/api/app/checks/$id/fire")
+
+    /* Two tables pushed together: the other check moves onto this one. */
+    suspend fun merge(id: Long, fromId: Long): Check =
+        send("POST", "/api/app/checks/$id/merge", buildJsonObject { put("from", fromId) })
 
     suspend fun serveItem(id: Long, itemId: Long): Check =
         send("PATCH", "/api/app/checks/$id/items/$itemId", buildJsonObject { put("action", "serve") })
@@ -112,11 +128,21 @@ class Api(baseUrl: String, private val tokenProvider: () -> String?, client: OkH
 
     suspend fun serveReady(id: Long): Check = send("POST", "/api/app/checks/$id/serve")
 
-    suspend fun pay(id: Long, method: PayMethod, expectedCents: Int, tipCents: Int, givenCents: Int?): Check =
+    /*
+      Takes one payment: the whole rest, or one part of a split bill. dueCents is what the screen showed as still to pay;
+      if the bill changed meanwhile the server answers "total_changed". key makes a repeat harmless.
+    */
+    suspend fun pay(id: Long, method: PayMethod, part: PayPart, dueCents: Int, tipCents: Int, givenCents: Int?, key: String): Check =
         send("POST", "/api/app/checks/$id/pay", buildJsonObject {
             put("method", method.wire)
-            put("expected", expectedCents / 100.0)
+            put("amount", part.amountCents / 100.0)
+            put("due", dueCents / 100.0)
             put("tip", tipCents / 100.0)
+            put("key", key)
+            if (part.label.isNotBlank()) put("label", part.label)
+            if (part.lines.isNotEmpty()) put("items", buildJsonArray {
+                part.lines.forEach { (itemId, qty) -> add(buildJsonObject { put("id", itemId); put("qty", qty) }) }
+            })
             givenCents?.let { put("given", it / 100.0) }
         })
 
@@ -124,6 +150,27 @@ class Api(baseUrl: String, private val tokenProvider: () -> String?, client: OkH
         send("POST", "/api/app/checks/$id/void", buildJsonObject { put("reason", reason) })
 
     suspend fun reopen(id: Long): Check = send("POST", "/api/app/checks/$id/reopen")
+
+    /* ---------- Staff switching, feedback, crashes ---------- */
+
+    /* Who can take over this device with a PIN. */
+    suspend fun staff(): List<StaffMember> = get<StaffList>("/api/app/staff").staff
+
+    suspend fun loginPin(userId: Long, pin: String): LoginResponse =
+        json.decodeFromString(raw("POST", "/api/app/login/pin", buildJsonObject { put("userId", userId); put("pin", pin) }))
+
+    suspend fun feedback(message: String, screen: String, screenshotJpegBase64: String?, appVersion: String, device: String) {
+        raw("POST", "/api/app/feedback", buildJsonObject {
+            put("message", message); put("screen", screen); put("appVersion", appVersion); put("device", device)
+            screenshotJpegBase64?.let { put("screenshot", it) }
+        })
+    }
+
+    suspend fun crash(trace: String, appVersion: String, device: String, android: String) {
+        raw("POST", "/api/app/crash", buildJsonObject {
+            put("trace", trace); put("appVersion", appVersion); put("device", device); put("android", android)
+        }, auth = false)
+    }
 
     /* ---------- Updates ---------- */
 

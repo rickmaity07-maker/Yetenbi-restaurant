@@ -13,6 +13,8 @@ data class Strings(
     val pay: Pay,
     val today: Today,
     val settings: Settings,
+    val staff: Staff,
+    val feedback: FeedbackCopy,
     val alerts: Alerts,
     val update: Update,
     val errors: Map<String, String>,
@@ -23,7 +25,7 @@ data class Strings(
         val cancel: String, val save: String, val back: String, val retry: String, val undo: String, val offline: String,
         val guests: (Int) -> String, val minutes: (Long) -> String, val since: (String) -> String, val total: String,
     )
-    data class Nav(val tables: String, val today: String, val settings: String)
+    data class Nav(val tables: String, val today: String, val settings: String, val feedback: String)
     data class Login(
         val title: String, val lead: String, val email: String, val password: String, val submit: String, val busy: String,
         val google: String, val or: String, val version: (String) -> String,
@@ -31,33 +33,49 @@ data class Strings(
     data class Tables(
         val title: String, val occupied: (Int, Int) -> String, val free: String, val cooking: (Int) -> String, val ready: (Int) -> String,
         val openTitle: (String) -> String, val openHint: String, val open: String, val legendFree: String, val legendBusy: String,
-        val legendReady: String, val seats: (Int) -> String,
+        val legendReady: String, val seats: (Int) -> String, val seated: (Long) -> String, val lastOrder: (Long) -> String,
+        val forgotten: String, val held: (Int) -> String, val noArea: String,
     )
     data class CheckCopy(
         val table: (String) -> String, val bill: String, val menu: String, val newRound: String, val sendKitchen: (Int) -> String,
         val book: (Int) -> String, val emptyBill: String, val emptyBillHint: String, val emptyRound: String, val round: (Int, String) -> String,
-        val statusSent: String, val statusReady: String, val statusServed: String, val statusVoid: String, val atPass: String,
+        val statusHeld: String, val statusSent: String, val statusReady: String, val statusServed: String, val statusVoid: String, val atPass: String,
         val allServed: String, val served: String, val voidItem: String, val voidReason: String, val voidReasons: List<String>,
         val noteTitle: String, val notePlaceholder: String, val noteSuggestions: List<String>, val addNote: String,
         val moveTable: String, val moveHint: String, val changeGuests: String, val voidCheck: String, val voidCheckHint: String,
         val payButton: (String) -> String, val perPerson: (String) -> String, val soldOut: String, val all: String,
         val sentToKitchen: (String) -> String, val booked: String, val by: (String) -> String, val vegan: String, val spicy: String,
+        val search: String, val popular: String, val noMatch: String, val seatFor: String, val seatTable: String, val seat: (Int) -> String,
+        val later: String, val laterHint: String, val fire: (Int) -> String, val fired: String, val mergeTable: String, val mergeHint: String,
+        val noOtherTables: String, val paid: String, val paidSoFar: (String) -> String, val stillDue: String,
+        val unsent: String, val unsentHint: String, val sendAgain: String, val discard: String, val roundLocked: String,
     )
     data class Pay(
         val title: (String) -> String, val method: String, val cash: String, val card: String, val tip: String, val noTip: String,
         val roundUp: String, val custom: String, val given: String, val exact: String, val change: (String) -> String,
         val toPay: String, val confirm: (String) -> String, val tooLittle: String, val paid: (String, String) -> String,
+        val whole: String, val bySeat: String, val byItem: String, val equal: String, val shares: (Int) -> String,
+        val share: (Int, Int) -> String, val seatLabel: (Int) -> String, val pickItems: String, val pickSeat: String, val nothingPicked: String,
+        val partPaid: (String, String) -> String, val receipt: String, val receiptHint: String, val shareLink: String, val done: String,
+        val showReceipt: String,
     )
     data class Today(
         val title: String, val revenue: String, val cash: String, val card: String, val tips: String, val checks: (Int) -> String,
-        val empty: String, val emptyHint: String, val paidCash: String, val paidCard: String, val voided: String, val reopen: String,
-        val previous: String, val next: String,
+        val empty: String, val emptyHint: String, val paidCash: String, val paidCard: String, val paidMixed: String, val voided: String,
+        val reopen: String, val previous: String, val next: String,
     )
     data class Settings(
         val title: String, val signedInAs: String, val language: String, val bell: String, val bellHint: String,
         val version: (String) -> String, val checkUpdates: String, val signOut: String, val server: String,
+        val background: String, val backgroundHint: String, val battery: String, val batteryHint: String, val batteryOk: String,
     )
-    data class Alerts(val channel: String, val ready: (String) -> String)
+    data class Staff(val switch: String, val title: String, val hint: String, val none: String, val pin: (String) -> String, val now: (String) -> String)
+    data class FeedbackCopy(
+        val title: String, val hint: String, val placeholder: String, val screenshot: String, val send: String, val thanks: String,
+    )
+    data class Alerts(
+        val channel: String, val ready: (String) -> String, val serviceChannel: String, val serviceTitle: String, val serviceText: String,
+    )
     data class Update(
         val channel: String, val available: (String) -> String, val current: (String) -> String, val whatsNew: String,
         val install: String, val later: String, val tapToInstall: String, val mandatoryTitle: String, val mandatoryBody: String,
@@ -73,7 +91,7 @@ private val de = Strings(
         offline = "Keine Verbindung – Änderungen werden nicht gespeichert",
         guests = { if (it == 1) "1 Gast" else "$it Gäste" }, minutes = { "$it Min." }, since = { "seit $it" }, total = "Summe",
     ),
-    nav = Strings.Nav(tables = "Tische", today = "Heute", settings = "Einstellungen"),
+    nav = Strings.Nav(tables = "Tische", today = "Heute", settings = "Einstellungen", feedback = "Feedback"),
     login = Strings.Login(
         title = "Service", lead = "Mit deinem Yetenbi-Konto anmelden – derselbe Login wie auf der Website.",
         email = "E-Mail", password = "Passwort", submit = "Anmelden", busy = "Melde an …",
@@ -84,13 +102,16 @@ private val de = Strings(
         cooking = { "$it in der Küche" }, ready = { "$it fertig!" },
         openTitle = { "Tisch $it öffnen" }, openHint = "Wie viele Gäste?", open = "Tisch öffnen",
         legendFree = "Frei", legendBusy = "Besetzt", legendReady = "Essen fertig", seats = { "$it Plätze" },
+        seated = { "da seit $it Min." }, lastOrder = { "letzte Bestellung vor $it Min." },
+        forgotten = "Lange nichts bestellt", held = { "$it später" }, noArea = "Tische",
     ),
     check = Strings.CheckCopy(
         table = { "Tisch $it" }, bill = "Rechnung", menu = "Speisekarte", newRound = "Neue Bestellung",
         sendKitchen = { "An die Küche · $it" }, book = { "Buchen · $it" },
         emptyBill = "Noch nichts bestellt", emptyBillHint = "Gerichte aus der Speisekarte antippen, dann an die Küche schicken.",
         emptyRound = "Gerichte antippen, um sie hinzuzufügen.", round = { n, time -> "Gang $n · $time" },
-        statusSent = "In der Küche", statusReady = "Fertig – abholen", statusServed = "Serviert", statusVoid = "Storniert",
+        statusHeld = "Später – noch nicht in der Küche", statusSent = "In der Küche", statusReady = "Fertig – abholen",
+        statusServed = "Serviert", statusVoid = "Storniert",
         atPass = "Am Pass – bitte abholen", allServed = "Alles serviert", served = "Serviert", voidItem = "Stornieren",
         voidReason = "Grund", voidReasons = listOf("Falsch eingegeben", "Gast hat abbestellt", "Reklamation", "Aufs Haus"),
         noteTitle = "Wunsch für die Küche", notePlaceholder = "z. B. ohne Zwiebeln",
@@ -99,24 +120,56 @@ private val de = Strings(
         voidCheck = "Tisch stornieren", voidCheckHint = "Der Tisch wird ohne Zahlung frei. Offene Beträge darf nur die Verwaltung stornieren.",
         payButton = { "Kassieren · $it" }, perPerson = { "$it pro Person" }, soldOut = "Aus", all = "Alle",
         sentToKitchen = { "An die Küche: $it" }, booked = "Gebucht", by = { "von $it" }, vegan = "vegan", spicy = "scharf",
+        search = "Gericht suchen", popular = "Beliebt", noMatch = "Kein Gericht gefunden.",
+        seatFor = "Für", seatTable = "Tisch", seat = { "P$it" },
+        later = "Später", laterHint = "„Später“: kommt erst in die Küche, wenn du den Gang abrufst.",
+        fire = { "Später-Gang abrufen · $it" }, fired = "Später-Gang ist an die Küche gegangen.",
+        mergeTable = "Tisch dazunehmen", mergeHint = "Welcher Tisch kommt dazu? Seine Bestellungen werden hier angehängt, er wird frei.",
+        noOtherTables = "Kein anderer Tisch ist besetzt.", paid = "Bezahlt", paidSoFar = { "Schon bezahlt: $it" }, stillDue = "Noch offen",
+        unsent = "Senden nicht bestätigt", unsentHint = "Die Verbindung war weg. Nochmal senden ist sicher – die Küche bekommt es nur einmal.",
+        sendAgain = "Nochmal senden", discard = "Verwerfen", roundLocked = "Erst nochmal senden oder verwerfen.",
     ),
     pay = Strings.Pay(
         title = { "Tisch $it kassieren" }, method = "Zahlart", cash = "Bar", card = "Karte", tip = "Trinkgeld", noTip = "Kein",
         roundUp = "Aufrunden", custom = "Betrag", given = "Gegeben", exact = "Passend", change = { "Rückgeld $it" },
         toPay = "Zu zahlen", confirm = { "$it kassiert" }, tooLittle = "Zu wenig gegeben",
         paid = { table, amount -> "Tisch $table bezahlt · $amount" },
+        whole = "Alles", bySeat = "Nach Platz", byItem = "Positionen", equal = "Gleich teilen",
+        shares = { "durch $it" }, share = { i, n -> "$i/$n" }, seatLabel = { "Platz $it" },
+        pickItems = "Was zahlt dieser Gast?", pickSeat = "Welcher Platz zahlt?", nothingPicked = "Bitte etwas auswählen.",
+        partPaid = { amount, rest -> "$amount bezahlt · noch offen $rest" },
+        receipt = "Rechnung für den Gast", receiptHint = "Der Gast scannt den Code und hat die Rechnung auf dem Handy.",
+        shareLink = "Link teilen", done = "Fertig", showReceipt = "QR-Rechnung",
     ),
     today = Strings.Today(
         title = "Heute", revenue = "Umsatz", cash = "Bar", card = "Karte", tips = "Trinkgeld", checks = { "$it Rechnungen" },
         empty = "Noch keine Rechnung", emptyHint = "Bezahlte Tische erscheinen hier.", paidCash = "bar", paidCard = "Karte",
-        voided = "storniert", reopen = "Wieder öffnen", previous = "Vortag", next = "Nächster Tag",
+        paidMixed = "bar + Karte", voided = "storniert", reopen = "Wieder öffnen", previous = "Vortag", next = "Nächster Tag",
     ),
     settings = Strings.Settings(
         title = "Einstellungen", signedInAs = "Angemeldet als", language = "Sprache", bell = "Klingel bei „Essen fertig“",
         bellHint = "Ton und Benachrichtigung, sobald die Küche ein Gericht fertig meldet.",
         version = { "Version $it" }, checkUpdates = "Nach Updates suchen", signOut = "Abmelden", server = "Server",
+        background = "Auch bei geschlossener App klingeln",
+        backgroundHint = "Eine kleine Meldung „Service aktiv“ bleibt sichtbar, damit Android die App nicht schlafen legt.",
+        battery = "Immer im Hintergrund erlauben",
+        batteryHint = "Sonst kann Android die Klingel im Ruhemodus verzögern. Einmal erlauben genügt.",
+        batteryOk = "Läuft immer im Hintergrund",
     ),
-    alerts = Strings.Alerts(channel = "Essen fertig", ready = { "Tisch $it: Essen fertig" }),
+    staff = Strings.Staff(
+        switch = "Wer bedient?", title = "Wer bedient?", hint = "Namen antippen und PIN eingeben. Bestellungen laufen dann unter diesem Namen.",
+        none = "Noch keine PINs. Die Verwaltung setzt sie auf der Website unter Team → App-PIN.",
+        pin = { "PIN für $it" }, now = { "Jetzt bedient: $it" },
+    ),
+    feedback = Strings.FeedbackCopy(
+        title = "Feedback senden", hint = "Was ist dir aufgefallen? Was fehlt, was stört, was ist gut?",
+        placeholder = "Deine Nachricht …", screenshot = "Bild dieser Seite mitsenden", send = "Senden",
+        thanks = "Danke! Dein Feedback ist angekommen.",
+    ),
+    alerts = Strings.Alerts(
+        channel = "Essen fertig", ready = { "Tisch $it: Essen fertig" },
+        serviceChannel = "Service aktiv", serviceTitle = "Yetenbi Service aktiv", serviceText = "Klingelt, sobald die Küche Essen fertig meldet.",
+    ),
     update = Strings.Update(
         channel = "App-Updates", available = { "Update $it verfügbar" }, current = { "Installiert: $it" }, whatsNew = "Neu",
         install = "Installieren", later = "Später", tapToInstall = "Tippen, um zu installieren.",
@@ -150,6 +203,12 @@ private val de = Strings(
         "owner_only" to "Nur für die Verwaltung.",
         "guests_invalid" to "Bitte 1 bis 40 Gäste.",
         "total_changed" to "Die Rechnung wurde gerade geändert. Bitte Summe prüfen und nochmal kassieren.",
+        "check_has_payments" to "Dieser Tisch ist schon teilweise bezahlt.",
+        "item_paid" to "Schon bezahlt – kann nicht mehr storniert werden.",
+        "amount_invalid" to "Dieser Betrag passt nicht zur offenen Rechnung.",
+        "merge_same" to "Bitte einen anderen Tisch wählen.",
+        "pin_wrong" to "PIN stimmt nicht.",
+        "feedback_empty" to "Bitte etwas schreiben.",
     ),
 )
 
@@ -160,7 +219,7 @@ private val en = Strings(
         offline = "No connection – changes are not saved",
         guests = { if (it == 1) "1 guest" else "$it guests" }, minutes = { "$it min" }, since = { "since $it" }, total = "Total",
     ),
-    nav = Strings.Nav(tables = "Tables", today = "Today", settings = "Settings"),
+    nav = Strings.Nav(tables = "Tables", today = "Today", settings = "Settings", feedback = "Feedback"),
     login = Strings.Login(
         title = "Service", lead = "Sign in with your Yetenbi account – the same login as on the website.",
         email = "Email", password = "Password", submit = "Sign in", busy = "Signing in …",
@@ -171,13 +230,16 @@ private val en = Strings(
         cooking = { "$it cooking" }, ready = { "$it ready!" },
         openTitle = { "Open table $it" }, openHint = "How many guests?", open = "Open table",
         legendFree = "Free", legendBusy = "Taken", legendReady = "Food ready", seats = { "$it seats" },
+        seated = { "seated $it min" }, lastOrder = { "last order $it min ago" },
+        forgotten = "Nothing ordered for a while", held = { "$it later" }, noArea = "Tables",
     ),
     check = Strings.CheckCopy(
         table = { "Table $it" }, bill = "Bill", menu = "Menu", newRound = "New order",
         sendKitchen = { "Send to kitchen · $it" }, book = { "Book · $it" },
         emptyBill = "Nothing ordered yet", emptyBillHint = "Tap dishes on the menu, then send them to the kitchen.",
         emptyRound = "Tap dishes to add them.", round = { n, time -> "Course $n · $time" },
-        statusSent = "Cooking", statusReady = "Ready – pick up", statusServed = "Served", statusVoid = "Voided",
+        statusHeld = "Later – not in the kitchen yet", statusSent = "Cooking", statusReady = "Ready – pick up",
+        statusServed = "Served", statusVoid = "Voided",
         atPass = "At the pass – please pick up", allServed = "All served", served = "Served", voidItem = "Void",
         voidReason = "Reason", voidReasons = listOf("Entered by mistake", "Guest cancelled", "Complaint", "On the house"),
         noteTitle = "Note for the kitchen", notePlaceholder = "e.g. no onions",
@@ -186,24 +248,56 @@ private val en = Strings(
         voidCheck = "Void table", voidCheckHint = "Frees the table without payment. Only managers may void amounts still owed.",
         payButton = { "Take payment · $it" }, perPerson = { "$it per person" }, soldOut = "Out", all = "All",
         sentToKitchen = { "To the kitchen: $it" }, booked = "Booked", by = { "by $it" }, vegan = "vegan", spicy = "spicy",
+        search = "Search dishes", popular = "Popular", noMatch = "No dish found.",
+        seatFor = "For", seatTable = "Table", seat = { "S$it" },
+        later = "Later", laterHint = "“Later”: goes to the kitchen only when you call the course.",
+        fire = { "Call later course · $it" }, fired = "The later course went to the kitchen.",
+        mergeTable = "Join a table", mergeHint = "Which table joins this one? Its orders move here and it becomes free.",
+        noOtherTables = "No other table is taken.", paid = "Paid", paidSoFar = { "Paid so far: $it" }, stillDue = "Still due",
+        unsent = "Not confirmed", unsentHint = "The connection dropped. Sending again is safe – the kitchen gets it only once.",
+        sendAgain = "Send again", discard = "Discard", roundLocked = "Send again or discard first.",
     ),
     pay = Strings.Pay(
         title = { "Table $it – payment" }, method = "Method", cash = "Cash", card = "Card", tip = "Tip", noTip = "None",
         roundUp = "Round up", custom = "Amount", given = "Given", exact = "Exact", change = { "Change $it" },
         toPay = "To pay", confirm = { "$it received" }, tooLittle = "Not enough given",
         paid = { table, amount -> "Table $table paid · $amount" },
+        whole = "All", bySeat = "By seat", byItem = "Items", equal = "Split evenly",
+        shares = { "by $it" }, share = { i, n -> "$i/$n" }, seatLabel = { "Seat $it" },
+        pickItems = "What does this guest pay?", pickSeat = "Which seat pays?", nothingPicked = "Please pick something.",
+        partPaid = { amount, rest -> "$amount paid · $rest still due" },
+        receipt = "Bill for the guest", receiptHint = "The guest scans the code and has the bill on their phone.",
+        shareLink = "Share link", done = "Done", showReceipt = "QR bill",
     ),
     today = Strings.Today(
         title = "Today", revenue = "Revenue", cash = "Cash", card = "Card", tips = "Tips", checks = { "$it bills" },
         empty = "No bills yet", emptyHint = "Paid tables appear here.", paidCash = "cash", paidCard = "card",
-        voided = "voided", reopen = "Reopen", previous = "Previous day", next = "Next day",
+        paidMixed = "cash + card", voided = "voided", reopen = "Reopen", previous = "Previous day", next = "Next day",
     ),
     settings = Strings.Settings(
         title = "Settings", signedInAs = "Signed in as", language = "Language", bell = "Ring on “food ready”",
         bellHint = "Sound and notification as soon as the kitchen marks a dish ready.",
         version = { "Version $it" }, checkUpdates = "Check for updates", signOut = "Sign out", server = "Server",
+        background = "Ring with the app closed too",
+        backgroundHint = "A small “Service active” notification stays visible so Android doesn’t put the app to sleep.",
+        battery = "Always allow in background",
+        batteryHint = "Otherwise Android may delay the bell while the phone sleeps. Allowing once is enough.",
+        batteryOk = "Always runs in the background",
     ),
-    alerts = Strings.Alerts(channel = "Food ready", ready = { "Table $it: food ready" }),
+    staff = Strings.Staff(
+        switch = "Who’s serving?", title = "Who’s serving?", hint = "Tap your name and enter your PIN. Orders then go under your name.",
+        none = "No PINs yet. A manager sets them on the website under Team → App PIN.",
+        pin = { "PIN for $it" }, now = { "Now serving: $it" },
+    ),
+    feedback = Strings.FeedbackCopy(
+        title = "Send feedback", hint = "What did you notice? What’s missing, what’s annoying, what’s good?",
+        placeholder = "Your message …", screenshot = "Include a picture of this screen", send = "Send",
+        thanks = "Thanks! Your feedback has arrived.",
+    ),
+    alerts = Strings.Alerts(
+        channel = "Food ready", ready = { "Table $it: food ready" },
+        serviceChannel = "Service active", serviceTitle = "Yetenbi Service active", serviceText = "Rings as soon as the kitchen marks food ready.",
+    ),
     update = Strings.Update(
         channel = "App updates", available = { "Update $it available" }, current = { "Installed: $it" }, whatsNew = "New",
         install = "Install", later = "Later", tapToInstall = "Tap to install.",
@@ -237,6 +331,12 @@ private val en = Strings(
         "owner_only" to "Managers only.",
         "guests_invalid" to "Please 1 to 40 guests.",
         "total_changed" to "The bill was just changed. Please check the total and take payment again.",
+        "check_has_payments" to "This table is already partly paid.",
+        "item_paid" to "Already paid – it can't be voided any more.",
+        "amount_invalid" to "This amount doesn't match the open bill.",
+        "merge_same" to "Please pick another table.",
+        "pin_wrong" to "Wrong PIN.",
+        "feedback_empty" to "Please write something.",
     ),
 )
 

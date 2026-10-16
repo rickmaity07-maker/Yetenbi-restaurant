@@ -274,7 +274,8 @@ fun BackBar(onBack: () -> Unit, modifier: Modifier = Modifier, trailing: @Compos
 /* − 3 + with thumb-sized buttons, for guests and quantities. */
 @Composable
 fun Stepper(value: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier, min: Int = 1, max: Int = 40, big: Boolean = false, tag: String = "stepper") {
-    val size = if (big) 56.dp else 36.dp
+    // At least 44 dp, so it is easy to hit with a thumb while carrying plates.
+    val size = if (big) 56.dp else 44.dp
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Surface(onClick = { if (value > min) onChange(value - 1) }, enabled = value > min, shape = CircleShape, color = Yt.Ember, contentColor = Yt.Cream, modifier = Modifier.size(size).testTag("$tag-minus")) {
             Box(contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, contentDescription = "−") }

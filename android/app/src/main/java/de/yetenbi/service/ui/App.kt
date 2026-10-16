@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.RateReview
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.TableRestaurant
 import androidx.compose.material3.Icon
@@ -53,6 +54,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.drawToBitmap
+import de.yetenbi.service.ui.check.ReceiptDialog
+import de.yetenbi.service.ui.staff.FeedbackDialog
+import de.yetenbi.service.ui.staff.StaffDialog
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -82,6 +88,10 @@ fun App(vm: AppViewModel) {
     val snackbar = remember { SnackbarHostState() }
     var lastError by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val view = LocalView.current
+    // "Feedback": a picture of the screen is taken first, then the dialog opens over it.
+    var feedbackShot by remember { mutableStateOf<Shot?>(null) }
+    val openFeedback = { feedbackShot = Shot(runCatching { view.rootView.drawToBitmap() }.getOrNull()) }
 
     LaunchedEffect(Unit) {
         vm.notices.collect { notice ->
@@ -102,10 +112,13 @@ fun App(vm: AppViewModel) {
                             onGoogle = { vm.googleStart { uri -> context.startActivity(Intent(Intent.ACTION_VIEW, uri)) } },
                             onLanguage = vm::setLanguage,
                         )
-                        Phase.SignedIn -> Shell(state, vm)
+                        Phase.SignedIn -> Shell(state, vm, openFeedback)
                     }
                 }
                 state.opening?.let { table -> OpenTableDialog(table, onOpen = { vm.openTable(table, it) }, onDismiss = vm::cancelOpening) }
+                state.receiptFor?.let { check -> ReceiptDialog(check, vm.receiptUrl(check), onDismiss = { vm.showReceipt(null) }) }
+                if (state.staffOpen) StaffDialog(state.staff, vm::loadStaff, vm::switchTo, onDismiss = { vm.openStaff(false) })
+                feedbackShot?.let { shot -> FeedbackDialog(shot.bitmap, vm::sendFeedback, onDismiss = { feedbackShot = null }) }
                 // Updates sit above every screen, sign-in included: a mandatory one must be installable before anyone logs in.
                 if (state.phase != Phase.Loading) UpdateLayer(state, vm)
                 SnackbarHost(snackbar, Modifier.align(Alignment.TopCenter).padding(top = if (compact) 64.dp else 24.dp).testTag("snackbar")) { data ->
@@ -127,9 +140,12 @@ fun App(vm: AppViewModel) {
   Phone: the screen on top, the same destinations in a bar along the bottom (hidden while a table is open).
 */
 @Composable
-private fun Shell(state: UiState, vm: AppViewModel) {
-    if (LocalCompact.current) PhoneShell(state, vm) else TabletShell(state, vm)
+private fun Shell(state: UiState, vm: AppViewModel, onFeedback: () -> Unit) {
+    if (LocalCompact.current) PhoneShell(state, vm, onFeedback) else TabletShell(state, vm, onFeedback)
 }
+
+/* The screenshot taken for "Feedback" (null when it could not be taken). */
+private class Shot(val bitmap: android.graphics.Bitmap?)
 
 @Composable
 private fun CurrentScreen(state: UiState, vm: AppViewModel) {
@@ -151,7 +167,7 @@ private fun BusyLine(state: UiState) {
 private fun readyTables(state: UiState) = state.checks.count { it.readyCount > 0 }
 
 @Composable
-private fun PhoneShell(state: UiState, vm: AppViewModel) {
+private fun PhoneShell(state: UiState, vm: AppViewModel, onFeedback: () -> Unit) {
     val strings = LocalStrings.current
     val inCheck = state.screen == Screen.Tables && state.selectedId != null
     BackHandler(enabled = state.screen != Screen.Tables) { vm.go(Screen.Tables) }
@@ -165,6 +181,7 @@ private fun PhoneShell(state: UiState, vm: AppViewModel) {
             Row(Modifier.fillMaxWidth().background(Yt.Ink).navigationBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp)) {
                 BarItem(Icons.Rounded.TableRestaurant, strings.nav.tables, state.screen == Screen.Tables, badge = readyTables(state).takeIf { it > 0 }, tag = "nav-tables") { vm.go(Screen.Tables) }
                 BarItem(Icons.Rounded.Insights, strings.nav.today, state.screen == Screen.Today, tag = "nav-today") { vm.go(Screen.Today) }
+                if (state.boot?.features?.feedback == true) BarItem(Icons.Rounded.RateReview, strings.nav.feedback, false, tag = "nav-feedback") { onFeedback() }
                 BarItem(Icons.Rounded.Settings, strings.nav.settings, state.screen == Screen.Settings, tag = "nav-settings") { vm.go(Screen.Settings) }
             }
         }
@@ -199,7 +216,7 @@ private fun Badge(count: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TabletShell(state: UiState, vm: AppViewModel) {
+private fun TabletShell(state: UiState, vm: AppViewModel, onFeedback: () -> Unit) {
     val strings = LocalStrings.current
     Row(Modifier.fillMaxSize()) {
         Column(
@@ -213,6 +230,8 @@ private fun TabletShell(state: UiState, vm: AppViewModel) {
             RailItem(Icons.Rounded.TableRestaurant, strings.nav.tables, state.screen == Screen.Tables, badge = readyTables(state).takeIf { it > 0 }, tag = "nav-tables") { vm.go(Screen.Tables); vm.selectCheck(null) }
             RailItem(Icons.Rounded.Insights, strings.nav.today, state.screen == Screen.Today, tag = "nav-today") { vm.go(Screen.Today) }
             Spacer(Modifier.weight(1f))
+            if (state.boot?.features?.feedback == true) RailItem(Icons.Rounded.RateReview, strings.nav.feedback, false, tag = "nav-feedback") { onFeedback() }
+            Spacer(Modifier.height(12.dp))
             Clock()
             Spacer(Modifier.height(16.dp))
             RailItem(Icons.Rounded.Settings, strings.nav.settings, state.screen == Screen.Settings, tag = "nav-settings") { vm.go(Screen.Settings) }

@@ -95,7 +95,12 @@ fun TodayScreen(state: UiState, vm: AppViewModel) {
                     Column(Modifier.weight(1f)) {
                         Text(strings.check.table(check.tableLabel), style = MaterialTheme.typography.titleMedium, color = Yt.Cream)
                         Text(
-                            listOf(strings.common.guests(check.guests), check.closedBy, if (check.status == "void") strings.today.voided else if (check.payment == "cash") strings.today.paidCash else strings.today.paidCard).filter { it.isNotBlank() }.joinToString(" · "),
+                            listOf(strings.common.guests(check.guests), check.closedBy, when {
+                                check.status == "void" -> strings.today.voided
+                                check.payment == "cash" -> strings.today.paidCash
+                                check.payment == "mixed" -> strings.today.paidMixed
+                                else -> strings.today.paidCard
+                            }).filter { it.isNotBlank() }.joinToString(" · "),
                             style = MaterialTheme.typography.bodySmall, color = if (check.status == "void") Yt.Coral else Yt.Sand,
                         )
                     }
@@ -127,7 +132,10 @@ fun TodayScreen(state: UiState, vm: AppViewModel) {
                 }
             },
             confirmButton = {
-                if (state.user?.isOwner == true && check.status == "paid") PillButton(strings.today.reopen, { vm.reopen(check); shown = null }, kind = ButtonKind.Danger, testTag = "reopen")
+                androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (check.receiptToken != null) PillButton(strings.pay.showReceipt, { vm.showReceipt(check); shown = null }, kind = ButtonKind.Secondary, testTag = "show-receipt")
+                    if (state.user?.isOwner == true && check.status == "paid") PillButton(strings.today.reopen, { vm.reopen(check); shown = null }, kind = ButtonKind.Danger, testTag = "reopen")
+                }
             },
             dismissButton = { PillButton(strings.common.back, { shown = null }, kind = ButtonKind.Ghost) },
         )

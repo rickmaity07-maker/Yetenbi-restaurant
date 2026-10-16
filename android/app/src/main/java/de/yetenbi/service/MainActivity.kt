@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import de.yetenbi.service.alerts.AppVisibility
 import de.yetenbi.service.ui.App
 import de.yetenbi.service.ui.AppViewModel
 import de.yetenbi.service.ui.Phase
@@ -36,5 +37,16 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.data?.let(viewModel::googleReturn)
+    }
+
+    // While a screen is showing, the app polls itself and the background service keeps quiet.
+    override fun onStart() {
+        super.onStart()
+        AppVisibility.foreground = true
+    }
+
+    override fun onStop() {
+        AppVisibility.foreground = false
+        super.onStop()
     }
 }

@@ -9,6 +9,10 @@
     <!-- "Food ready at the pass" and "Update available" in the notification bar. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- "Food ready" with the app closed: a small permanent "Service aktiv" notification keeps the check running. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name=".ServiceApp"
@@ -41,6 +45,15 @@
         </activity>
 
         <receiver android:name=".updates.InstallReceiver" android:exported="false" />
+
+        <service
+            android:name=".alerts.AlertService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Restaurant waiters are alerted the moment the kitchen marks a table's food ready." />
+        </service>
 
     </application>
 </manifest>
